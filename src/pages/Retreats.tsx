@@ -8,6 +8,7 @@ import { mockRetreatEvents } from "@/data/mockData";
 import { CalendarDays, MapPin, Leaf } from "lucide-react";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
+import heroRetreats from "@/assets/hero-retreats.jpg";
 
 const locations = ["All Locations", "Kohala Coast", "Kawaihae", "Hilo", "Puna"];
 const types = ["All Types", "Meditation", "Yoga", "Culinary"];
@@ -36,14 +37,19 @@ const Retreats = () => {
   return (
     <main>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-accent py-20 md:py-28">
-        {/* Decorative background */}
-        <div className="absolute inset-0 opacity-10 tapa-texture" />
+      <section className="relative overflow-hidden py-24 md:py-32">
+        {/* Background image */}
+        <img
+          src={heroRetreats}
+          alt="Luxury wellness retreat pavilion overlooking the ocean on Hawaii's Big Island"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-foreground/45" />
         <div className="container relative z-10 text-center">
-          <h1 className="font-display text-4xl font-bold text-accent-foreground md:text-5xl lg:text-6xl">
+          <h1 className="font-display text-4xl font-bold text-primary-foreground md:text-5xl lg:text-6xl">
             Retreats &amp; Immersions
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-accent-foreground/80">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-primary-foreground/85">
             Multi-day transformative experiences on Hawai'i Island — from silent mountain meditation to plant-based culinary resets.
           </p>
         </div>
