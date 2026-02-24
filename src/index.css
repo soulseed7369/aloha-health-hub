@@ -123,3 +123,9 @@
     radial-gradient(circle at 75% 75%, hsl(var(--sand)) 1.5px, transparent 1.5px);
   background-size: 30px 30px;
 }
+
+/* Leaflet custom marker reset */
+.custom-map-marker {
+  background: transparent !important;
+  border: none !important;
+}

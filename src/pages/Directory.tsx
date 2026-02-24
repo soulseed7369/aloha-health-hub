@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProviderCard } from "@/components/ProviderCard";
+import { DirectoryMap } from "@/components/DirectoryMap";
 import { mockProviders } from "@/data/mockData";
-import { MapPin } from "lucide-react";
+import { Map } from "lucide-react";
 
 type FilterType = "all" | "practitioner" | "center" | "retreat";
 
 const Directory = () => {
   const [filter, setFilter] = useState<FilterType>("all");
+  const [showMap, setShowMap] = useState(false);
 
   const filtered = filter === "all"
     ? mockProviders
@@ -17,7 +19,7 @@ const Directory = () => {
     <main className="flex flex-1 flex-col">
       {/* Filter Tabs */}
       <div className="border-b border-border bg-background px-4 py-3">
-        <div className="container">
+        <div className="container flex items-center justify-between">
           <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
@@ -26,13 +28,21 @@ const Directory = () => {
               <TabsTrigger value="retreat">Retreats</TabsTrigger>
             </TabsList>
           </Tabs>
+          {/* Mobile map toggle */}
+          <button
+            onClick={() => setShowMap(!showMap)}
+            className="flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted lg:hidden"
+          >
+            <Map className="h-4 w-4" />
+            {showMap ? "List" : "Map"}
+          </button>
         </div>
       </div>
 
       {/* Split View */}
       <div className="flex flex-1 flex-col lg:flex-row">
-        {/* List */}
-        <div className="flex-1 overflow-y-auto p-4 lg:max-h-[calc(100vh-8rem)] lg:max-w-lg xl:max-w-xl">
+        {/* List — hidden on mobile when map is shown */}
+        <div className={`flex-1 overflow-y-auto p-4 lg:block lg:max-h-[calc(100vh-8rem)] lg:max-w-lg xl:max-w-xl ${showMap ? "hidden" : "block"}`}>
           <p className="mb-4 text-sm text-muted-foreground">
             {filtered.length} results found
           </p>
@@ -43,14 +53,10 @@ const Directory = () => {
           </div>
         </div>
 
-        {/* Map Placeholder */}
-        <div className="hidden flex-1 bg-ocean-light lg:block">
-          <div className="flex h-full items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <MapPin className="mx-auto mb-3 h-12 w-12 opacity-30" />
-              <p className="text-lg font-medium">Interactive Map</p>
-              <p className="text-sm">Map integration ready for Leaflet</p>
-            </div>
+        {/* Map */}
+        <div className={`flex-1 lg:block ${showMap ? "block" : "hidden"}`} style={{ minHeight: showMap ? "calc(100vh - 8rem)" : undefined }}>
+          <div className="sticky top-0 h-[calc(100vh-8rem)]">
+            <DirectoryMap locations={filtered} />
           </div>
         </div>
       </div>
