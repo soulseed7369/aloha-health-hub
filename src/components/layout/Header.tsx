@@ -6,7 +6,7 @@ import { useState } from "react";
 
 const navLinks = [
   { label: "Directory", to: "/directory" },
-  { label: "Retreats & Centers", to: "/directory?tab=retreats" },
+  { label: "Retreats & Immersions", to: "/retreats" },
   { label: "Articles / News", to: "/articles" },
 ];
 

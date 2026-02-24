@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import Index from "./pages/Index";
 import Directory from "./pages/Directory";
+import Retreats from "./pages/Retreats";
 import Articles from "./pages/Articles";
 import ListYourPractice from "./pages/ListYourPractice";
 import ProfileDetail from "./pages/ProfileDetail";
@@ -35,6 +36,7 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/directory" element={<Directory />} />
+                    <Route path="/retreats" element={<Retreats />} />
                     <Route path="/articles" element={<Articles />} />
                     <Route path="/list-your-practice" element={<ListYourPractice />} />
                     <Route path="/profile/:id" element={<ProfileDetail />} />
