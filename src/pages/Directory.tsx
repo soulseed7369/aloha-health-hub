@@ -19,19 +19,19 @@ const Directory = () => {
     <main className="flex flex-1 flex-col">
       {/* Filter Tabs */}
       <div className="border-b border-border bg-background px-4 py-3">
-        <div className="container flex items-center justify-between">
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)}>
-            <TabsList>
+        <div className="container flex items-center gap-2">
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterType)} className="min-w-0 flex-1">
+            <TabsList className="w-full overflow-x-auto">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="practitioner">Practitioners</TabsTrigger>
-              <TabsTrigger value="center">Wellness Centers</TabsTrigger>
+              <TabsTrigger value="center">Centers</TabsTrigger>
               <TabsTrigger value="retreat">Retreats</TabsTrigger>
             </TabsList>
           </Tabs>
           {/* Mobile map toggle */}
           <button
             onClick={() => setShowMap(!showMap)}
-            className="flex items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted lg:hidden"
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-md border border-input px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted lg:hidden"
           >
             <Map className="h-4 w-4" />
             {showMap ? "List" : "Map"}
