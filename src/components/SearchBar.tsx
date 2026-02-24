@@ -22,7 +22,7 @@ export function SearchBar() {
         <p className="mb-8 text-center text-lg text-primary-foreground/85">
           Discover holistic practitioners, retreats & wellness centers across Hawai'i Island
         </p>
-        <div className="mx-auto flex max-w-2xl flex-col gap-3 rounded-xl bg-background/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center">
+        <div className="mx-auto flex max-w-2xl flex-col gap-3 rounded-xl bg-background/70 p-4 shadow-lg backdrop-blur-md sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input

@@ -56,14 +56,16 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile Menu Toggle */}
-        <button
-          className="md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {/* Mobile island selector + menu toggle */}
+        <div className="flex items-center gap-2 md:hidden">
+          <IslandSelector />
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Nav */}
@@ -81,7 +83,6 @@ export function Header() {
               </Link>
             ))}
             <hr className="border-border" />
-            <IslandSelector />
             <Button asChild className="w-full">
               <Link to="/list-your-practice" onClick={() => setMobileOpen(false)}>
                 List Your Practice
