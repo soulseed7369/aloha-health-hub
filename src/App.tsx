@@ -12,7 +12,14 @@ import Articles from "./pages/Articles";
 import ListYourPractice from "./pages/ListYourPractice";
 import ProfileDetail from "./pages/ProfileDetail";
 import Concierge from "./pages/Concierge";
+import RetreatDetail from "./pages/RetreatDetail";
 import NotFound from "./pages/NotFound";
+import { DashboardLayout } from "./components/dashboard/DashboardLayout";
+import DashboardHome from "./pages/dashboard/DashboardHome";
+import DashboardProfile from "./pages/dashboard/DashboardProfile";
+import DashboardCenters from "./pages/dashboard/DashboardCenters";
+import DashboardRetreats from "./pages/dashboard/DashboardRetreats";
+import DashboardSettings from "./pages/dashboard/DashboardSettings";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +33,15 @@ const App = () => (
           {/* Concierge has its own dark layout */}
           <Route path="/concierge" element={<Concierge />} />
 
+          {/* Provider Dashboard */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardHome />} />
+            <Route path="profile" element={<DashboardProfile />} />
+            <Route path="centers" element={<DashboardCenters />} />
+            <Route path="retreats" element={<DashboardRetreats />} />
+            <Route path="settings" element={<DashboardSettings />} />
+          </Route>
+
           {/* All other pages share Header/Footer */}
           <Route
             path="*"
@@ -37,6 +53,7 @@ const App = () => (
                     <Route path="/" element={<Index />} />
                     <Route path="/directory" element={<Directory />} />
                     <Route path="/retreats" element={<Retreats />} />
+                    <Route path="/retreats/:id" element={<RetreatDetail />} />
                     <Route path="/articles" element={<Articles />} />
                     <Route path="/list-your-practice" element={<ListYourPractice />} />
                     <Route path="/profile/:id" element={<ProfileDetail />} />

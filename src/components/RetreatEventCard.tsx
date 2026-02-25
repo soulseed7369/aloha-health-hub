@@ -2,6 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import type { RetreatEvent } from "@/data/mockData";
 
@@ -50,8 +51,8 @@ export function RetreatEventCard({ retreat }: RetreatEventCardProps) {
               From {retreat.price}
             </span>
           )}
-          <Button size="sm" className="ml-auto">
-            View &amp; Book
+          <Button size="sm" className="ml-auto" asChild>
+            <Link to={`/retreats/${retreat.id}`}>View &amp; Book</Link>
           </Button>
         </div>
       </div>
