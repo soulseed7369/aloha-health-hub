@@ -19,6 +19,7 @@ import DashboardHome from "./pages/dashboard/DashboardHome";
 import DashboardProfile from "./pages/dashboard/DashboardProfile";
 import DashboardCenters from "./pages/dashboard/DashboardCenters";
 import DashboardRetreats from "./pages/dashboard/DashboardRetreats";
+import DashboardBilling from "./pages/dashboard/DashboardBilling";
 import DashboardSettings from "./pages/dashboard/DashboardSettings";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="profile" element={<DashboardProfile />} />
             <Route path="centers" element={<DashboardCenters />} />
             <Route path="retreats" element={<DashboardRetreats />} />
+            <Route path="billing" element={<DashboardBilling />} />
             <Route path="settings" element={<DashboardSettings />} />
           </Route>
 

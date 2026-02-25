@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { Home, User, Building, Calendar, Settings, LogOut, Menu, X } from "lucide-react";
+import { Home, User, Building, Calendar, CreditCard, Settings, LogOut, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +8,7 @@ const sidebarLinks = [
   { label: "My Practitioner Profile", to: "/dashboard/profile", icon: User },
   { label: "My Centers & Spas", to: "/dashboard/centers", icon: Building },
   { label: "My Retreats & Events", to: "/dashboard/retreats", icon: Calendar },
+  { label: "Billing & Subscription", to: "/dashboard/billing", icon: CreditCard },
   { label: "Account Settings", to: "/dashboard/settings", icon: Settings },
 ];
 
