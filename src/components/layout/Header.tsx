@@ -56,14 +56,15 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile island selector + menu toggle */}
-        <div className="flex items-center gap-2 md:hidden">
-          <IslandSelector />
+        {/* Mobile: island selector (compact) + menu toggle */}
+        <div className="flex items-center gap-1 md:hidden">
+          <IslandSelector compact />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
+            className="rounded-md p-1.5 transition-colors hover:bg-muted"
           >
-            {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </div>
