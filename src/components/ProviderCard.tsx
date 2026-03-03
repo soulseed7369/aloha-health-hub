@@ -22,18 +22,19 @@ export function ProviderCard({ provider }: ProviderCardProps) {
           <p className="mb-0.5 text-xs font-medium uppercase tracking-wider text-primary">
             {provider.modality}
           </p>
-          <h3 className="mb-1 truncate font-display text-base font-semibold">
+          <h3 className="mb-0.5 truncate font-display text-base font-semibold">
             {provider.name}
           </h3>
+          {provider.businessName && (
+            <p className="mb-1 truncate text-sm text-muted-foreground">
+              {provider.businessName}
+            </p>
+          )}
           <div className="mb-2 flex items-center gap-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
               <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
               <span className="sr-only">Location: </span>
               {provider.location}
-            </span>
-            <span className="flex items-center gap-1 text-primary" aria-label={`Rating: ${provider.rating} out of 5`}>
-              <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
-              {provider.rating}
             </span>
           </div>
           <Button variant="outline" size="sm" asChild>

@@ -17,7 +17,7 @@ export function usePractitioners(island = 'big_island') {
 
       const { data, error } = await supabase
         .from('practitioners')
-        .select('*')
+        .select('*, business:centers!practitioners_business_id_fkey(id,name)')
         .eq('island', island)
         .eq('status', 'published')
         .order('is_featured', { ascending: false })

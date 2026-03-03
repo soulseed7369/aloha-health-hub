@@ -33,15 +33,29 @@ const CENTER_TYPE_LABELS: Record<CenterRow['center_type'], string> = {
  * Convert a practitioners DB row to the Provider shape used by ProviderCard
  * and DirectoryMap.
  */
-export function practitionerRowToProvider(row: PractitionerRow): Provider {
+// Extended row type that includes the optional business join
+type PractitionerRowWithBusiness = PractitionerRow & {
+  business?: { id: string; name: string } | null;
+};
+
+export function practitionerRowToProvider(row: PractitionerRowWithBusiness): Provider {
+  // Prefer display_name, then first + last, then legacy name
+  const displayName =
+    row.display_name ||
+    (row.first_name
+      ? [row.first_name, row.last_name].filter(Boolean).join(' ')
+      : null) ||
+    row.name;
+
   return {
     id: row.id,
-    name: row.name,
+    name: displayName,
+    businessName: row.business?.name ?? undefined,
     image: row.avatar_url || PLACEHOLDER_PRACTITIONER,
     type: 'practitioner' as const,
     modality: [...new Set(row.modalities)].join(', ') || 'Wellness Practitioner',
     location: row.city || row.region || row.island,
-    rating: 5.0, // not stored in v1 schema — default to 5.0
+    rating: 5.0,
     lat: row.lat ?? 0,
     lng: row.lng ?? 0,
   };
