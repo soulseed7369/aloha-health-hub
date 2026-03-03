@@ -19,7 +19,8 @@ export interface PractitionerRow {
   slug: string | null;
   years_experience: number | null;
   lineage_or_training: string | null;
-  business_id: string | null;   // FK → centers.id
+  business_id: string | null;    // FK → centers.id (linked center record)
+  business_name: string | null;  // free-text business name (not a center record)
   modalities: string[];
   bio: string | null;
   island: string;

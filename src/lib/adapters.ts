@@ -47,10 +47,13 @@ export function practitionerRowToProvider(row: PractitionerRowWithBusiness): Pro
       : null) ||
     row.name;
 
+  // business_name = free text; business.name = joined from business_id FK
+  const businessName = row.business_name || row.business?.name || undefined;
+
   return {
     id: row.id,
     name: displayName,
-    businessName: row.business?.name ?? undefined,
+    businessName,
     image: row.avatar_url || PLACEHOLDER_PRACTITIONER,
     type: 'practitioner' as const,
     modality: [...new Set(row.modalities)].join(', ') || 'Wellness Practitioner',
