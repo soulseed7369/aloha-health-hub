@@ -189,6 +189,7 @@ const AdminPanel = () => {
   // ── Practitioner form state ───────────────────────────────────────────────
   const [practitionerForm, setPractitionerForm] = useState({
     name: '',
+    business_name: '' as string,
     modalities: [] as string[],
     bio: '',
     city: '',
@@ -218,6 +219,7 @@ const AdminPanel = () => {
   // ── Edit practitioner form state ──────────────────────────────────────────
   const [editPractitionerForm, setEditPractitionerForm] = useState({
     name: '',
+    business_name: '' as string,
     modalities: [] as string[],
     bio: '',
     city: '',
@@ -440,6 +442,7 @@ const AdminPanel = () => {
   const openEditPractitionerDialog = (p: PractitionerRow) => {
     setEditPractitionerForm({
       name: p.name,
+      business_name: p.business_name || '',
       modalities: [...(p.modalities || [])],
       bio: p.bio || '',
       city: p.city || '',
@@ -948,6 +951,13 @@ const AdminPanel = () => {
                   </div>
 
                   <div>
+                    <Label htmlFor="p-business-name">Business Name</Label>
+                    <Input id="p-business-name" placeholder="e.g. Hilo Healing Arts (optional)"
+                      value={practitionerForm.business_name}
+                      onChange={e => handlePractitionerChange('business_name', e.target.value)} />
+                  </div>
+
+                  <div>
                     <Label>Modalities</Label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-1.5 mt-2 max-h-44 overflow-y-auto p-2 border rounded bg-gray-50">
                       {MODALITIES_LIST.map(m => (
@@ -1433,6 +1443,13 @@ const AdminPanel = () => {
                 <Input id="ep-name" placeholder="Full name"
                   value={editPractitionerForm.name}
                   onChange={e => handleEditPractitionerChange('name', e.target.value)} required />
+              </div>
+
+              <div>
+                <Label htmlFor="ep-business-name">Business Name</Label>
+                <Input id="ep-business-name" placeholder="e.g. Hilo Healing Arts (optional)"
+                  value={editPractitionerForm.business_name}
+                  onChange={e => handleEditPractitionerChange('business_name', e.target.value)} />
               </div>
 
               <div>
