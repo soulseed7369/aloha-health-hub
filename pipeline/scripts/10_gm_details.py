@@ -12,14 +12,19 @@ Usage:
 """
 
 from __future__ import annotations
-import sys, json, time, argparse, requests
+import sys, json, time, argparse, os, requests
 from pathlib import Path
+from dotenv import load_dotenv
 
 sys.path.insert(0, '.')
 from src.config import OUTPUT_DIR
 
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / '.env')
+
 GM_DETAILS_URL = "https://maps.googleapis.com/maps/api/place/details/json"
-GM_API_KEY     = "REDACTED_GM_API_KEY"
+GM_API_KEY     = os.environ.get('GM_API_KEY', '')
+if not GM_API_KEY:
+    raise EnvironmentError("GM_API_KEY is not set. Add it to your .env file.")
 
 # Fields to request — only what we actually use (saves cost)
 FIELDS = ",".join([

@@ -10,15 +10,20 @@ Usage:
     python scripts/09_gm_search.py [--island big_island] [--dry-run]
 """
 
-import sys, json, time, argparse, requests
+import sys, json, time, argparse, os, requests
 from pathlib import Path
+from dotenv import load_dotenv
 
 sys.path.insert(0, '.')
 from src.config import OUTPUT_DIR
 
+load_dotenv(dotenv_path=Path(__file__).resolve().parents[2] / '.env')
+
 # ── Google Places Text Search endpoint ────────────────────────────────────────
 GM_TEXT_SEARCH = "https://maps.googleapis.com/maps/api/place/textsearch/json"
-GM_API_KEY     = "REDACTED_GM_API_KEY"
+GM_API_KEY     = os.environ.get('GM_API_KEY', '')
+if not GM_API_KEY:
+    raise EnvironmentError("GM_API_KEY is not set. Add it to your .env file.")
 
 # ── Search terms ───────────────────────────────────────────────────────────────
 MODALITY_QUERIES = [
