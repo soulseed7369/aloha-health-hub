@@ -11,6 +11,7 @@ export interface AdminQueryParams {
   search?: string;
   sort?: 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc';
   island?: string;
+  status?: 'all' | 'published' | 'draft';
   page?: number;
   pageSize?: number;
 }
@@ -53,6 +54,7 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
     search = '',
     sort = 'updated_desc',
     island = '',
+    status = 'all',
     page = 0,
     pageSize = 50,
   } = params;
@@ -72,6 +74,10 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
 
       if (island && island !== 'all') {
         query = query.eq('island', island);
+      }
+
+      if (status && status !== 'all') {
+        query = query.eq('status', status);
       }
 
       switch (sort) {
@@ -188,6 +194,7 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
     search = '',
     sort = 'updated_desc',
     island = '',
+    status = 'all',
     page = 0,
     pageSize = 50,
   } = params;
@@ -207,6 +214,10 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
 
       if (island && island !== 'all') {
         query = query.eq('island', island);
+      }
+
+      if (status && status !== 'all') {
+        query = query.eq('status', status);
       }
 
       switch (sort) {
@@ -230,6 +241,36 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
       const { data, error, count } = await query;
       if (error) throw error;
       return { data: data || [], total: count || 0 };
+    },
+  });
+};
+
+// ─── Batch publish ───────────────────────────────────────────────────────────
+
+export const useBatchPublish = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      table,
+      ids,
+      status,
+    }: {
+      table: 'practitioners' | 'centers';
+      ids: string[];
+      status: 'published' | 'draft' | 'archived';
+    }) => {
+      if (!supabaseAdmin) throw new Error('Supabase admin not configured');
+      const { error } = await supabaseAdmin
+        .from(table)
+        .update({ status })
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-centers'] });
+      queryClient.invalidateQueries({ queryKey: ['practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['centers'] });
     },
   });
 };

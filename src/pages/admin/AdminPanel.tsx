@@ -26,6 +26,7 @@ import {
   useInsertCenter,
   useUpdateCenter,
   useConvertPractitionerToCenter,
+  useBatchPublish,
   uploadPractitionerImage,
   uploadCenterImage,
 } from '@/hooks/useAdmin';
@@ -150,6 +151,11 @@ const AdminPanel = () => {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<AdminQueryParams['sort']>('updated_desc');
   const [island, setIsland] = useState('all');
+  const [statusFilter, setStatusFilter] = useState<AdminQueryParams['status']>('all');
+
+  // ── Batch selection ───────────────────────────────────────────────────────
+  const [selectedPractitioners, setSelectedPractitioners] = useState<Set<string>>(new Set());
+  const [selectedCenters, setSelectedCenters] = useState<Set<string>>(new Set());
 
   // Debounce search
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -307,6 +313,7 @@ const AdminPanel = () => {
     search,
     sort,
     island,
+    status: statusFilter,
     page: practitionerPage,
     pageSize: PAGE_SIZE,
   };
@@ -314,6 +321,7 @@ const AdminPanel = () => {
     search,
     sort,
     island,
+    status: statusFilter,
     page: centerPage,
     pageSize: PAGE_SIZE,
   };
@@ -337,6 +345,47 @@ const AdminPanel = () => {
   const insertCenter = useInsertCenter();
   const updateCenter = useUpdateCenter();
   const convertPractitionerToCenter = useConvertPractitionerToCenter();
+  const batchPublish = useBatchPublish();
+
+  // ── Batch selection helpers ───────────────────────────────────────────────
+  const toggleSelectPractitioner = (id: string) =>
+    setSelectedPractitioners(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const toggleSelectAllPractitioners = () =>
+    setSelectedPractitioners(prev =>
+      prev.size === practitioners.length
+        ? new Set()
+        : new Set(practitioners.map(p => p.id))
+    );
+  const toggleSelectCenter = (id: string) =>
+    setSelectedCenters(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  const toggleSelectAllCenters = () =>
+    setSelectedCenters(prev =>
+      prev.size === centers.length
+        ? new Set()
+        : new Set(centers.map(c => c.id))
+    );
+
+  const handleBatchPublish = async (table: 'practitioners' | 'centers', newStatus: 'published' | 'draft') => {
+    const ids = table === 'practitioners'
+      ? [...selectedPractitioners]
+      : [...selectedCenters];
+    if (!ids.length) return;
+    try {
+      await batchPublish.mutateAsync({ table, ids, status: newStatus });
+      toast.success(`${ids.length} ${table} set to ${newStatus}`);
+      table === 'practitioners' ? setSelectedPractitioners(new Set()) : setSelectedCenters(new Set());
+    } catch {
+      toast.error('Batch update failed');
+    }
+  };
 
   // ── Practitioner form handlers ────────────────────────────────────────────
   const handlePractitionerChange = (field: string, value: unknown) =>
@@ -691,10 +740,16 @@ const AdminPanel = () => {
     const shown = (p.modalities || []).slice(0, 3);
     const extra = (p.modalities || []).length - 3;
     return (
-      <Card key={p.id} className="mb-3">
+      <Card key={p.id} className={`mb-3 ${selectedPractitioners.has(p.id) ? 'ring-2 ring-blue-400' : ''}`}>
         <CardContent className="p-4">
           <div className="flex justify-between items-start gap-4">
             <div className="flex gap-3 flex-1 min-w-0">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-blue-600"
+                checked={selectedPractitioners.has(p.id)}
+                onChange={() => toggleSelectPractitioner(p.id)}
+              />
               {p.avatar_url && (
                 <img src={p.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
               )}
@@ -742,10 +797,16 @@ const AdminPanel = () => {
   };
 
   const renderCenterRow = (c: CenterRow) => (
-    <Card key={c.id} className="mb-3">
+    <Card key={c.id} className={`mb-3 ${selectedCenters.has(c.id) ? 'ring-2 ring-blue-400' : ''}`}>
       <CardContent className="p-4">
         <div className="flex justify-between items-start gap-4">
           <div className="flex gap-3 flex-1 min-w-0">
+            <input
+              type="checkbox"
+              className="mt-1 h-4 w-4 flex-shrink-0 cursor-pointer accent-blue-600"
+              checked={selectedCenters.has(c.id)}
+              onChange={() => toggleSelectCenter(c.id)}
+            />
             {c.avatar_url && (
               <img src={c.avatar_url} alt="" className="w-12 h-12 rounded object-cover flex-shrink-0" />
             )}
@@ -880,6 +941,16 @@ const AdminPanel = () => {
           <SelectContent>
             <SelectItem value="all">All Islands</SelectItem>
             {ISLANDS.map(i => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={v => { setStatusFilter(v as AdminQueryParams['status']); setPractitionerPage(0); setCenterPage(0); setSelectedPractitioners(new Set()); setSelectedCenters(new Set()); }}>
+          <SelectTrigger className="min-w-36">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -1059,6 +1130,51 @@ const AdminPanel = () => {
             </Dialog>
           </div>
 
+          {/* Batch action bar — practitioners */}
+          {practitioners.length > 0 && (
+            <div className="flex items-center gap-3 mb-3 py-2 px-3 bg-gray-50 rounded-lg border text-sm">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-blue-600 cursor-pointer"
+                  checked={practitioners.length > 0 && selectedPractitioners.size === practitioners.length}
+                  onChange={toggleSelectAllPractitioners}
+                />
+                <span className="text-gray-600">
+                  {selectedPractitioners.size > 0
+                    ? `${selectedPractitioners.size} selected`
+                    : 'Select all'}
+                </span>
+              </label>
+              {selectedPractitioners.size > 0 && (
+                <>
+                  <div className="h-4 w-px bg-gray-300" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-green-700 border-green-300 hover:bg-green-50"
+                    disabled={batchPublish.isPending}
+                    onClick={() => handleBatchPublish('practitioners', 'published')}
+                  >
+                    <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                    Publish
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-yellow-700 border-yellow-300 hover:bg-yellow-50"
+                    disabled={batchPublish.isPending}
+                    onClick={() => handleBatchPublish('practitioners', 'draft')}
+                  >
+                    <XCircle className="h-3.5 w-3.5 mr-1" />
+                    Set Draft
+                  </Button>
+                  {batchPublish.isPending && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                </>
+              )}
+            </div>
+          )}
+
           {practitionersLoading
             ? <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
             : practitioners && practitioners.length > 0
@@ -1219,6 +1335,51 @@ const AdminPanel = () => {
               </DialogContent>
             </Dialog>
           </div>
+
+          {/* Batch action bar — centers */}
+          {centers.length > 0 && (
+            <div className="flex items-center gap-3 mb-3 py-2 px-3 bg-gray-50 rounded-lg border text-sm">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-blue-600 cursor-pointer"
+                  checked={centers.length > 0 && selectedCenters.size === centers.length}
+                  onChange={toggleSelectAllCenters}
+                />
+                <span className="text-gray-600">
+                  {selectedCenters.size > 0
+                    ? `${selectedCenters.size} selected`
+                    : 'Select all'}
+                </span>
+              </label>
+              {selectedCenters.size > 0 && (
+                <>
+                  <div className="h-4 w-px bg-gray-300" />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-green-700 border-green-300 hover:bg-green-50"
+                    disabled={batchPublish.isPending}
+                    onClick={() => handleBatchPublish('centers', 'published')}
+                  >
+                    <CheckCircle className="h-3.5 w-3.5 mr-1" />
+                    Publish
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-yellow-700 border-yellow-300 hover:bg-yellow-50"
+                    disabled={batchPublish.isPending}
+                    onClick={() => handleBatchPublish('centers', 'draft')}
+                  >
+                    <XCircle className="h-3.5 w-3.5 mr-1" />
+                    Set Draft
+                  </Button>
+                  {batchPublish.isPending && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                </>
+              )}
+            </div>
+          )}
 
           {centersLoading
             ? <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
