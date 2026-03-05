@@ -27,6 +27,7 @@ import {
   useInsertCenter,
   useUpdateCenter,
   useConvertPractitionerToCenter,
+  useConvertCenterToPractitioner,
   useBatchPublish,
   uploadPractitionerImage,
   uploadCenterImage,
@@ -153,6 +154,7 @@ const AdminPanel = () => {
   const [sort, setSort] = useState<AdminQueryParams['sort']>('updated_desc');
   const [island, setIsland] = useState('all');
   const [statusFilter, setStatusFilter] = useState<AdminQueryParams['status']>('all');
+  const [modalityFilter, setModalityFilter] = useState('all');
 
   // ── Batch selection ───────────────────────────────────────────────────────
   const [selectedPractitioners, setSelectedPractitioners] = useState<Set<string>>(new Set());
@@ -183,6 +185,7 @@ const AdminPanel = () => {
   const [editingCenter, setEditingCenter] = useState<CenterRow | null>(null);
   const [convertingPractitioner, setConvertingPractitioner] = useState<PractitionerRow | null>(null);
   const [convertCenterType, setConvertCenterType] = useState<'spa' | 'wellness_center' | 'clinic' | 'retreat_center'>('wellness_center');
+  const [convertingCenter, setConvertingCenter] = useState<CenterRow | null>(null);
   const [geocoding, setGeocoding] = useState(false);
 
   // ── Claims state ──────────────────────────────────────────────────────────
@@ -315,6 +318,7 @@ const AdminPanel = () => {
     sort,
     island,
     status: statusFilter,
+    modality: modalityFilter,
     page: practitionerPage,
     pageSize: PAGE_SIZE,
   };
@@ -323,6 +327,7 @@ const AdminPanel = () => {
     sort,
     island,
     status: statusFilter,
+    modality: modalityFilter,
     page: centerPage,
     pageSize: PAGE_SIZE,
   };
@@ -346,6 +351,7 @@ const AdminPanel = () => {
   const insertCenter = useInsertCenter();
   const updateCenter = useUpdateCenter();
   const convertPractitionerToCenter = useConvertPractitionerToCenter();
+  const convertCenterToPractitioner = useConvertCenterToPractitioner();
   const batchPublish = useBatchPublish();
 
   // ── Batch selection helpers ───────────────────────────────────────────────
@@ -714,6 +720,18 @@ const AdminPanel = () => {
     }
   };
 
+  const handleConvertToPractitioner = async () => {
+    if (!convertingCenter) return;
+    try {
+      await convertCenterToPractitioner.mutateAsync(convertingCenter);
+      toast.success(`${convertingCenter.name} moved to practitioners`);
+      setConvertingCenter(null);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to convert');
+    }
+  };
+
   const toggleCenterPublish = async (id: string, status: 'published' | 'draft') => {
     try {
       await publishCenter.mutateAsync({ id, status: status === 'published' ? 'draft' : 'published' });
@@ -827,6 +845,13 @@ const AdminPanel = () => {
             </Badge>
             <Button variant="ghost" size="sm" onClick={() => openEditCenterDialog(c)}>
               <Pencil className="h-4 w-4 text-blue-500" />
+            </Button>
+            <Button
+              variant="ghost" size="sm"
+              title="Move to Practitioners"
+              onClick={() => setConvertingCenter(c)}
+            >
+              <ArrowLeftRight className="h-4 w-4 text-purple-500" />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => toggleCenterPublish(c.id, c.status as 'published' | 'draft')}>
               {c.status === 'published' ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -952,6 +977,17 @@ const AdminPanel = () => {
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="published">Published</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={modalityFilter} onValueChange={v => { setModalityFilter(v); setPractitionerPage(0); setCenterPage(0); }}>
+          <SelectTrigger className="min-w-48">
+            <SelectValue placeholder="All Modalities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Modalities</SelectItem>
+            {MODALITIES_LIST.map(m => (
+              <SelectItem key={m} value={m}>{m}</SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
@@ -2400,6 +2436,37 @@ const AdminPanel = () => {
                 {convertPractitionerToCenter.isPending
                   ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Converting...</>
                   : 'Convert'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* ── Convert Center → Practitioner Dialog ── */}
+      <Dialog open={!!convertingCenter} onOpenChange={open => !open && setConvertingCenter(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Move to Practitioners</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-gray-600">
+              Move <strong>{convertingCenter?.name}</strong> from Centers to the Practitioners table. The record will keep all its existing data.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setConvertingCenter(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-purple-600 hover:bg-purple-700"
+                disabled={convertCenterToPractitioner.isPending}
+                onClick={handleConvertToPractitioner}
+              >
+                {convertCenterToPractitioner.isPending
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Moving...</>
+                  : 'Move to Practitioners'}
               </Button>
             </div>
           </div>

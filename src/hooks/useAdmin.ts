@@ -12,6 +12,7 @@ export interface AdminQueryParams {
   sort?: 'updated_desc' | 'updated_asc' | 'name_asc' | 'name_desc';
   island?: string;
   status?: 'all' | 'published' | 'draft';
+  modality?: string;
   page?: number;
   pageSize?: number;
 }
@@ -55,6 +56,7 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
     sort = 'updated_desc',
     island = '',
     status = 'all',
+    modality = '',
     page = 0,
     pageSize = 50,
   } = params;
@@ -78,6 +80,10 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
 
       if (status && status !== 'all') {
         query = query.eq('status', status);
+      }
+
+      if (modality && modality !== 'all') {
+        query = query.contains('modalities', [modality]);
       }
 
       switch (sort) {
@@ -195,6 +201,7 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
     sort = 'updated_desc',
     island = '',
     status = 'all',
+    modality = '',
     page = 0,
     pageSize = 50,
   } = params;
@@ -218,6 +225,10 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
 
       if (status && status !== 'all') {
         query = query.eq('status', status);
+      }
+
+      if (modality && modality !== 'all') {
+        query = query.contains('modalities', [modality]);
       }
 
       switch (sort) {
@@ -434,6 +445,58 @@ export const useConvertPractitionerToCenter = () => {
       queryClient.invalidateQueries({ queryKey: ['practitioners'] });
       queryClient.invalidateQueries({ queryKey: ['centers'] });
       queryClient.invalidateQueries({ queryKey: ['centers-as-providers'] });
+    },
+  });
+};
+
+// ─── Convert center → practitioner ──────────────────────────────────────────
+
+export const useConvertCenterToPractitioner = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (center: CenterRow) => {
+      if (!supabaseAdmin) throw new Error('Supabase admin not configured');
+
+      // Insert as practitioner
+      const { error: insertError } = await supabaseAdmin
+        .from('practitioners')
+        .insert({
+          name: center.name,
+          bio: center.description,
+          island: center.island,
+          region: center.region,
+          city: center.city,
+          address: center.address,
+          lat: center.lat,
+          lng: center.lng,
+          phone: center.phone,
+          email: center.email,
+          website_url: center.website_url ?? center.external_website_url,
+          avatar_url: center.avatar_url,
+          modalities: center.modalities ?? [],
+          status: center.status,
+          tier: center.tier,
+          owner_id: center.owner_id,
+          social_links: center.social_links ?? {},
+          testimonials: center.testimonials ?? [],
+          working_hours: center.working_hours ?? {},
+        });
+
+      if (insertError) throw insertError;
+
+      // Delete the center record
+      const { error: deleteError } = await supabaseAdmin
+        .from('centers')
+        .delete()
+        .eq('id', center.id);
+
+      if (deleteError) throw deleteError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-centers'] });
+      queryClient.invalidateQueries({ queryKey: ['practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['centers'] });
     },
   });
 };
