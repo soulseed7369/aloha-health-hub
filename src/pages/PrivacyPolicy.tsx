@@ -19,7 +19,7 @@ export default function PrivacyPolicy() {
 
         <p>
           Hawaii Wellness LLC ("we," "us," or "our") operates the Aloha Health Hub platform
-          at <strong>alohahealthhub.com</strong> (the "Site"). This Privacy Policy explains how we
+          at <strong>hawaiiwellness.net</strong> (the "Site"). This Privacy Policy explains how we
           collect, use, disclose, and protect your information when you use our Site.
           By using the Site, you agree to the practices described in this policy.
         </p>
@@ -90,7 +90,7 @@ export default function PrivacyPolicy() {
         </ul>
         <p>
           To exercise any of these rights, email us at{' '}
-          <a href="mailto:hello@alohahealthhub.com">hello@alohahealthhub.com</a>.
+          <a href="mailto:aloha@hawaiiwellness.net">aloha@hawaiiwellness.net</a>.
         </p>
 
         <h2>7. Children's Privacy</h2>
@@ -121,7 +121,7 @@ export default function PrivacyPolicy() {
         </p>
         <address className="not-italic">
           <strong>Hawaii Wellness LLC</strong><br />
-          Email: <a href="mailto:hello@alohahealthhub.com">hello@alohahealthhub.com</a>
+          Email: <a href="mailto:aloha@hawaiiwellness.net">aloha@hawaiiwellness.net</a>
         </address>
       </div>
     </div>

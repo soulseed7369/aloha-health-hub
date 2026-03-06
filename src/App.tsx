@@ -30,6 +30,7 @@ const OahuHome          = lazy(() => import("./pages/OahuHome"));
 const KauaiHome         = lazy(() => import("./pages/KauaiHome"));
 const PrivacyPolicy     = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService    = lazy(() => import("./pages/TermsOfService"));
+const HelpCenter        = lazy(() => import("./pages/HelpCenter"));
 
 // Dashboard pages (split separately — only loaded when user visits /dashboard)
 import AdminPanel from "./pages/admin/AdminPanel";
@@ -117,6 +118,7 @@ const App = () => (
                 <Route path="/profile/:id"        element={<ProfileDetail />} />
                 <Route path="/privacy-policy"     element={<PrivacyPolicy />} />
                 <Route path="/terms-of-service"   element={<TermsOfService />} />
+                <Route path="/help"               element={<HelpCenter />} />
                 <Route path="*"                   element={<NotFound />} />
               </Route>
             </Routes>

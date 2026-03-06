@@ -46,7 +46,7 @@ export default function TermsOfService() {
           If you create a provider account, you are responsible for maintaining the
           confidentiality of your login credentials and for all activity that occurs under
           your account. Notify us immediately at{' '}
-          <a href="mailto:hello@alohahealthhub.com">hello@alohahealthhub.com</a> if you
+          <a href="mailto:aloha@hawaiiwellness.net">aloha@hawaiiwellness.net</a> if you
           suspect unauthorized use.
         </p>
 
@@ -161,7 +161,7 @@ export default function TermsOfService() {
         <p>Questions about these Terms? Contact us at:</p>
         <address className="not-italic">
           <strong>Hawaii Wellness LLC</strong><br />
-          Email: <a href="mailto:hello@alohahealthhub.com">hello@alohahealthhub.com</a>
+          Email: <a href="mailto:aloha@hawaiiwellness.net">aloha@hawaiiwellness.net</a>
         </address>
       </div>
     </div>
