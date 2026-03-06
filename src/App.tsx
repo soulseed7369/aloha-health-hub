@@ -8,6 +8,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 // ── Lazy-loaded page bundles ──────────────────────────────────────────────────
@@ -91,6 +92,13 @@ const App = () => (
                 </Route>
               </Route>
 
+              {/* Admin panel — protected route */}
+              <Route path="/admin" element={<AdminProtectedRoute />}>
+                <Route element={<DashboardLayout />}>
+                  <Route index element={<AdminPanel />} />
+                </Route>
+              </Route>
+
               {/* Public pages — all share Header/Footer via PublicLayout */}
               <Route element={<PublicLayout />}>
                 <Route path="/"          element={<BigIsland />} />
@@ -105,7 +113,6 @@ const App = () => (
                 <Route path="/articles/:slug"     element={<ArticleDetail />} />
                 <Route path="/list-your-practice" element={<ListYourPractice />} />
                 <Route path="/profile/:id"        element={<ProfileDetail />} />
-                <Route path="/admin"              element={<AdminPanel />} />
                 <Route path="*"                   element={<NotFound />} />
               </Route>
             </Routes>

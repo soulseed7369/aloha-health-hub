@@ -30,6 +30,13 @@ export interface PractitionerProfile {
   tier: string;
   ownerId: string | null;
   testimonials: Array<{ author: string; text: string; date: string }>;
+  socialLinks: {
+    instagram?: string;
+    facebook?: string;
+    linkedin?: string;
+    x?: string;
+    substack?: string;
+  } | null;
 }
 
 const PLACEHOLDER_COVER =
@@ -41,7 +48,7 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
   return {
     id: row.id,
     name: row.name,
-    title: row.modalities.join(' & ') || 'Wellness Practitioner',
+    title: row.modalities.join(', ') || 'Wellness Practitioner',
     coverImage: PLACEHOLDER_COVER,
     profileImage: row.avatar_url || PLACEHOLDER_PROFILE,
     verified: false, // not stored in v1 schema
@@ -61,6 +68,7 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     tier: row.tier,
     ownerId: row.owner_id,
     testimonials: row.testimonials ?? [],
+    socialLinks: row.social_links ?? null,
   };
 }
 
@@ -100,6 +108,7 @@ export function usePractitioner(id: string | undefined) {
           tier: 'free',
           ownerId: null,
           testimonials: [],
+          socialLinks: null,
         };
       }
 

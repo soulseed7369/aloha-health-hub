@@ -89,7 +89,21 @@ export function useSavePractitioner() {
 /** Upload a profile photo using the authenticated user's session */
 export async function uploadMyPhoto(file: File): Promise<string> {
   if (!supabase) throw new Error('Supabase not configured');
-  const ext = file.name.split('.').pop();
+
+  // Validate file type (only allow common image formats)
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedMimeTypes.includes(file.type)) {
+    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
+  }
+
+  // Validate file size (max 5MB)
+  const maxSize = 5 * 1024 * 1024; // 5MB
+  if (file.size > maxSize) {
+    throw new Error(`File size must be less than 5MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
+  }
+
+  // Sanitize extension to prevent path traversal
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `practitioners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage
     .from('images')

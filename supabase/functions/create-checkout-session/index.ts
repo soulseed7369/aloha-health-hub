@@ -38,6 +38,23 @@ Deno.serve(async (req) => {
     return json({ error: 'Missing required fields' }, 400);
   }
 
+  // Validate priceId format (should start with 'price_')
+  if (typeof priceId !== 'string' || !priceId.startsWith('price_')) {
+    return json({ error: 'Invalid price ID format' }, 400);
+  }
+
+  // Validate URLs are absolute and from same origin
+  try {
+    const success = new URL(successUrl);
+    const cancel = new URL(cancelUrl);
+    const origin = new URL(req.headers.get('origin') || '', req.url).origin;
+    if (success.origin !== origin || cancel.origin !== origin) {
+      return json({ error: 'URLs must be from the same origin' }, 400);
+    }
+  } catch {
+    return json({ error: 'Invalid URLs provided' }, 400);
+  }
+
   // Look up or create Stripe customer
   const { data: profile } = await supabase
     .from('user_profiles')

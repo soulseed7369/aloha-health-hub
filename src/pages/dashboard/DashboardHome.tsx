@@ -16,7 +16,9 @@ export default function DashboardHome() {
   // Resume any pending plan intent stored before auth redirect
   useEffect(() => {
     const pending = localStorage.getItem('pendingPlan');
-    if (!pending || pending === 'free') {
+    // Validate pendingPlan is one of the expected values to prevent abuse
+    const validPlans = ['free', 'prod_U5xikoe835v7T6', 'prod_U5xj8icg13fOcT'];
+    if (!pending || !validPlans.includes(pending) || pending === 'free') {
       localStorage.removeItem('pendingPlan');
       return;
     }
@@ -25,7 +27,7 @@ export default function DashboardHome() {
       { priceId: pending },
       { onError: (e: Error) => toast.error(e.message) },
     );
-  }, []);
+  }, [checkout]);
 
   const hasProfile = !!practitioner?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';

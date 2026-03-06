@@ -30,11 +30,14 @@ export default function Auth() {
   useEffect(() => {
     if (!user) return;
     const pending = localStorage.getItem('pendingPlan');
-    if (pending && pending !== 'free') {
+    // Validate pendingPlan is one of the expected values to prevent abuse
+    const validPlans = ['free', 'prod_U5xikoe835v7T6', 'prod_U5xj8icg13fOcT'];
+    if (pending && validPlans.includes(pending) && pending !== 'free') {
       navigate('/dashboard/billing');
     } else if (claimId) {
       navigate(`/claim/${claimId}`);
-    } else if (redirectTo) {
+    } else if (redirectTo && typeof redirectTo === 'string' && redirectTo.startsWith('/')) {
+      // Ensure redirectTo is a relative path to prevent open redirect
       navigate(redirectTo);
     } else {
       navigate('/dashboard');

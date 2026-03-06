@@ -44,6 +44,13 @@ export default function ListYourPractice() {
   const checkout = useCreateCheckoutSession();
 
   async function handlePaidPlan(priceId: string) {
+    // Validate priceId is one of the expected values
+    const validPrices = [STRIPE_PRICES.PREMIUM_MONTHLY, STRIPE_PRICES.FEATURED_MONTHLY];
+    if (!validPrices.includes(priceId as any)) {
+      toast.error('Invalid plan selected');
+      return;
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
     // Persist intent so auth page can resume it after sign-in
     localStorage.setItem('pendingPlan', priceId);

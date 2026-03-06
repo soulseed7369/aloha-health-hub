@@ -1,17 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database';
-
 /**
- * Admin Supabase client using the service role key.
- * Bypasses Row Level Security — for use in the admin panel ONLY.
- * Never expose this key to end users.
+ * SECURITY NOTICE: The service role key MUST NEVER be used in the browser.
+ *
+ * This file was attempting to create an admin Supabase client in the browser,
+ * which would expose the service role key (if loaded from VITE_SUPABASE_SERVICE_ROLE_KEY).
+ *
+ * The service role key must ONLY be used:
+ * 1. In Supabase Edge Functions (server-side)
+ * 2. In server-side API routes (if applicable)
+ * 3. Never in the browser bundle
+ *
+ * Admin operations must be performed via:
+ * - Supabase Edge Functions (for automated tasks)
+ * - Backend API endpoints (if applicable)
+ * - Direct Supabase console (for manual operations)
  */
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const serviceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY as string | undefined;
 
-export const supabaseAdmin =
-  supabaseUrl && serviceRoleKey
-    ? createClient<Database>(supabaseUrl, serviceRoleKey, {
-        auth: { persistSession: false },
-      })
-    : null;
+export const supabaseAdmin = null;

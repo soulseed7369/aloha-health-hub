@@ -25,8 +25,27 @@ export interface AdminQueryResult<T> {
 // ─── Upload helpers ─────────────────────────────────────────────────────────
 
 export async function uploadPractitionerImage(file: File): Promise<string> {
-  if (!supabaseAdmin) throw new Error('Supabase admin not configured');
-  const ext = file.name.split('.').pop();
+  if (!supabaseAdmin) {
+    throw new Error(
+      'Admin operations require proper server-side setup. ' +
+      'Image uploads must be performed via an authenticated Edge Function with service role access.'
+    );
+  }
+
+  // Validate file type (only allow common image formats)
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedMimeTypes.includes(file.type)) {
+    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
+  }
+
+  // Validate file size (max 10MB for admin uploads)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    throw new Error(`File size must be less than 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
+  }
+
+  // Sanitize extension to prevent path traversal
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `avatars/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabaseAdmin.storage
     .from(PRACTITIONER_BUCKET)
@@ -37,8 +56,27 @@ export async function uploadPractitionerImage(file: File): Promise<string> {
 }
 
 export async function uploadCenterImage(file: File): Promise<string> {
-  if (!supabaseAdmin) throw new Error('Supabase admin not configured');
-  const ext = file.name.split('.').pop();
+  if (!supabaseAdmin) {
+    throw new Error(
+      'Admin operations require proper server-side setup. ' +
+      'Image uploads must be performed via an authenticated Edge Function with service role access.'
+    );
+  }
+
+  // Validate file type (only allow common image formats)
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedMimeTypes.includes(file.type)) {
+    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
+  }
+
+  // Validate file size (max 10MB for admin uploads)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    throw new Error(`File size must be less than 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
+  }
+
+  // Sanitize extension to prevent path traversal
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `centers/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabaseAdmin.storage
     .from(CENTER_BUCKET)
@@ -506,8 +544,27 @@ export const useConvertCenterToPractitioner = () => {
 const ARTICLE_BUCKET = 'practitioner-images'; // reuse same bucket
 
 export async function uploadArticleImage(file: File): Promise<string> {
-  if (!supabaseAdmin) throw new Error('Supabase admin not configured');
-  const ext = file.name.split('.').pop();
+  if (!supabaseAdmin) {
+    throw new Error(
+      'Admin operations require proper server-side setup. ' +
+      'Image uploads must be performed via an authenticated Edge Function with service role access.'
+    );
+  }
+
+  // Validate file type (only allow common image formats)
+  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  if (!allowedMimeTypes.includes(file.type)) {
+    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
+  }
+
+  // Validate file size (max 10MB for admin uploads)
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size > maxSize) {
+    throw new Error(`File size must be less than 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
+  }
+
+  // Sanitize extension to prevent path traversal
+  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `articles/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabaseAdmin.storage
     .from(ARTICLE_BUCKET)
