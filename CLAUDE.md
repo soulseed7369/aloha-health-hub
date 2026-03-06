@@ -313,3 +313,63 @@ pipeline/
 - **`pendingPlan` localStorage key** must be validated against a whitelist of known price IDs before acting on it (security: prevents open redirect abuse).
 - **Hero images for Maui/Oahu/Kauai** are local public assets with spaces in filenames — use URL-encoded paths (`/maui%20hero.jpg` etc.) in `heroImageUrl` config.
 - **AdminPanel.tsx is ~2800+ lines** — always use offset/limit when reading it, or grep for specific sections.
+
+---
+
+## Local LLM via LM Studio (`lm_code.py`)
+
+### What it is
+`lm_code.py` (project root) delegates coding tasks to a locally-running LM Studio model over its OpenAI-compatible REST API. Useful for fast, offline code edits without burning API credits.
+
+### Prerequisites
+- **LM Studio** must be running on the host machine with the API server enabled (Settings → Developer → Start Server)
+- Default host: `192.168.64.1` (the Mac host IP reachable from the Linux VM) · Default port: `1234`
+- Models used: `qwen/qwen3-coder-30b` (default, best for code), `qwen/qwen3-8b` (faster/lighter)
+
+### Environment variables (optional overrides)
+```bash
+LM_HOST=192.168.64.1   # host where LM Studio is running
+LM_PORT=1234           # LM Studio API port
+LM_MODEL=qwen/qwen3-coder-30b
+```
+
+### Common usage
+```bash
+# Ask a question (prints answer, writes nothing)
+python lm_code.py "What does useSetListingTier do?"
+
+# Edit one file — model rewrites and saves it in place
+python lm_code.py "Add a loading spinner to ProviderCard" src/components/ProviderCard.tsx
+
+# Edit multiple files at once
+python lm_code.py "Refactor pagination into usePractitioners" \
+  src/hooks/usePractitioners.ts src/pages/Directory.tsx
+
+# Read task from a file (useful for long prompts)
+python lm_code.py --task-file task.txt src/pages/Directory.tsx
+
+# Use a different model for this run
+python lm_code.py --model qwen/qwen3-8b "Quick fix: ..." src/pages/Auth.tsx
+
+# Print output without writing files (dry-run / review first)
+python lm_code.py --print-only "Refactor X" src/components/Foo.tsx
+
+# List models currently loaded in LM Studio
+python lm_code.py --list-models
+```
+
+### How it works internally
+1. Reads each file passed as an argument into a `=== FILE: path ===` block
+2. Sends a single chat completion request to `http://{LM_HOST}:{LM_PORT}/v1/chat/completions`
+3. System prompt instructs the model to output **only** complete updated file contents, no markdown fences
+4. Parses `=== FILE: path ===` separators in the response to write multiple files
+5. Falls back to printing if no files were specified or `--print-only` was passed
+6. Temperature is fixed at `0.2` (deterministic, low creativity) — good for code edits
+
+### Switching models
+| Model | Use case |
+|-------|----------|
+| `qwen/qwen3-coder-30b` | Default — best code quality, handles large files well |
+| `qwen/qwen3-8b` | Faster responses, good for small targeted edits |
+
+To permanently change the default, update `LM_MODEL` in the script or export it in your shell before running.
