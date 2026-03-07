@@ -10,6 +10,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { BetaGate } from "@/components/BetaGate";
 
 // ── Lazy-loaded page bundles ──────────────────────────────────────────────────
 const Index             = lazy(() => import("./pages/Index"));
@@ -73,6 +74,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <BetaGate>
           <Suspense fallback={<PageSpinner />}>
             <Routes>
               {/* Concierge — own full-screen dark layout */}
@@ -125,6 +127,7 @@ const App = () => (
               </Route>
             </Routes>
           </Suspense>
+          </BetaGate>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
