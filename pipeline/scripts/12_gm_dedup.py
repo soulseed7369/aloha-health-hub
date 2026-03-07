@@ -166,10 +166,43 @@ def build_enrichment(gm: dict, db: dict) -> dict | None:
     }
 
 
+ALL_ISLANDS = ["big_island", "maui", "oahu", "kauai"]
+
+
+def run_dedup_for_island(island: str, gm_records: list[dict], threshold: int):
+    """Run dedup for one island. Returns (new, enrichments, review, skipped)."""
+    island_gm = [r for r in gm_records if r.get("island") == island]
+    if not island_gm:
+        return [], [], [], 0
+
+    db_records            = load_db_records(island)
+    phone_idx, domain_idx = build_indexes(db_records)
+    print(f"  [{island}] {len(db_records)} DB records, {len(island_gm)} GM records")
+
+    new_records    = []
+    enrichments    = []
+    review_records = []
+
+    for gm in island_gm:
+        match, reason = find_match(gm, db_records, phone_idx, domain_idx, threshold)
+        if match is None:
+            new_records.append(gm)
+        else:
+            enrich = build_enrichment(gm, match)
+            if enrich:
+                enrich["_match_reason"] = reason
+                enrichments.append(enrich)
+
+    skipped = len(island_gm) - len(new_records) - len(enrichments)
+    return new_records, enrichments, review_records, skipped
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--island",    default="big_island")
-    parser.add_argument("--threshold", type=int, default=FUZZY_THRESHOLD,
+    parser.add_argument("--island",      default="big_island",
+                        choices=ALL_ISLANDS + ["all"],
+                        help="Island to dedup, or 'all' for every island")
+    parser.add_argument("--threshold",   type=int, default=FUZZY_THRESHOLD,
                         help="Fuzzy name match threshold (0-100)")
     args = parser.parse_args()
 
@@ -178,51 +211,43 @@ if __name__ == "__main__":
         print(f"Error: {classified_path} not found. Run 11_gm_classify.py first.")
         sys.exit(1)
 
-    print(f"Loading DB records for island='{args.island}'…")
-    db_records           = load_db_records(args.island)
-    phone_idx, domain_idx = build_indexes(db_records)
-    print(f"  {len(db_records)} existing records ({len(phone_idx)} with phone, "
-          f"{len(domain_idx)} with website)")
-
     gm_records = []
     with open(classified_path) as f:
         for line in f:
             gm_records.append(json.loads(line))
-    print(f"  {len(gm_records)} Google Maps classified records")
 
-    new_records    = []
-    enrichments    = []
-    review_records = []
+    islands = ALL_ISLANDS if args.island == "all" else [args.island]
 
-    for gm in gm_records:
-        match, reason = find_match(gm, db_records, phone_idx, domain_idx,
-                                   args.threshold)
+    all_new        = []
+    all_enrichments = []
+    all_review      = []
+    total_skipped   = 0
 
-        if match is None:
-            # Genuinely new
-            new_records.append(gm)
-
-        else:
-            # Duplicate found — check if we can enrich
-            enrich = build_enrichment(gm, match)
-            if enrich:
-                enrich["_match_reason"] = reason
-                enrichments.append(enrich)
-            # else: exact match with nothing to add — silently skip
+    print(f"Loading DB records…")
+    for island in islands:
+        new, enrich, review, skipped = run_dedup_for_island(
+            island, gm_records, args.threshold
+        )
+        all_new.extend(new)
+        all_enrichments.extend(enrich)
+        all_review.extend(review)
+        total_skipped += skipped
 
     # Write outputs
-    for path, records, label in [
-        (OUTPUT_DIR / "gm_new.jsonl",         new_records,    "new"),
-        (OUTPUT_DIR / "gm_enrichments.jsonl", enrichments,    "enrichments"),
-        (OUTPUT_DIR / "gm_review.jsonl",      review_records, "review"),
+    for path, records in [
+        (OUTPUT_DIR / "gm_new.jsonl",         all_new),
+        (OUTPUT_DIR / "gm_enrichments.jsonl", all_enrichments),
+        (OUTPUT_DIR / "gm_review.jsonl",      all_review),
     ]:
         with open(path, "w") as f:
             for rec in records:
                 f.write(json.dumps(rec) + "\n")
 
+    total_gm = sum(
+        len([r for r in gm_records if r.get("island") == i]) for i in islands
+    )
     print(f"\n── Results ──────────────────────────────────────")
-    print(f"  {len(new_records):>4}  new listings         → gm_new.jsonl")
-    print(f"  {len(enrichments):>4}  enrichable records   → gm_enrichments.jsonl")
-    print(f"  {len(review_records):>4}  flagged for review   → gm_review.jsonl")
-    skipped = len(gm_records) - len(new_records) - len(enrichments) - len(review_records)
-    print(f"  {skipped:>4}  exact duplicates (skipped)")
+    print(f"  {len(all_new):>4}  new listings         → gm_new.jsonl")
+    print(f"  {len(all_enrichments):>4}  enrichable records   → gm_enrichments.jsonl")
+    print(f"  {len(all_review):>4}  flagged for review   → gm_review.jsonl")
+    print(f"  {total_skipped:>4}  exact duplicates (skipped)")
