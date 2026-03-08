@@ -33,7 +33,7 @@ const MODALITIES = [
   'Craniosacral', 'Dentistry', 'Energy Healing', 'Functional Medicine',
   'Herbalism', 'Hypnotherapy', 'Life Coaching',
   'Luminous Practitioner', 'Massage', 'Meditation', 'Midwife',
-  'Naturopathic', 'Nervous System Regulation', 'Network Chiropractic',
+  'Nature Therapy', 'Naturopathic', 'Nervous System Regulation', 'Network Chiropractic',
   'Nutrition', 'Osteopathic', 'Physical Therapy',
   'Psychotherapy', 'Reiki', 'Somatic Therapy', 'Soul Guidance',
   'Sound Healing', 'TCM (Traditional Chinese Medicine)',

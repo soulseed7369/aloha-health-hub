@@ -121,7 +121,7 @@ Acupuncture, Alternative Therapy, Astrology, Ayurveda, Birth Doula, Breathwork,
 Chiropractic, Counseling, Craniosacral, Dentistry, Energy Healing,
 Functional Medicine, Herbalism, Hypnotherapy, Life Coaching,
 Lomilomi / Hawaiian Healing, Luminous Practitioner, Massage, Meditation, Midwife,
-Naturopathic, Nervous System Regulation, Network Chiropractic, Nutrition,
+Nature Therapy, Naturopathic, Nervous System Regulation, Network Chiropractic, Nutrition,
 Osteopathic, Physical Therapy, Psychotherapy, Reiki, Somatic Therapy,
 Soul Guidance, Sound Healing, TCM (Traditional Chinese Medicine),
 Trauma-Informed Care, Watsu / Water Therapy, Yoga

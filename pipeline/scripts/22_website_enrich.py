@@ -70,6 +70,7 @@ MODALITY_KEYWORDS: dict[str, list[str]] = {
     "Massage":                  ["massage", "bodywork", "lmt", "licensed massage"],
     "Meditation":               ["meditation", "mindfulness", "guided meditation"],
     "Midwife":                  ["midwife", "midwifery", "birth center"],
+    "Nature Therapy":           ["nature therapy", "ecotherapy", "forest bathing", "nature-based", "wilderness therapy", "outdoor therapy"],
     "Naturopathic":             ["naturopathic", "naturopath", "nd ", "n.d."],
     "Nervous System Regulation":["nervous system", "somatic regulation", "polyvagal"],
     "Network Chiropractic":     ["network chiropractic", "nse", "network spinal"],
