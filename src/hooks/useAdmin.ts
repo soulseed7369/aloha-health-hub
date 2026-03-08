@@ -324,6 +324,34 @@ export const useBatchPublish = () => {
   });
 };
 
+// ─── Batch delete ────────────────────────────────────────────────────────────
+
+export const useBatchDelete = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      table,
+      ids,
+    }: {
+      table: 'practitioners' | 'centers';
+      ids: string[];
+    }) => {
+      if (!supabaseAdmin) throw new Error('Supabase not configured');
+      const { error } = await supabaseAdmin
+        .from(table)
+        .delete()
+        .in('id', ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-centers'] });
+      queryClient.invalidateQueries({ queryKey: ['practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['centers'] });
+    },
+  });
+};
+
 // Fetch all centers as id+name pairs for dropdowns (no pagination)
 export const useAllCentersSimple = () => {
   return useQuery<{ id: string; name: string }[]>({

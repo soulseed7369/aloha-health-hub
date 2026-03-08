@@ -29,6 +29,7 @@ import {
   useConvertPractitionerToCenter,
   useConvertCenterToPractitioner,
   useBatchPublish,
+  useBatchDelete,
   uploadPractitionerImage,
   uploadCenterImage,
 } from '@/hooks/useAdmin';
@@ -356,7 +357,9 @@ const AdminPanel = () => {
   const convertPractitionerToCenter = useConvertPractitionerToCenter();
   const convertCenterToPractitioner = useConvertCenterToPractitioner();
   const batchPublish = useBatchPublish();
+  const batchDelete = useBatchDelete();
   const setListingTier = useSetListingTier();
+  const [batchDeleteConfirm, setBatchDeleteConfirm] = useState<'practitioners' | 'centers' | null>(null);
 
   // ── Batch selection helpers ───────────────────────────────────────────────
   const toggleSelectPractitioner = (id: string) =>
@@ -395,6 +398,22 @@ const AdminPanel = () => {
       table === 'practitioners' ? setSelectedPractitioners(new Set()) : setSelectedCenters(new Set());
     } catch {
       toast.error('Batch update failed');
+    }
+  };
+
+  const handleBatchDelete = async (table: 'practitioners' | 'centers') => {
+    const ids = table === 'practitioners'
+      ? [...selectedPractitioners]
+      : [...selectedCenters];
+    if (!ids.length) return;
+    try {
+      await batchDelete.mutateAsync({ table, ids });
+      toast.success(`${ids.length} ${table} deleted`);
+      table === 'practitioners' ? setSelectedPractitioners(new Set()) : setSelectedCenters(new Set());
+    } catch {
+      toast.error('Batch delete failed');
+    } finally {
+      setBatchDeleteConfirm(null);
     }
   };
 
@@ -1513,7 +1532,17 @@ const AdminPanel = () => {
                     <XCircle className="h-3.5 w-3.5 mr-1" />
                     Set Draft
                   </Button>
-                  {batchPublish.isPending && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-red-700 border-red-300 hover:bg-red-50"
+                    disabled={batchPublish.isPending || batchDelete.isPending}
+                    onClick={() => setBatchDeleteConfirm('practitioners')}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    Delete
+                  </Button>
+                  {(batchPublish.isPending || batchDelete.isPending) && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
                 </>
               )}
             </div>
@@ -1720,7 +1749,17 @@ const AdminPanel = () => {
                     <XCircle className="h-3.5 w-3.5 mr-1" />
                     Set Draft
                   </Button>
-                  {batchPublish.isPending && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs text-red-700 border-red-300 hover:bg-red-50"
+                    disabled={batchPublish.isPending || batchDelete.isPending}
+                    onClick={() => setBatchDeleteConfirm('centers')}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                    Delete
+                  </Button>
+                  {(batchPublish.isPending || batchDelete.isPending) && <Loader2 className="h-4 w-4 animate-spin text-gray-400" />}
                 </>
               )}
             </div>
@@ -2849,6 +2888,41 @@ const AdminPanel = () => {
                 {convertCenterToPractitioner.isPending
                   ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Moving...</>
                   : 'Move to Practitioners'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Batch Delete Confirm Dialog ── */}
+      <Dialog open={!!batchDeleteConfirm} onOpenChange={open => !open && setBatchDeleteConfirm(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-red-700">Delete {batchDeleteConfirm === 'practitioners' ? selectedPractitioners.size : selectedCenters.size} listing{(batchDeleteConfirm === 'practitioners' ? selectedPractitioners.size : selectedCenters.size) !== 1 ? 's' : ''}?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-gray-600">
+              This will permanently delete{' '}
+              <strong>{batchDeleteConfirm === 'practitioners' ? selectedPractitioners.size : selectedCenters.size}</strong>{' '}
+              {batchDeleteConfirm} listing{(batchDeleteConfirm === 'practitioners' ? selectedPractitioners.size : selectedCenters.size) !== 1 ? 's' : ''}.
+              This action cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setBatchDeleteConfirm(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+                disabled={batchDelete.isPending}
+                onClick={() => batchDeleteConfirm && handleBatchDelete(batchDeleteConfirm)}
+              >
+                {batchDelete.isPending
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Deleting...</>
+                  : 'Delete'}
               </Button>
             </div>
           </div>
