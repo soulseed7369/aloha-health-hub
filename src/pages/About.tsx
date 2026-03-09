@@ -113,9 +113,6 @@ const About = () => {
               <Link to="/directory">Browse Directory</Link>
             </Button>
             <Button asChild variant="outline">
-              <Link to="/concierge">Concierge Service</Link>
-            </Button>
-            <Button asChild variant="outline">
               <Link to="/help">Help Center</Link>
             </Button>
           </div>

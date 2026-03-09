@@ -34,7 +34,7 @@ export function CenterCard({ center }: CenterCardProps) {
   const hasImage = !!center.image && !center.image.includes("no%20image") && !center.image.includes("no image");
 
   return (
-    <Link to={`/profile/${center.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
+    <Link to={`/center/${center.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
       <Card className="overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01]">
         <div className="flex gap-4 p-4">
           {/* Image / fallback */}

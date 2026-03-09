@@ -23,6 +23,7 @@ const Articles          = lazy(() => import("./pages/Articles"));
 const ArticleDetail     = lazy(() => import("./pages/ArticleDetail"));
 const ListYourPractice  = lazy(() => import("./pages/ListYourPractice"));
 const ProfileDetail     = lazy(() => import("./pages/ProfileDetail"));
+const CenterDetail      = lazy(() => import("./pages/CenterDetail"));
 const Concierge         = lazy(() => import("./pages/Concierge"));
 const NotFound          = lazy(() => import("./pages/NotFound"));
 const Auth              = lazy(() => import("./pages/Auth"));
@@ -140,6 +141,7 @@ const App = () => (
                 <Route path="/articles/:slug"     element={<ArticleDetail />} />
                 <Route path="/list-your-practice" element={<ListYourPractice />} />
                 <Route path="/profile/:id"        element={<ProfileDetail />} />
+                <Route path="/center/:id"         element={<CenterDetail />} />
                 <Route path="/concierge"          element={<Concierge />} />
                 <Route path="/about"              element={<About />} />
                 <Route path="/privacy-policy"     element={<PrivacyPolicy />} />
