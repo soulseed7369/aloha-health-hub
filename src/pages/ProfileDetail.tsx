@@ -7,15 +7,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle, MapPin, Phone, Mail, Globe, ExternalLink, ArrowLeft, Quote, Flag, Instagram, Facebook, Linkedin } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { JsonLd } from "@/components/JsonLd";
+import { SITE_URL } from "@/lib/siteConfig";
 
 const ProfileDetail = () => {
   const { id } = useParams<{ id: string }>();
   const { data: p, isLoading } = usePractitioner(id);
 
-  usePageMeta(
-    p ? p.name : "Practitioner Profile",
-    p?.about ?? "View practitioner profile and services on Hawa'i Wellness."
-  );
+  const metaDesc = p
+    ? p.about
+      ? p.about.slice(0, 155)
+      : `${p.name} — ${p.services.slice(0, 3).join(', ')} practitioner in Hawaiʻi. View profile, services, and contact info.`
+    : "View practitioner profile and services on Hawaiʻi Wellness.";
+  usePageMeta(p ? p.name : "Practitioner Profile", metaDesc);
 
   if (isLoading) {
     return (
@@ -56,12 +60,56 @@ const ProfileDetail = () => {
 
   const isClaimed = !!p.ownerId;
 
+  // ── Structured data ──────────────────────────────────────────────────────
+  const profileUrl = `${SITE_URL}/profile/${p.id}`;
+
+  const localBusinessSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: p.name,
+    description: p.about ?? undefined,
+    url: p.website ?? profileUrl,
+    image: p.profileImage,
+    telephone: p.phone ?? undefined,
+    email: p.email ?? undefined,
+    address: p.address
+      ? {
+          '@type': 'PostalAddress',
+          streetAddress: p.address,
+          addressRegion: 'HI',
+          addressCountry: 'US',
+        }
+      : undefined,
+    geo:
+      p.lat && p.lng
+        ? { '@type': 'GeoCoordinates', latitude: p.lat, longitude: p.lng }
+        : undefined,
+    ...(p.services.length > 0 && { hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Services',
+      itemListElement: p.services.map(s => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s } })),
+    }}),
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Directory', item: `${SITE_URL}/directory` },
+      { '@type': 'ListItem', position: 3, name: p.name, item: profileUrl },
+    ],
+  };
+
   return (
     <main>
+      <JsonLd id="profile-localbusiness" data={localBusinessSchema} />
+      <JsonLd id="profile-breadcrumb" data={breadcrumbSchema} />
+
       {/* Hero */}
       <section className="relative">
         <div className="h-48 overflow-hidden md:h-64">
-          <img src={p.coverImage} alt="Cover" className="h-full w-full object-cover" />
+          <img src={p.coverImage} alt={`${p.name} cover`} className="h-full w-full object-cover" loading="eager" />
         </div>
         <div className="container relative">
           <div className="flex flex-col items-start gap-4 pb-6 pt-0 md:flex-row md:items-end md:gap-6">

@@ -5,6 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, Facebook, Twitter, Link2, Check } from 'lucide-react';
 import { useArticleBySlug } from '@/hooks/useArticles';
+import { usePageMeta } from '@/hooks/usePageMeta';
+import { JsonLd } from '@/components/JsonLd';
+import { SITE_URL, SITE_NAME } from '@/lib/siteConfig';
 
 function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
@@ -67,6 +70,12 @@ export default function ArticleDetail() {
   const { slug } = useParams<{ slug: string }>();
   const { data: article, isLoading, isError } = useArticleBySlug(slug ?? '');
 
+  // ── Per-page meta (title, description, canonical) ─────────────────────
+  usePageMeta(
+    article ? article.title : 'Wellness Article',
+    article ? (article.excerpt ?? `Read ${article.title} on ${SITE_NAME}.`) : undefined,
+  );
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-12">
@@ -96,8 +105,39 @@ export default function ArticleDetail() {
     );
   }
 
+  const articleUrl = `${SITE_URL}/articles/${slug}`;
+
+  const articleSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: article.title,
+    description: article.excerpt ?? undefined,
+    image: article.image ?? undefined,
+    author: { '@type': 'Person', name: article.author },
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+    datePublished: article.date ?? undefined,
+    url: articleUrl,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': articleUrl },
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+      { '@type': 'ListItem', position: 2, name: 'Articles', item: `${SITE_URL}/articles` },
+      { '@type': 'ListItem', position: 3, name: article.title, item: articleUrl },
+    ],
+  };
+
   return (
     <div className="mx-auto max-w-3xl px-4 py-10">
+        <JsonLd id="article-schema" data={articleSchema} />
+        <JsonLd id="article-breadcrumb" data={breadcrumbSchema} />
         {/* Back link */}
         <Link
           to="/articles"

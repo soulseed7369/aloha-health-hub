@@ -1,41 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:geo="http://www.google.com/geo/schemas/sitemap/1.0">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
+  <!-- Homepage -->
   <url>
-    <loc>https://alohahealthhub.com/</loc>
+    <loc>https://hawaiiwellness.net/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
 
+  <!-- Island homepages -->
   <url>
-    <loc>https://alohahealthhub.com/directory</loc>
+    <loc>https://hawaiiwellness.net/big-island</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://hawaiiwellness.net/maui</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://hawaiiwellness.net/oahu</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://hawaiiwellness.net/kauai</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
+  <!-- Directory -->
   <url>
-    <loc>https://alohahealthhub.com/retreats</loc>
+    <loc>https://hawaiiwellness.net/directory</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
 
+  <!-- Retreats -->
   <url>
-    <loc>https://alohahealthhub.com/articles</loc>
+    <loc>https://hawaiiwellness.net/retreats</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Articles -->
+  <url>
+    <loc>https://hawaiiwellness.net/articles</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
 
+  <!-- List your practice -->
   <url>
-    <loc>https://alohahealthhub.com/list-your-practice</loc>
+    <loc>https://hawaiiwellness.net/list-your-practice</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
 
+  <!-- Concierge -->
   <url>
-    <loc>https://alohahealthhub.com/concierge</loc>
+    <loc>https://hawaiiwellness.net/concierge</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+
+  <!-- Help / FAQ -->
+  <url>
+    <loc>https://hawaiiwellness.net/help</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
   </url>
 
 </urlset>
