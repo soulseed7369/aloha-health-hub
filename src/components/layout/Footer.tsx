@@ -30,7 +30,7 @@ export function Footer() {
           <div className="space-y-3">
             <h4 className="font-display text-sm font-semibold uppercase tracking-wider opacity-70">Support</h4>
             <nav className="flex flex-col gap-2 text-sm">
-              <Link to="/help" className="opacity-80 hover:opacity-100">Help Center & FAQ</Link>
+              <Link to="/help" className="opacity-80 hover:opacity-100">Help Center</Link>
               <a href="mailto:aloha@hawaiiwellness.net" className="opacity-80 hover:opacity-100">Contact Us</a>
               <Link to="/privacy-policy" className="opacity-80 hover:opacity-100">Privacy Policy</Link>
               <Link to="/terms-of-service" className="opacity-80 hover:opacity-100">Terms of Service</Link>

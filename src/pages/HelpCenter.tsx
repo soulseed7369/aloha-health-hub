@@ -38,13 +38,13 @@ function Accordion({ question, answer }: FAQItem) {
 
 const sections: FAQSection[] = [
   {
-    title: 'About Aloha Health Hub',
+    title: 'About Hawaiʻi Wellness',
     items: [
       {
-        question: 'What is Aloha Health Hub?',
+        question: 'What is Hawaiʻi Wellness?',
         answer: (
           <p>
-            Aloha Health Hub is a curated online directory of holistic health and wellness
+            Hawaiʻi Wellness is a curated online directory of holistic health and wellness
             providers across the Hawaiian Islands — including Maui, Oahu, the Big Island,
             and Kauai. We connect people seeking healing, balance, and well-being with local
             practitioners, wellness centers, and retreat experiences.
@@ -64,7 +64,7 @@ const sections: FAQSection[] = [
         ),
       },
       {
-        question: 'Is Aloha Health Hub affiliated with any health providers?',
+        question: 'Is Hawaiʻi Wellness affiliated with any health providers?',
         answer: (
           <p>
             No. We are an independent directory platform operated by Hawaii Wellness LLC.
@@ -125,7 +125,7 @@ const sections: FAQSection[] = [
           <p>
             Featured listings are providers who have subscribed to our Featured tier. They
             appear prominently on island homepages and in the directory. The badge does not
-            imply any endorsement or quality certification by Aloha Health Hub — it is a
+            imply any endorsement or quality certification by Hawaiʻi Wellness — it is a
             paid placement.
           </p>
         ),
@@ -387,7 +387,7 @@ export default function HelpCenter() {
       <div className="mb-12 text-center">
         <h1 className="mb-3 font-display text-4xl font-bold">Help Center</h1>
         <p className="text-muted-foreground">
-          Everything you need to know about Aloha Health Hub. Can't find an answer?{' '}
+          Everything you need to know about Hawaiʻi Wellness. Can't find an answer?{' '}
           <a href="mailto:aloha@hawaiiwellness.net" className="text-primary underline underline-offset-2">
             Email us
           </a>.

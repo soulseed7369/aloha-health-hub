@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
       <div className="prose prose-stone max-w-none">
 
         <p>
-          Hawaii Wellness LLC ("we," "us," or "our") operates the Aloha Health Hub platform
+          Hawaii Wellness LLC ("we," "us," or "our") operates the Hawaiʻi Wellness platform
           at <strong>hawaiiwellness.net</strong> (the "Site"). This Privacy Policy explains how we
           collect, use, disclose, and protect your information when you use our Site.
           By using the Site, you agree to the practices described in this policy.

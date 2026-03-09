@@ -18,7 +18,7 @@ export default function TermsOfService() {
       <div className="prose prose-stone max-w-none">
 
         <p>
-          These Terms of Service ("Terms") govern your use of the Aloha Health Hub website
+          These Terms of Service ("Terms") govern your use of the Hawaiʻi Wellness website
           and platform operated by <strong>Hawaii Wellness LLC</strong> ("we," "us," or "our").
           By accessing or using the Site, you agree to be bound by these Terms. If you do not
           agree, please do not use the Site.
@@ -33,7 +33,7 @@ export default function TermsOfService() {
 
         <h2>2. The Platform</h2>
         <p>
-          Aloha Health Hub is a directory platform connecting wellness seekers with holistic
+          Hawaiʻi Wellness is a directory platform connecting wellness seekers with holistic
           practitioners, wellness centers, and retreat providers in Hawaii. We do not provide
           medical, therapeutic, or health services ourselves. We are not responsible for the
           quality, accuracy, or outcomes of services offered by listed providers.
