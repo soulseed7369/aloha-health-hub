@@ -21,11 +21,11 @@ type DirectoryTab = "practitioners" | "centers";
 
 // ── Canonical modalities (subset shown in filter) ─────────────────────────────
 const FILTER_MODALITIES = [
-  "Acupuncture", "Ayurveda", "Breathwork", "Chiropractic", "Counseling",
-  "Energy Healing", "Functional Medicine", "Herbalism", "Hypnotherapy",
-  "Life Coaching", "Lomilomi / Hawaiian Healing", "Massage", "Meditation",
+  "Acupuncture", "Art Therapy", "Ayurveda", "Breathwork", "Chiropractic", "Counseling",
+  "Energy Healing", "Family Constellation", "Functional Medicine", "Herbalism", "Hypnotherapy",
+  "IV Therapy", "Life Coaching", "Lomilomi / Hawaiian Healing", "Longevity", "Massage", "Meditation",
   "Nature Therapy", "Naturopathic", "Nutrition", "Physical Therapy",
-  "Psychotherapy", "Reiki", "Somatic Therapy", "Sound Healing",
+  "Psychic", "Psychotherapy", "Reiki", "Somatic Therapy", "Sound Healing",
   "TCM (Traditional Chinese Medicine)", "Trauma-Informed Care", "Yoga",
 ];
 
