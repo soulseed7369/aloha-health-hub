@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { SearchBar } from "@/components/SearchBar";
 import { ProviderCard } from "@/components/ProviderCard";
@@ -12,15 +13,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
 
-const QUICK_MODALITIES = [
-  { label: "Massage", query: "massage" },
-  { label: "Chiropractor", query: "chiropractic" },
-  { label: "Energy Healing", query: "energy healing" },
-  { label: "Acupuncture", query: "acupuncture" },
-  { label: "Naturopathic", query: "naturopathic" },
-  { label: "Yoga", query: "yoga" },
-  { label: "Meditation", query: "meditation" },
-];
+const TOP_N_MODALITIES = 8;
 
 const OTHER_ISLANDS = [
   { slug: "big-island", label: "Hawaiʻi Island (Big Island)", description: "Kona, Hilo, Waimea & more" },
@@ -52,6 +45,22 @@ export function IslandHome({ config }: IslandHomeProps) {
 
   const articleCardData = articles.slice(0, 3);
 
+  // ── Top modalities by frequency across practitioners + centers ───────────
+  const popularModalities = useMemo(() => {
+    const counts = new Map<string, number>();
+    const allModalities = [
+      ...practitioners.flatMap(p => p.modalities ?? []),
+      ...centers.flatMap(c => c.modalities ?? []),
+    ];
+    for (const m of allModalities) {
+      if (m?.trim()) counts.set(m, (counts.get(m) ?? 0) + 1);
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, TOP_N_MODALITIES)
+      .map(([label]) => label);
+  }, [practitioners, centers]);
+
   // ── ItemList schema for practitioner listings ────────────────────────────
   const itemListSchema = practitioners.length > 0
     ? {
@@ -80,19 +89,26 @@ export function IslandHome({ config }: IslandHomeProps) {
       {itemListSchema && <JsonLd id={`itemlist-${config.island}`} data={itemListSchema} />}
       <SearchBar island={config.island} heroImageUrl={config.heroImageUrl} heroTitle={config.heroTitle} heroSubtitle={config.heroSubtitle} />
 
-      {/* Modality quick links */}
-      <div className="border-b border-border bg-background">
+      {/* Modality quick-filter bubbles — sticky below header */}
+      <div className="sticky top-16 z-10 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="container flex items-center gap-2 overflow-x-auto py-3 scrollbar-hide">
           <span className="flex-shrink-0 text-xs font-medium text-muted-foreground">Browse:</span>
-          {QUICK_MODALITIES.map(({ label, query }) => (
-            <Link
-              key={label}
-              to={`/directory?q=${encodeURIComponent(query)}&island=${config.island}`}
-              className="flex-shrink-0 rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-primary hover:text-primary-foreground hover:border-primary"
-            >
-              {label}
-            </Link>
-          ))}
+          {loadingPractitioners || loadingCenters ? (
+            // Skeleton pills while data loads
+            Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-8 w-24 flex-shrink-0 rounded-full" />
+            ))
+          ) : (
+            popularModalities.map((label) => (
+              <Link
+                key={label}
+                to={`/directory?modality=${encodeURIComponent(label)}&island=${config.island}`}
+                className="flex-shrink-0 rounded-full border border-border bg-background px-4 py-1.5 text-sm font-medium text-foreground transition-colors hover:border-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                {label}
+              </Link>
+            ))
+          )}
         </div>
       </div>
 
