@@ -67,6 +67,7 @@ export function practitionerRowToProvider(row: PractitionerRowWithBusiness): Pro
     rating: 5.0,
     lat: row.lat ?? 0,
     lng: row.lng ?? 0,
+    tier: (row.tier as 'free' | 'premium' | 'featured') ?? 'free',
   };
 }
 
@@ -91,6 +92,7 @@ export function centerRowToCenter(row: CenterRow): Center {
     lat: row.lat ?? 0,
     lng: row.lng ?? 0,
     services: [],
+    tier: (row.tier as 'free' | 'premium' | 'featured') ?? 'free',
   };
 }
 

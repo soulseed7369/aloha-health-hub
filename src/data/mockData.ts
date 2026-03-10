@@ -52,6 +52,8 @@ export interface Provider {
   rating: number;
   lat: number;
   lng: number;
+  /** Subscription tier — used for priority sorting in directory */
+  tier?: 'free' | 'premium' | 'featured';
 }
 
 export interface Center {
@@ -66,6 +68,8 @@ export interface Center {
   lat: number;
   lng: number;
   services: string[];
+  /** Subscription tier — used for priority sorting in directory */
+  tier?: 'free' | 'premium' | 'featured';
 }
 
 export interface RetreatEvent {

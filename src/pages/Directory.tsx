@@ -350,31 +350,42 @@ const Directory = () => {
 
   const effectiveQuery = [searchQuery, urlLocation].filter(Boolean).join(' ');
 
-  // Client-side filtering
-  const filteredPractitioners = useMemo(
-    () => filterProviders(
-      // Augment mock data to apply city filter via location field
-      city
-        ? practitioners.filter(p => p.location?.toLowerCase() === city.toLowerCase())
-        : practitioners,
-      effectiveQuery,
-      modality,
-      sessionType,
-      acceptsClients,
-    ),
-    [practitioners, effectiveQuery, modality, city, sessionType, acceptsClients]
-  );
+  // Tier sort weight: featured = 0 (top), premium = 1, free/undefined = 2
+  const tierWeight = (tier?: string) =>
+    tier === 'featured' ? 0 : tier === 'premium' ? 1 : 2;
 
-  const filteredCenters = useMemo(
-    () => filterCenters(
-      city
-        ? centers.filter(c => c.location?.toLowerCase() === city.toLowerCase())
-        : centers,
-      effectiveQuery,
-      modality,
-    ),
-    [centers, effectiveQuery, modality, city]
-  );
+  // Client-side filtering
+  // Premium & featured listings are never excluded by city — they always surface
+  // island-wide for any matching modality, even if they're in a different city.
+  const filteredPractitioners = useMemo(() => {
+    const cityFiltered = city
+      ? practitioners.filter(p =>
+          p.location?.toLowerCase() === city.toLowerCase() ||
+          p.tier === 'premium' || p.tier === 'featured'
+        )
+      : practitioners;
+    const results = filterProviders(cityFiltered, effectiveQuery, modality, sessionType, acceptsClients);
+    // Sort: featured → premium → free, then alphabetical within each tier
+    return [...results].sort((a, b) => {
+      const td = tierWeight(a.tier) - tierWeight(b.tier);
+      return td !== 0 ? td : a.name.localeCompare(b.name);
+    });
+  }, [practitioners, effectiveQuery, modality, city, sessionType, acceptsClients]);
+
+  const filteredCenters = useMemo(() => {
+    const cityFiltered = city
+      ? centers.filter(c =>
+          c.location?.toLowerCase() === city.toLowerCase() ||
+          c.tier === 'premium' || c.tier === 'featured'
+        )
+      : centers;
+    const results = filterCenters(cityFiltered, effectiveQuery, modality);
+    // Sort: featured → premium → free, then alphabetical within each tier
+    return [...results].sort((a, b) => {
+      const td = tierWeight(a.tier) - tierWeight(b.tier);
+      return td !== 0 ? td : a.name.localeCompare(b.name);
+    });
+  }, [centers, effectiveQuery, modality, city]);
 
   const mapLocations = useMemo(() => {
     const raw = tab === "practitioners" ? filteredPractitioners : filteredCenters;
