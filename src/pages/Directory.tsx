@@ -50,7 +50,9 @@ const ISLAND_TOWNS: Record<string, string[]> = {
   ],
   kauai: [
     'lihue', 'kapaa', 'hanalei', 'princeville', 'poipu', 'koloa', 'hanapepe',
-    'waimea', 'eleele', 'kalaheo', 'lawai', 'anahola', 'kilauea', 'haena',
+    'eleele', 'kalaheo', 'lawai', 'anahola', 'kilauea', 'haena',
+    // Note: 'waimea' intentionally omitted — it exists on both Big Island and Kauai.
+    // Big Island's waimea is also called 'kamuela' (already in big_island list).
   ],
   molokai: ['kaunakakai', 'hoolehua', 'maunaloa', 'kualapuu', 'halawa', 'pukoo'],
 };
@@ -300,14 +302,19 @@ const Directory = () => {
   const [acceptsClients, setAcceptsClients] = useState(urlAcceptsClients);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
-  // Sync island from smart detection
+  // Sync island — explicit URL param always wins; only use detectedIsland as
+  // a fallback when the user hasn't explicitly chosen an island.
   useEffect(() => {
-    if (detectedIsland && detectedIsland !== urlIsland) {
+    if (searchParams.get('island')) {
+      // User (or SearchBar) explicitly set the island — respect it.
+      setIsland(urlIsland);
+    } else if (detectedIsland) {
+      // No explicit island in URL; infer from location/query text.
       setIsland(detectedIsland);
     } else {
       setIsland(urlIsland);
     }
-  }, [detectedIsland, urlIsland]);
+  }, [detectedIsland, urlIsland, searchParams]);
 
   // Persist filters to URL params
   const updateParam = useCallback((key: string, value: string) => {
