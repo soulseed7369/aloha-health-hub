@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase as supabaseAdmin } from '@/lib/supabase';
 import type { PractitionerRow, CenterRow, ArticleRow } from '@/types/database';
 
-const PRACTITIONER_BUCKET = 'practitioner-images';
-const CENTER_BUCKET = 'practitioner-images'; // reuse same bucket
+const IMAGE_BUCKET = 'images'; // matches the bucket used by uploadMyPhoto in useMyPractitioner
 
 // ─── Query params & result types ────────────────────────────────────────────
 
@@ -51,10 +50,10 @@ export async function uploadPractitionerImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `avatars/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabaseAdmin.storage
-    .from(PRACTITIONER_BUCKET)
+    .from(IMAGE_BUCKET)
     .upload(path, file, { upsert: true });
   if (error) throw error;
-  const { data } = supabaseAdmin.storage.from(PRACTITIONER_BUCKET).getPublicUrl(path);
+  const { data } = supabaseAdmin.storage.from(IMAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -82,10 +81,10 @@ export async function uploadCenterImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `centers/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabaseAdmin.storage
-    .from(CENTER_BUCKET)
+    .from(IMAGE_BUCKET)
     .upload(path, file, { upsert: true });
   if (error) throw error;
-  const { data } = supabaseAdmin.storage.from(CENTER_BUCKET).getPublicUrl(path);
+  const { data } = supabaseAdmin.storage.from(IMAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
 

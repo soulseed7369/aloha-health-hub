@@ -12,11 +12,12 @@ import type { Provider, Center, RetreatEvent, Article } from '@/data/mockData';
 
 // ─── Placeholder images (used when no image is stored in DB) ─────────────────
 
-const PLACEHOLDER_STOCK = '/no%20image%20stock.jpg';
-const PLACEHOLDER_PRACTITIONER = PLACEHOLDER_STOCK;
-const PLACEHOLDER_CENTER       = PLACEHOLDER_STOCK;
-const PLACEHOLDER_RETREAT      = PLACEHOLDER_STOCK;
-const PLACEHOLDER_ARTICLE      = PLACEHOLDER_STOCK;
+// Empty string → cards use their AvatarFallback (initials) instead of a stock photo
+const PLACEHOLDER_PRACTITIONER = '';
+const PLACEHOLDER_CENTER       = '';
+// Retreats and articles use a real cover image slot, keep stock fallback for those
+const PLACEHOLDER_RETREAT      = '/no%20image%20stock.jpg';
+const PLACEHOLDER_ARTICLE      = '/no%20image%20stock.jpg';
 
 // ─── Center type display labels ───────────────────────────────────────────────
 
