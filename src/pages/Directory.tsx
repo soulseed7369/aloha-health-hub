@@ -93,6 +93,190 @@ const ISLANDS = [
   { value: 'molokai', label: "Molokaʻi" },
 ];
 
+// ── Semantic synonym map ──────────────────────────────────────────────────────
+// Maps user search phrases → canonical modality names (or fragments thereof).
+// Keys are lowercase; values are appended to the search target so the normal
+// token matcher can find them.  Order doesn't matter — all matches are applied.
+
+const MODALITY_SYNONYMS: Record<string, string> = {
+  // Soul / spiritual
+  'soul retrieval':        'soul guidance',
+  'soul work':             'soul guidance',
+  'soul healing':          'soul guidance',
+  'spirit':                'soul guidance',
+  'shamanic':              'soul guidance energy healing',
+  'shaman':                'soul guidance energy healing',
+
+  // Energy
+  'energy work':           'energy healing',
+  'energy medicine':       'energy healing',
+  'biofield':              'energy healing',
+  'quantum healing':       'energy healing',
+  'pranic':                'energy healing',
+  'matrix':                'energy healing',
+
+  // Bodywork / massage
+  'bodywork':              'massage',
+  'body work':             'massage',
+  'lomi':                  'lomilomi',
+  'lomilomi':              'lomilomi hawaiian healing',
+  'hawaiian massage':      'lomilomi hawaiian healing',
+  'deep tissue':           'massage',
+  'swedish massage':       'massage',
+  'therapeutic massage':   'massage',
+  'sports massage':        'massage',
+  'hot stone':             'massage',
+
+  // Water
+  'water therapy':         'watsu water therapy',
+  'watsu':                 'watsu water therapy',
+  'aquatic':               'watsu water therapy',
+
+  // Sound
+  'sound bath':            'sound healing',
+  'gong bath':             'sound healing',
+  'singing bowl':          'sound healing',
+  'tuning fork':           'sound healing',
+  'vibrational':           'sound healing',
+
+  // Nervous system / somatic / trauma
+  'nervous system':        'nervous system regulation somatic therapy trauma',
+  'somatic':               'somatic therapy nervous system regulation',
+  'trauma':                'trauma-informed care',
+  'emdr':                  'trauma-informed care psychotherapy counseling',
+  'ptsd':                  'trauma-informed care psychotherapy',
+  'polyvagal':             'nervous system regulation somatic therapy',
+
+  // Mental health / therapy
+  'therapist':             'psychotherapy counseling somatic therapy',
+  'therapy':               'psychotherapy counseling somatic therapy',
+  'psychologist':          'psychotherapy counseling',
+  'talk therapy':          'psychotherapy counseling',
+  'grief':                 'counseling psychotherapy',
+  'anxiety':               'counseling psychotherapy nervous system regulation',
+  'depression':            'counseling psychotherapy',
+  'marriage':              'counseling psychotherapy',
+  'couples':               'counseling psychotherapy',
+
+  // Coaching
+  'life coach':            'life coaching',
+  'coach':                 'life coaching',
+  'coaching':              'life coaching',
+  'mindset':               'life coaching',
+  'executive coach':       'life coaching',
+
+  // Chiropractic
+  'chiropractor':          'chiropractic',
+  'chiro':                 'chiropractic',
+  'spinal':                'chiropractic',
+  'adjustment':            'chiropractic',
+  'network':               'network chiropractic',
+
+  // Acupuncture / TCM
+  'acupuncturist':         'acupuncture',
+  'chinese medicine':      'tcm traditional chinese medicine acupuncture',
+  'oriental medicine':     'tcm traditional chinese medicine',
+  'tcm':                   'tcm traditional chinese medicine',
+  'cupping':               'tcm acupuncture',
+  'moxibustion':           'tcm acupuncture',
+
+  // Naturopathic / functional
+  'naturopath':            'naturopathic',
+  'functional medicine':   'functional medicine naturopathic',
+  'integrative medicine':  'functional medicine naturopathic',
+  'holistic doctor':       'functional medicine naturopathic',
+  'holistic medicine':     'functional medicine naturopathic',
+
+  // Nutrition
+  'nutritionist':          'nutrition',
+  'nutritional':           'nutrition',
+  'dietitian':             'nutrition',
+  'diet':                  'nutrition',
+
+  // Herbalism / plant medicine
+  'herbalist':             'herbalism',
+  'plant medicine':        'herbalism naturopathic ayurveda',
+  'botanical':             'herbalism',
+
+  // Ayurveda
+  'ayurvedic':             'ayurveda',
+
+  // Yoga / breathwork
+  'pranayama':             'breathwork yoga',
+  'yoga teacher':          'yoga',
+  'yogi':                  'yoga',
+  'vinyasa':               'yoga',
+  'kundalini':             'yoga breathwork',
+  'hatha':                 'yoga',
+  'yin yoga':              'yoga',
+
+  // Meditation
+  'mindfulness':           'meditation',
+  'guided meditation':     'meditation',
+
+  // Hypnotherapy
+  'hypnosis':              'hypnotherapy',
+  'hypnotist':             'hypnotherapy',
+
+  // Craniosacral
+  'craniosacral':          'craniosacral',
+  'cranio':                'craniosacral',
+  'cst':                   'craniosacral',
+
+  // Birth / women's health
+  'doula':                 'birth doula',
+  'birth support':         'birth doula midwife',
+  'midwifery':             'midwife',
+  'prenatal':              'birth doula midwife',
+  'postpartum':            'birth doula',
+
+  // Astrology / psychic
+  'astrologer':            'astrology',
+  'birth chart':           'astrology',
+  'psychic reading':       'psychic',
+  'tarot':                 'psychic soul guidance',
+  'oracle':                'psychic soul guidance',
+  'intuitive':             'psychic soul guidance energy healing',
+  'medium':                'psychic',
+  'clairvoyant':           'psychic',
+
+  // Physical therapy / osteopathic
+  'physical therapist':    'physical therapy',
+  'pt ':                   'physical therapy',
+  'osteopath':             'osteopathic',
+  'osteopathy':            'osteopathic',
+
+  // Misc
+  'reiki master':          'reiki',
+  'nature':                'nature therapy',
+  'forest bathing':        'nature therapy',
+  'ecotherapy':            'nature therapy',
+  'art therapy':           'art therapy',
+  'family constellation':  'family constellation',
+  'iv therapy':            'iv therapy',
+  'iv drip':               'iv therapy',
+  'longevity':             'longevity functional medicine',
+  'anti-aging':            'longevity',
+  'dental':                'dentistry',
+  'dentist':               'dentistry',
+};
+
+/**
+ * Expand the raw query by appending any synonym matches.
+ * e.g. "soul retrieval kona" → "soul retrieval kona soul guidance"
+ * The original query is preserved so name/location tokens still work.
+ */
+function expandQuery(query: string): string {
+  const lower = query.toLowerCase();
+  const extras: string[] = [];
+  for (const [phrase, expansion] of Object.entries(MODALITY_SYNONYMS)) {
+    if (lower.includes(phrase)) {
+      extras.push(expansion);
+    }
+  }
+  return extras.length > 0 ? `${query} ${extras.join(' ')}` : query;
+}
+
 // ── Smart filter with stemming ────────────────────────────────────────────────
 
 function stem(word: string): string {
@@ -125,6 +309,8 @@ function tokenMatch(target: string, queryToken: string): boolean {
 
 function smartFilter(target: string, query: string): boolean {
   if (!query.trim()) return true;
+  // Expand query with synonym aliases, then filter on original tokens only
+  // (expanded aliases are added to the TARGET so the original tokens still match)
   const tokens = query.toLowerCase().split(/\s+/).filter(t => t.length >= 2);
   if (tokens.length === 0) return true;
   return tokens.every(token => tokenMatch(target, token));
@@ -137,14 +323,24 @@ function filterProviders(
   sessionType: string,
   acceptsClients: boolean,
 ): Provider[] {
+  // Expand the query semantically, then append expansions to each listing's
+  // match target — bio is intentionally excluded to avoid false positives.
+  const expanded = expandQuery(query);
   return items.filter(p => {
-    if (!smartFilter(`${p.name} ${p.modality} ${p.location || ''} ${p.bio || ''}`, query)) return false;
+    // Search target: name + modalities + city — no bio
+    const modalityText = (p.modalities ?? [p.modality]).join(' ');
+    const target = `${p.name} ${modalityText} ${p.location || ''}`;
+    // Append synonym expansions to the target so tokens in the expanded query
+    // can match canonical modality names even if the user typed an alias.
+    const expandedTarget = expanded !== query
+      ? `${target} ${expanded.slice(query.length).trim()}`
+      : target;
+    if (!smartFilter(expandedTarget, query)) return false;
     if (modality) {
       const allMods = (p.modalities ?? [p.modality]).join(' ').toLowerCase();
       if (!allMods.includes(modality.toLowerCase())) return false;
     }
     if (sessionType && p.sessionType && p.sessionType !== sessionType && sessionType !== 'both') {
-      // Only filter if sessionType is set on the record
       if (p.sessionType !== 'both') return false;
     }
     if (acceptsClients && p.acceptsNewClients !== true) return false;
@@ -153,8 +349,14 @@ function filterProviders(
 }
 
 function filterCenters(items: Center[], query: string, modality: string): Center[] {
+  const expanded = expandQuery(query);
   return items.filter(c => {
-    if (!smartFilter(`${c.name} ${c.modality} ${c.location || ''}`, query)) return false;
+    const modalityText = (c.modalities ?? [c.modality]).join(' ');
+    const target = `${c.name} ${modalityText} ${c.location || ''}`;
+    const expandedTarget = expanded !== query
+      ? `${target} ${expanded.slice(query.length).trim()}`
+      : target;
+    if (!smartFilter(expandedTarget, query)) return false;
     if (modality) {
       const allMods = (c.modalities ?? [c.modality]).join(' ').toLowerCase();
       if (!allMods.includes(modality.toLowerCase())) return false;
