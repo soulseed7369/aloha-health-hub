@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase as supabaseAdmin } from '@/lib/supabase';
 import type { PractitionerRow, CenterRow, ArticleRow } from '@/types/database';
 
-const IMAGE_BUCKET = 'images'; // matches the bucket used by uploadMyPhoto in useMyPractitioner
+const IMAGE_BUCKET = 'practitioner-images'; // the Supabase storage bucket for all listing images
 
 // ─── Query params & result types ────────────────────────────────────────────
 
