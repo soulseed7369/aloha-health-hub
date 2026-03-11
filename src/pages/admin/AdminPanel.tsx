@@ -1036,16 +1036,16 @@ const AdminPanel = () => {
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="mb-6 flex gap-3 flex-wrap">
+      <div className="mb-4 flex gap-2 flex-wrap items-center">
         <Input
           type="text"
           placeholder="Search by name…"
           value={searchInput}
           onChange={e => setSearchInput(e.target.value)}
-          className="flex-1 min-w-48"
+          className="h-8 flex-1 min-w-40 text-sm"
         />
         <Select value={sort} onValueChange={v => { setSort(v as AdminQueryParams['sort']); setPractitionerPage(0); setCenterPage(0); }}>
-          <SelectTrigger className="min-w-48">
+          <SelectTrigger className="h-8 w-36 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1056,7 +1056,7 @@ const AdminPanel = () => {
           </SelectContent>
         </Select>
         <Select value={island} onValueChange={v => { setIsland(v); setPractitionerPage(0); setCenterPage(0); }}>
-          <SelectTrigger className="min-w-48">
+          <SelectTrigger className="h-8 w-32 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1065,7 +1065,7 @@ const AdminPanel = () => {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={v => { setStatusFilter(v as AdminQueryParams['status']); setPractitionerPage(0); setCenterPage(0); setSelectedPractitioners(new Set()); setSelectedCenters(new Set()); }}>
-          <SelectTrigger className="min-w-36">
+          <SelectTrigger className="h-8 w-28 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -1075,7 +1075,7 @@ const AdminPanel = () => {
           </SelectContent>
         </Select>
         <Select value={modalityFilter} onValueChange={v => { setModalityFilter(v); setPractitionerPage(0); setCenterPage(0); }}>
-          <SelectTrigger className="min-w-48">
+          <SelectTrigger className="h-8 w-40 text-xs">
             <SelectValue placeholder="All Modalities" />
           </SelectTrigger>
           <SelectContent>
@@ -1765,7 +1765,7 @@ const AdminPanel = () => {
           {/* Centers-specific filters (Part 1) */}
           <div className="flex flex-wrap gap-2 mb-3">
             <Select value={centerTypeFilter} onValueChange={v => { setCenterTypeFilter(v); setCenterPage(0); }}>
-              <SelectTrigger className="min-w-44 h-8 text-sm">
+              <SelectTrigger className="h-8 w-40 text-xs">
                 <SelectValue placeholder="All center types" />
               </SelectTrigger>
               <SelectContent>
@@ -1778,7 +1778,7 @@ const AdminPanel = () => {
               </SelectContent>
             </Select>
             <Select value={missingDataFilter} onValueChange={v => { setMissingDataFilter(v); setCenterPage(0); }}>
-              <SelectTrigger className="min-w-52 h-8 text-sm">
+              <SelectTrigger className="h-8 w-44 text-xs">
                 <SelectValue placeholder="All records" />
               </SelectTrigger>
               <SelectContent>
