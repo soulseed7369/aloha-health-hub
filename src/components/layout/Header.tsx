@@ -1,7 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { IslandSelector } from "@/components/IslandSelector";
 import { useState, useEffect } from "react";
 
 const navLinks = [
@@ -51,7 +50,6 @@ export function Header() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-3 md:flex">
-          <IslandSelector />
           <Button asChild variant="outline" size="sm">
             <Link to="/auth">Provider Login</Link>
           </Button>
@@ -60,9 +58,8 @@ export function Header() {
           </Button>
         </div>
 
-        {/* Mobile: island selector (compact) + menu toggle */}
+        {/* Mobile: menu toggle */}
         <div className="flex items-center gap-1 md:hidden">
-          <IslandSelector compact />
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"

@@ -152,21 +152,21 @@ export function IslandHome({ config }: IslandHomeProps) {
         <div className="border-b border-border bg-muted/30 py-2.5">
           <div className="container flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm text-muted-foreground">
             {practitioners.length > 0 && (
-              <span><strong className="font-semibold text-foreground">{practitioners.length}</strong> practitioners</span>
+              <span><strong className="font-semibold text-foreground">{practitioners.length}</strong> Practitioners</span>
             )}
             {centers.length > 0 && (
               <span className="flex items-center gap-2">
                 <span aria-hidden="true">·</span>
-                <strong className="font-semibold text-foreground">{centers.length}</strong> wellness centers
+                <strong className="font-semibold text-foreground">{centers.length}</strong> Wellness Centers
               </span>
             )}
             <span className="flex items-center gap-2">
               <span aria-hidden="true">·</span>
-              <strong className="font-semibold text-foreground">34</strong> specialties
+              <strong className="font-semibold text-foreground">34</strong> Specialties
             </span>
             <span className="flex items-center gap-2">
               <span aria-hidden="true">·</span>
-              {config.displayName}&apos;s largest wellness directory
+              {config.displayName}&apos;s Largest Wellness Directory
             </span>
           </div>
         </div>

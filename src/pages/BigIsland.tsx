@@ -3,7 +3,7 @@ import heroImage from "@/assets/hero-homepage.jpg";
 
 const config = {
   island: 'big_island',
-  displayName: "Hawaiʻi Island",
+  displayName: "Big Island",
   heroImageUrl: heroImage,
   heroTitle: "Find Your Path to Wellness",
   heroSubtitle: "Discover holistic practitioners, retreats & wellness centers on the Big Island",
