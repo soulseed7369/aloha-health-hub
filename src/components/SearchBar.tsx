@@ -119,7 +119,7 @@ export function SearchBar({
   };
 
   const handleZipSearch = async () => {
-    if (zipInput.length !== 5) return;
+    if (zipInput.trim().length < 2) return;
     setGeocoding(true);
     setZipError('');
     try {
