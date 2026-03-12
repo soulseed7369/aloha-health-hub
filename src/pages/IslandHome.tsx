@@ -166,7 +166,7 @@ export function IslandHome({ config }: IslandHomeProps) {
             </span>
             <span className="flex items-center gap-2">
               <span aria-hidden="true">·</span>
-              {config.displayName}&apos;s Largest Wellness Directory
+              The {config.displayName}&apos;s Hub for Holistic Health
             </span>
           </div>
         </div>
