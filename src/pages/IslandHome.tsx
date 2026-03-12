@@ -102,11 +102,36 @@ export function IslandHome({ config }: IslandHomeProps) {
       {itemListSchema && <JsonLd id={`itemlist-${config.island}`} data={itemListSchema} />}
       <SearchBar island={config.island} heroImageUrl={config.heroImageUrl} heroTitle={config.heroTitle} heroSubtitle={config.heroSubtitle} />
 
+      {/* ── Trust / Stats bar ────────────────────────────────────────────── */}
+      {(practitioners.length > 0 || centers.length > 0) && (
+        <div className="border-b border-border bg-muted/30 py-2.5">
+          <div className="container flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm text-muted-foreground">
+            {practitioners.length > 0 && (
+              <span><strong className="font-semibold text-foreground">{practitioners.length}</strong> practitioners</span>
+            )}
+            {centers.length > 0 && (
+              <span className="flex items-center gap-2">
+                <span aria-hidden="true">·</span>
+                <strong className="font-semibold text-foreground">{centers.length}</strong> wellness centers
+              </span>
+            )}
+            <span className="flex items-center gap-2">
+              <span aria-hidden="true">·</span>
+              <strong className="font-semibold text-foreground">34</strong> specialties
+            </span>
+            <span className="flex items-center gap-2">
+              <span aria-hidden="true">·</span>
+              {config.displayName}&apos;s largest wellness directory
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── Practitioners ────────────────────────────────────────────────── */}
       <section className="container py-12">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="font-display text-2xl font-bold md:text-3xl">
-            Featured {config.displayName} Practitioners
+            {config.displayName} Practitioners
           </h2>
           <Link
             to={`/directory?island=${config.island}`}
@@ -138,7 +163,7 @@ export function IslandHome({ config }: IslandHomeProps) {
         <div className="container">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="font-display text-2xl font-bold md:text-3xl">
-              Featured {config.displayName} Wellness Centers
+              {config.displayName} Wellness Centers
             </h2>
             <Link
               to={`/directory?island=${config.island}`}

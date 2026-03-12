@@ -336,6 +336,16 @@ const ProfileDetail = () => {
 
         {/* Right Sidebar */}
         <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
+          {/* Book Appointment — top of sidebar (desktop) */}
+          {p.externalBookingUrl && (
+            <Button className="w-full gap-2" size="lg" asChild>
+              <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
+                {p.bookingLabel || 'Book Appointment'}
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            </Button>
+          )}
+
           <Card>
             <CardContent className="p-0">
               <div className="flex h-40 items-center justify-center rounded-t-lg bg-ocean-light">
@@ -406,15 +416,6 @@ const ProfileDetail = () => {
             </CardContent>
           </Card>
 
-          {p.externalBookingUrl && (
-            <Button className="w-full gap-2" size="lg" asChild>
-              <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
-                {p.bookingLabel || 'Book Appointment'}
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            </Button>
-          )}
-
           {/* Claim this listing */}
           {!isClaimed && (
             <Card className="border-dashed border-muted-foreground/30 bg-muted/30">
@@ -453,6 +454,18 @@ const ProfileDetail = () => {
           </Link>
         </Button>
       </div>
+
+      {/* Mobile sticky booking CTA — only on small screens, only when booking URL exists */}
+      {p.externalBookingUrl && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 p-3 backdrop-blur-sm lg:hidden">
+          <Button className="w-full gap-2" size="lg" asChild>
+            <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
+              {p.bookingLabel || 'Book Appointment'}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+      )}
     </main>
   );
 };

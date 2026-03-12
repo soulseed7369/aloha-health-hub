@@ -89,7 +89,7 @@ function resultToProvider(r: DirectoryResult): Provider {
     phone: r.phone || '',
     email: r.email || '',
     website: r.website_url || '',
-    bookingUrl: r.external_booking_url || '',
+    externalBookingUrl: r.external_booking_url || undefined,
     matchedConcerns: r.concern_labels?.length ? r.concern_labels : undefined,
     matchedApproaches: r.approach_labels?.length ? r.approach_labels : undefined,
   };

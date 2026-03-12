@@ -69,6 +69,7 @@ export function practitionerRowToProvider(row: PractitionerRowWithBusiness): Pro
     lat: row.lat ?? 0,
     lng: row.lng ?? 0,
     tier: (row.tier as 'free' | 'premium' | 'featured') ?? 'free',
+    externalBookingUrl: row.external_booking_url ?? undefined,
   };
 }
 

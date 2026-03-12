@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin } from "lucide-react";
+import { MapPin, ExternalLink } from "lucide-react";
 import type { Provider } from "@/data/mockData";
 import { Link } from "react-router-dom";
 import { formatDistance } from "@/lib/geoUtils";
@@ -131,7 +131,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   )}
                 </p>
               ) : null}
-              {/* Session type + accepting */}
+              {/* Session type + accepting + Book CTA */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {provider.sessionType && provider.sessionType !== "in_person" && (
                   <span className="text-xs text-muted-foreground">
@@ -146,6 +146,17 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 )}
                 {provider.acceptsNewClients === false && (
                   <span className="text-xs text-muted-foreground/60">Not accepting</span>
+                )}
+                {provider.externalBookingUrl && (
+                  <a
+                    href={provider.externalBookingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
+                  >
+                    Book <ExternalLink className="h-3 w-3" />
+                  </a>
                 )}
               </div>
             </div>

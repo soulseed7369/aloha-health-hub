@@ -59,6 +59,8 @@ export interface Provider {
   matchedApproaches?: string[];
   /** Distance from user in miles — set when user location is known */
   distanceMiles?: number;
+  /** External booking URL (e.g. Calendly, Mindbody) */
+  externalBookingUrl?: string | null;
 }
 
 export interface Center {
