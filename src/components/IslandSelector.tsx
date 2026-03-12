@@ -3,10 +3,8 @@ import { MapPin } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const ISLANDS = [
-  { value: "big-island", label: "Big Island",  path: "/" },
-  { value: "maui",       label: "Maui",         path: "/maui" },
-  { value: "oahu",       label: "Oahu",         path: "/oahu" },
-  { value: "kauai",      label: "Kauai",        path: "/kauai" },
+  { value: "big-island", label: "Big Island", path: "/" },
+  // Maui, Oahu, Kauai hidden until those directories are ready
 ];
 
 function currentIslandFromPath(pathname: string): string {

@@ -62,10 +62,8 @@ export function CenterCard({ center, highlightModality }: CenterCardProps) {
   const extraCount = displayModalities.length - visibleModalities.length;
   const hasImage = !!center.image && !center.image.includes("no%20image") && !center.image.includes("no image");
 
-  // Subtitle: center_type label or first modality
-  const subtitle = (center as any).centerType
-    ? CENTER_TYPE_LABELS[(center as any).centerType] ?? (center as any).centerType
-    : visibleModalities[0] ?? center.services?.[0];
+  // Subtitle: first modality or first service
+  const subtitle = visibleModalities[0] ?? center.services?.[0];
 
   return (
     <Link to={`/center/${center.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
@@ -117,14 +115,14 @@ export function CenterCard({ center, highlightModality }: CenterCardProps) {
           </div>
 
           {/* Description snippet */}
-          {(center as any).description && (
+          {center.description && (
             <p className="mt-2 line-clamp-2 flex-1 text-xs text-muted-foreground">
-              {(center as any).description}
+              {center.description}
             </p>
           )}
 
           {/* Spacer when no description */}
-          {!(center as any).description && <div className="flex-1" />}
+          {!center.description && <div className="flex-1" />}
 
           {/* Modality / service pills */}
           <div className="mt-2 flex flex-wrap items-center justify-center gap-1" role="list" aria-label="Services">

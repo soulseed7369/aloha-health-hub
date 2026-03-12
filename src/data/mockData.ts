@@ -75,6 +75,8 @@ export interface Center {
   services: string[];
   /** Subscription tier — used for priority sorting in directory */
   tier?: 'free' | 'premium' | 'featured';
+  /** Short description / bio shown on cards */
+  description?: string;
   /** Distance from user in miles — set when user location is known */
   distanceMiles?: number;
 }

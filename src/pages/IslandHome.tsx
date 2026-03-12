@@ -13,11 +13,21 @@ import { SITE_URL } from "@/lib/siteConfig";
 
 
 const OTHER_ISLANDS = [
-  { slug: "big-island", label: "Big Island",  description: "Kona, Hilo, Waimea & more" },
-  { slug: "maui",       label: "Maui",        description: "Lahaina, Kihei, Makawao & more" },
-  { slug: "oahu",       label: "Oahu",        description: "Honolulu, Kailua, Haleiwa & more" },
-  { slug: "kauai",      label: "Kauai",       description: "Lihue, Kapaa, Hanalei & more" },
+  { slug: "big-island", label: "Big Island",  description: "Kona, Hilo, Waimea & more",       comingSoon: false },
+  { slug: "maui",       label: "Maui",        description: "Lahaina, Kihei, Makawao & more",   comingSoon: true  },
+  { slug: "oahu",       label: "Oahu",        description: "Honolulu, Kailua, Haleiwa & more", comingSoon: true  },
+  { slug: "kauai",      label: "Kauai",       description: "Lihue, Kapaa, Hanalei & more",     comingSoon: true  },
 ];
+
+/** Sort items by tier (featured → premium → free), with random order within each tier group. */
+function shuffledTierSort(items: Array<{ tier?: string; [key: string]: unknown }>): typeof items {
+  function shuffle<T>(arr: T[]): T[] { return [...arr].sort(() => Math.random() - 0.5); }
+  return [
+    ...shuffle(items.filter(i => i.tier === 'featured')),
+    ...shuffle(items.filter(i => i.tier === 'premium')),
+    ...shuffle(items.filter(i => !i.tier || i.tier === 'free')),
+  ];
+}
 
 export interface IslandConfig {
   island: string;            // DB key: 'big_island' | 'maui' | 'oahu' | 'kauai'
@@ -59,9 +69,9 @@ export function IslandHome({ config }: IslandHomeProps) {
   const { data: centers = [], isLoading: loadingCenters } = useCenters(config.island);
   const { data: articles = [], isLoading: loadingArticles } = useArticles();
 
-  // Show 4 on homepage; featured/premium already sort first via hooks
-  const homePractitioners = practitioners.slice(0, 4);
-  const homeCenters = centers.slice(0, 4);
+  // Tier-grouped random order: featured first, then premium, then free (each group shuffled)
+  const homePractitioners = shuffledTierSort(practitioners).slice(0, 4);
+  const homeCenters = shuffledTierSort(centers).slice(0, 4);
   const articleCardData = articles.slice(0, 3);
 
   // ── ItemList schema for practitioner listings ────────────────────────────
@@ -96,7 +106,7 @@ export function IslandHome({ config }: IslandHomeProps) {
       <section className="container py-12">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="font-display text-2xl font-bold md:text-3xl">
-            {config.displayName} Practitioners
+            Featured {config.displayName} Practitioners
           </h2>
           <Link
             to={`/directory?island=${config.island}`}
@@ -128,7 +138,7 @@ export function IslandHome({ config }: IslandHomeProps) {
         <div className="container">
           <div className="mb-6 flex items-center justify-between">
             <h2 className="font-display text-2xl font-bold md:text-3xl">
-              {config.displayName} Wellness Centers
+              Featured {config.displayName} Wellness Centers
             </h2>
             <Link
               to={`/directory?island=${config.island}`}
@@ -204,14 +214,29 @@ export function IslandHome({ config }: IslandHomeProps) {
             </Link>
             {/* Other islands */}
             {areasServed.map(island => (
-              <Link
-                key={island.slug}
-                to={`/${island.slug}`}
-                className="rounded-xl border border-border bg-background p-5 transition-colors hover:border-primary/50 hover:bg-primary/5"
-              >
-                <p className="font-semibold">{island.label}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{island.description}</p>
-              </Link>
+              island.comingSoon ? (
+                <div
+                  key={island.slug}
+                  className="rounded-xl border border-border bg-background p-5 opacity-60 cursor-default"
+                >
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold">{island.label}</p>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
+                      Coming Soon
+                    </span>
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">{island.description}</p>
+                </div>
+              ) : (
+                <Link
+                  key={island.slug}
+                  to={`/${island.slug}`}
+                  className="rounded-xl border border-border bg-background p-5 transition-colors hover:border-primary/50 hover:bg-primary/5"
+                >
+                  <p className="font-semibold">{island.label}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{island.description}</p>
+                </Link>
+              )
             ))}
             {/* Full directory link */}
             <Link

@@ -7,7 +7,7 @@ interface TierBadgeProps {
 
 /**
  * Small tasteful badge rendered in the top-right corner of listing cards.
- * Featured = amber crown, Premium = sage star, Free = nothing rendered.
+ * Featured = amber crown, Premium = silver star (icon only), Free = nothing.
  */
 export function TierBadge({ tier, className = "" }: TierBadgeProps) {
   if (tier === "featured") {
@@ -25,11 +25,11 @@ export function TierBadge({ tier, className = "" }: TierBadgeProps) {
   if (tier === "premium") {
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full bg-sage-light/30 px-2 py-0.5 text-[10px] font-semibold text-sage ring-1 ring-sage/30 ${className}`}
+        className={`inline-flex items-center justify-center rounded-full bg-slate-100 p-1 ring-1 ring-slate-300/60 ${className}`}
         aria-label="Premium listing"
+        title="Premium listing"
       >
-        <Star className="h-3 w-3" aria-hidden="true" />
-        Pro
+        <Star className="h-3.5 w-3.5 fill-slate-400 text-slate-400" aria-hidden="true" />
       </span>
     );
   }

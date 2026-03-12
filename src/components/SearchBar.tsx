@@ -10,9 +10,7 @@ import { useAliasMap } from "@/hooks/useSearchListings";
 const ISLAND_OPTIONS = [
   { value: 'all', label: 'All Islands' },
   { value: 'big_island', label: 'Big Island' },
-  { value: 'oahu', label: 'Oahu' },
-  { value: 'maui', label: 'Maui' },
-  { value: 'kauai', label: 'Kauai' },
+  // Maui, Oahu, Kauai hidden until those directories are ready
 ];
 
 const ISLAND_DISPLAY: Record<string, string> = {

@@ -94,6 +94,7 @@ export function centerRowToCenter(row: CenterRow): Center {
     lng: row.lng ?? 0,
     services: [],
     tier: (row.tier as 'free' | 'premium' | 'featured') ?? 'free',
+    description: row.description ?? undefined,
   };
 }
 
