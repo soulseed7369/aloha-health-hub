@@ -9,7 +9,7 @@ import { CheckCircle, Sparkles, Heart, Shield } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { supabase } from "@/lib/supabase";
 
-const ISLANDS = ["Big Island (Hawaiʻi Island)", "Maui", "Oʻahu", "Kauaʻi", "Not sure yet"];
+const ISLANDS = ["Big Island", "Maui", "Oahu", "Kauai", "Not sure yet"];
 
 const Concierge = () => {
   usePageMeta("Wellness Concierge", "Personalized wellness curation for discerning visitors to Hawaiʻi. Let us connect you with the perfect practitioner or retreat.");

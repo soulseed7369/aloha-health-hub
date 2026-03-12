@@ -77,10 +77,10 @@ const MODALITIES_LIST = [
 
 const ISLANDS = [
   { value: 'big_island', label: 'Big Island' },
-  { value: 'oahu', label: 'Oʻahu' },
+  { value: 'oahu', label: 'Oahu' },
   { value: 'maui', label: 'Maui' },
-  { value: 'kauai', label: 'Kauaʻi' },
-  { value: 'molokai', label: 'Molokaʻi' },
+  { value: 'kauai', label: 'Kauai' },
+  { value: 'molokai', label: 'Molokai' },
 ];
 
 const DAYS = [
@@ -3190,10 +3190,10 @@ const TIER_LABELS: Record<AccountTier, { label: string; color: string; icon: Rea
 
 const ISLAND_LABELS: Record<string, string> = {
   big_island: 'Big Island',
-  oahu:       'Oʻahu',
+  oahu:       'Oahu',
   maui:       'Maui',
-  kauai:      'Kauaʻi',
-  molokai:    'Molokaʻi',
+  kauai:      'Kauai',
+  molokai:    'Molokai',
 };
 
 function AdminAccounts() {

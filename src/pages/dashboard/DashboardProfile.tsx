@@ -14,10 +14,10 @@ import { useMyPractitioner, useSavePractitioner, uploadMyPhoto, type Practitione
 
 const ISLANDS = [
   { value: 'big_island', label: 'Big Island' },
-  { value: 'oahu',       label: 'Oʻahu' },
+  { value: 'oahu',       label: 'Oahu' },
   { value: 'maui',       label: 'Maui' },
-  { value: 'kauai',      label: 'Kauaʻi' },
-  { value: 'molokai',    label: 'Molokaʻi' },
+  { value: 'kauai',      label: 'Kauai' },
+  { value: 'molokai',    label: 'Molokai' },
 ];
 
 const CITIES_BY_ISLAND: Record<string, string[]> = {

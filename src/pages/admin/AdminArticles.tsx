@@ -213,9 +213,9 @@ function ArticleForm({
             <SelectContent>
               <SelectItem value="all">All Islands</SelectItem>
               <SelectItem value="big_island">Big Island</SelectItem>
-              <SelectItem value="oahu">Oʻahu</SelectItem>
+              <SelectItem value="oahu">Oahu</SelectItem>
               <SelectItem value="maui">Maui</SelectItem>
-              <SelectItem value="kauai">Kauaʻi</SelectItem>
+              <SelectItem value="kauai">Kauai</SelectItem>
             </SelectContent>
           </Select>
         </div>

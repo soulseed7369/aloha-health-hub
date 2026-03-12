@@ -5,8 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 const ISLANDS = [
   { value: "big-island", label: "Big Island",  path: "/" },
   { value: "maui",       label: "Maui",         path: "/maui" },
-  { value: "oahu",       label: "Oʻahu",        path: "/oahu" },
-  { value: "kauai",      label: "Kauaʻi",       path: "/kauai" },
+  { value: "oahu",       label: "Oahu",         path: "/oahu" },
+  { value: "kauai",      label: "Kauai",        path: "/kauai" },
 ];
 
 function currentIslandFromPath(pathname: string): string {

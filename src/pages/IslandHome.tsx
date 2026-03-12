@@ -14,10 +14,10 @@ import { SITE_URL } from "@/lib/siteConfig";
 
 
 const OTHER_ISLANDS = [
-  { slug: "big-island", label: "Hawaiʻi Island (Big Island)", description: "Kona, Hilo, Waimea & more" },
-  { slug: "maui",       label: "Maui",                        description: "Lahaina, Kihei, Makawao & more" },
-  { slug: "oahu",       label: "Oʻahu",                       description: "Honolulu, Kailua, Haleʻiwa & more" },
-  { slug: "kauai",      label: "Kauaʻi",                      description: "Lihue, Kapaa, Hanalei & more" },
+  { slug: "big-island", label: "Big Island",  description: "Kona, Hilo, Waimea & more" },
+  { slug: "maui",       label: "Maui",        description: "Lahaina, Kihei, Makawao & more" },
+  { slug: "oahu",       label: "Oahu",        description: "Honolulu, Kailua, Haleiwa & more" },
+  { slug: "kauai",      label: "Kauai",       description: "Lihue, Kapaa, Hanalei & more" },
 ];
 
 export interface IslandConfig {

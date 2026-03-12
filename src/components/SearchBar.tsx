@@ -10,10 +10,26 @@ import { useAliasMap } from "@/hooks/useSearchListings";
 const ISLAND_OPTIONS = [
   { value: 'all', label: 'All Islands' },
   { value: 'big_island', label: 'Big Island' },
-  { value: 'oahu', label: "Oʻahu" },
+  { value: 'oahu', label: 'Oahu' },
   { value: 'maui', label: 'Maui' },
-  { value: 'kauai', label: "Kauaʻi" },
+  { value: 'kauai', label: 'Kauai' },
 ];
+
+const ISLAND_DISPLAY: Record<string, string> = {
+  big_island: 'Big Island',
+  maui: 'Maui',
+  oahu: 'Oahu',
+  kauai: 'Kauai',
+};
+
+/** Map lat/lng to a Hawaii island DB key, or null if outside all islands. */
+function detectIslandFromCoords(lat: number, lng: number): string | null {
+  if (lat >= 18.9 && lat <= 20.3 && lng >= -156.1 && lng <= -154.8) return 'big_island';
+  if (lat >= 20.5 && lat <= 21.1 && lng >= -156.7 && lng <= -155.9) return 'maui';
+  if (lat >= 21.2 && lat <= 21.75 && lng >= -158.3 && lng <= -157.6) return 'oahu';
+  if (lat >= 21.8 && lat <= 22.3 && lng >= -159.8 && lng <= -159.3) return 'kauai';
+  return null;
+}
 
 // Popular searches — shown as quick-tap chips below the search box
 const POPULAR_SEARCHES: { label: string; emoji: string }[] = [
@@ -135,12 +151,18 @@ export function SearchBar({
         const longitude = parseFloat(data[0].lon);
         setUserLat(latitude);
         setUserLng(longitude);
-        setLocationLabel(zipInput);
-        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({ lat: latitude, lng: longitude, label: zipInput }));
+        // Auto-set island dropdown when currently on "All Islands"
+        const detected = detectIslandFromCoords(latitude, longitude);
+        if (detected && island === 'all') setIsland(detected);
+        // Label: "Kona · Big Island" or just "96740"
+        const islandName = detected ? ISLAND_DISPLAY[detected] : null;
+        const label = islandName ? `${zipInput.trim()} · ${islandName}` : zipInput.trim();
+        setLocationLabel(label);
+        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({ lat: latitude, lng: longitude, label }));
         setShowZipInput(false);
         setZipInput('');
       } else {
-        setZipError('Zip code not found');
+        setZipError('Location not found — try a different town or zip');
       }
     } catch {
       setZipError('Could not look up zip code');

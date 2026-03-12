@@ -67,9 +67,9 @@ function detectIslandFromText(text: string): string | null {
 const ISLANDS = [
   { value: 'all', label: 'All Islands' },
   { value: 'big_island', label: 'Big Island' },
-  { value: 'oahu', label: "Oʻahu" },
+  { value: 'oahu', label: 'Oahu' },
   { value: 'maui', label: 'Maui' },
-  { value: 'kauai', label: "Kauaʻi" },
+  { value: 'kauai', label: 'Kauai' },
   { value: 'molokai', label: "Molokaʻi" },
 ];
 
