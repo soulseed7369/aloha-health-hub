@@ -27,13 +27,19 @@ const About = () => {
       <section className="container max-w-3xl py-16">
         <h2 className="mb-5 font-display text-2xl font-bold">Our Mission</h2>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          Hawaiʻi has long been a place of healing — from traditional lomilomi and la'au lapa'au to world-class integrative medicine, yoga retreats, and energy work. Yet finding the right practitioner or wellness experience has always required insider knowledge.
+          Our goal with Hawai'i Wellness is simple: to build the most trusted and comprehensive holistic health directory in Hawai'i.
         </p>
         <p className="mb-4 leading-relaxed text-muted-foreground">
-          Hawaiʻi Wellness was built to change that. We believe everyone — whether you're a local resident seeking ongoing care or a visitor looking for a transformative experience — deserves easy access to the best holistic health practitioners across all the islands.
+          These islands have long been a place where healing traditions meet. From lomilomi and lāʻau lapaʻau to acupuncture, functional medicine, yoga, somatic therapy, and many other practices, Hawai'i has a deep and diverse culture of healing. Yet finding the right practitioner has often depended on insider knowledge, word of mouth, or years of local connections.
+        </p>
+        <p className="mb-4 leading-relaxed text-muted-foreground">
+          Hawai'i Wellness is here to change that.
+        </p>
+        <p className="mb-4 leading-relaxed text-muted-foreground">
+          We are building a clear, current, and organized directory where people can explore the full spectrum of holistic health across the islands. It is a place where residents can find ongoing care, where visitors can discover meaningful wellness experiences, and where practitioners themselves can become more visible and connected.
         </p>
         <p className="leading-relaxed text-muted-foreground">
-          We're a directory first: a searchable, curated guide to hundreds of vetted practitioners and centers across Oʻahu, Maui, Kauaʻi, and Hawaiʻi Island. No algorithms pushing ads. No pay-to-win results. Just honest, organized information to help you find the care you need.
+          We're starting here on the Big Island, and over time we'll expand across Oʻahu, Maui, Kauaʻi, and beyond — with the goal of becoming the central hub where anyone can discover the people and places dedicated to healing in Hawai'i.
         </p>
       </section>
 
