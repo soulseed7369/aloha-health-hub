@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Building, Calendar, CheckCircle, Circle, ArrowRight, Star, Loader2 } from "lucide-react";
+import { User, Building, Calendar, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
 import { useMyBillingProfile, useCreateCheckoutSession } from "@/hooks/useStripe";
+import { getEarlyBirdStatus } from "@/lib/websitePackages";
 
 export default function DashboardHome() {
   const { data: practitioner, isLoading: practLoading } = useMyPractitioner();
@@ -31,6 +32,7 @@ export default function DashboardHome() {
 
   const hasProfile = !!practitioner?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';
+  const earlyBird = getEarlyBirdStatus(practitioner?.created_at ?? null);
 
   const steps = [
     {
@@ -154,6 +156,32 @@ export default function DashboardHome() {
             </div>
             <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-600 text-white flex-shrink-0">
               <Link to="/dashboard/billing">Upgrade</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Website packages promo — shown to all providers with a profile */}
+      {hasProfile && (
+        <Card className="border-ocean/20 bg-ocean-light/20 overflow-hidden">
+          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-ocean flex items-center gap-1.5">
+                <Globe className="h-4 w-4 flex-shrink-0" />
+                Need a website for your practice?
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                Custom sites from $499 setup + $19/mo — designed for Hawaii wellness providers.
+                {earlyBird.eligible && (
+                  <span className="ml-1 text-amber-700 font-medium">
+                    <Clock className="inline h-3 w-3 mr-0.5 -mt-0.5" />
+                    Early bird 10% off — {earlyBird.daysRemaining}d {earlyBird.hoursRemaining % 24}h left.
+                  </span>
+                )}
+              </p>
+            </div>
+            <Button asChild size="sm" variant="outline" className="border-ocean/30 text-ocean hover:bg-ocean/10 flex-shrink-0">
+              <Link to="/website-packages">View packages</Link>
             </Button>
           </CardContent>
         </Card>

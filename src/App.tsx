@@ -38,6 +38,7 @@ const PrivacyPolicy     = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService    = lazy(() => import("./pages/TermsOfService"));
 const HelpCenter        = lazy(() => import("./pages/HelpCenter"));
 const About             = lazy(() => import("./pages/About"));
+const WebsitePackages   = lazy(() => import("./pages/WebsitePackages"));
 
 // Dashboard pages (split separately — only loaded when user visits /dashboard)
 import AdminPanel from "./pages/admin/AdminPanel";
@@ -146,6 +147,7 @@ const App = () => (
                 <Route path="/center/:id"         element={<CenterDetail />} />
                 <Route path="/concierge"          element={<Concierge />} />
                 <Route path="/about"              element={<About />} />
+                <Route path="/website-packages"  element={<WebsitePackages />} />
                 <Route path="/privacy-policy"     element={<PrivacyPolicy />} />
                 <Route path="/terms-of-service"   element={<TermsOfService />} />
                 <Route path="/help"               element={<HelpCenter />} />
