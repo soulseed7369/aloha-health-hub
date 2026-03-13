@@ -32,12 +32,16 @@ const supabase = createClient(
 );
 
 // Price → tier mapping — keep in sync with src/lib/stripe.ts
+// NOTE: Replace prod_ IDs with actual price_ IDs from Stripe Dashboard
 const PRICE_TIER_MAP: Record<string, 'premium' | 'featured'> = {
   'prod_U5xikoe835v7T6':  'premium',
   'prod_U5xj8icg13fOcT': 'featured',
 };
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { status: 204 });
+  }
   const body = await req.text();
   const sig  = req.headers.get('stripe-signature')!;
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;

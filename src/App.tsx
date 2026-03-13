@@ -12,6 +12,7 @@ import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { JsonLd } from "@/components/JsonLd";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_EMAIL } from "@/lib/siteConfig";
 
 
@@ -41,7 +42,7 @@ const About             = lazy(() => import("./pages/About"));
 const WebsitePackages   = lazy(() => import("./pages/WebsitePackages"));
 
 // Dashboard pages (split separately — only loaded when user visits /dashboard)
-import AdminPanel from "./pages/admin/AdminPanel";
+const AdminPanel        = lazy(() => import("./pages/admin/AdminPanel"));
 const DashboardHome     = lazy(() => import("./pages/dashboard/DashboardHome"));
 const DashboardProfile  = lazy(() => import("./pages/dashboard/DashboardProfile"));
 const DashboardCenters  = lazy(() => import("./pages/dashboard/DashboardCenters"));
@@ -102,6 +103,7 @@ const App = () => (
       <BrowserRouter>
         <ScrollToTop />
         <AuthProvider>
+          <ErrorBoundary>
           <Suspense fallback={<PageSpinner />}>
             <Routes>
               {/* Auth — full screen, no nav */}
@@ -155,6 +157,7 @@ const App = () => (
               </Route>
             </Routes>
           </Suspense>
+          </ErrorBoundary>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

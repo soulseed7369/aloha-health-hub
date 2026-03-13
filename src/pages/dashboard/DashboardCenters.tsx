@@ -56,7 +56,7 @@ export default function DashboardCenters() {
       setShowForm(false);
     } catch (err) {
       toast.error("Failed to save center. Please try again.");
-      console.error(err);
+      if (import.meta.env.DEV) console.error(err);
     }
   };
 
@@ -67,7 +67,7 @@ export default function DashboardCenters() {
       toast.success(`"${centerName}" has been removed.`);
     } catch (err) {
       toast.error("Failed to remove center. Please try again.");
-      console.error(err);
+      if (import.meta.env.DEV) console.error(err);
     } finally {
       setDeletingId(null);
     }

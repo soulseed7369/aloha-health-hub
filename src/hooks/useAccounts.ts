@@ -1,10 +1,12 @@
 /**
  * useAccounts.ts
  * Admin hooks for managing user accounts, tiers, and featured slots.
- * All mutations use supabaseAdmin (service role) to bypass RLS.
+ * All mutations use supabase (service role) to bypass RLS.
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabaseAdmin } from '@/lib/supabaseAdmin';
+import { supabase } from '@/lib/supabase';
+// NOTE: Admin functions (useAdminAccounts, useSetAccountTier, etc.) require a
+// service-role client and are not yet implemented. Move to an Edge Function.
 
 export type AccountTier = 'free' | 'premium' | 'featured';
 
@@ -58,10 +60,10 @@ export function useAdminAccounts() {
   return useQuery<UserAccount[]>({
     queryKey: ['admin-accounts'],
     queryFn: async () => {
-      if (!supabaseAdmin) return [];
+      if (!supabase) return [];
 
       // Fetch user_profiles joined to auth users via admin API
-      const { data: profiles, error: profileErr } = await supabaseAdmin
+      const { data: profiles, error: profileErr } = await supabase
         .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -70,7 +72,7 @@ export function useAdminAccounts() {
       if (!profiles?.length) return [];
 
       // Fetch auth users to get email addresses (requires service role)
-      const { data: authData, error: authErr } = await supabaseAdmin.auth.admin.listUsers();
+      const { data: authData, error: authErr } = await supabase.auth.admin.listUsers();
       if (authErr) throw authErr;
 
       const emailMap: Record<string, string> = {};
@@ -80,12 +82,12 @@ export function useAdminAccounts() {
 
       // Fetch all practitioners and centers for these users
       const ids = profiles.map(p => p.id);
-      const { data: practitioners } = await supabaseAdmin
+      const { data: practitioners } = await supabase
         .from('practitioners')
         .select('id, name, island, status, tier, owner_id')
         .in('owner_id', ids);
 
-      const { data: centers } = await supabaseAdmin
+      const { data: centers } = await supabase
         .from('centers')
         .select('id, name, island, status, tier, owner_id')
         .in('owner_id', ids);
@@ -125,21 +127,21 @@ export function useSetAccountTier() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ userId, tier }: { userId: string; tier: AccountTier }) => {
-      if (!supabaseAdmin) throw new Error('Admin client not configured');
+      if (!supabase) throw new Error('Admin client not configured');
 
       // Update user_profiles
-      const { error: profileErr } = await supabaseAdmin
+      const { error: profileErr } = await supabase
         .from('user_profiles')
         .update({ tier })
         .eq('id', userId);
       if (profileErr) throw profileErr;
 
       // Sync tier to all their listings
-      await supabaseAdmin
+      await supabase
         .from('practitioners')
         .update({ tier })
         .eq('owner_id', userId);
-      await supabaseAdmin
+      await supabase
         .from('centers')
         .update({ tier })
         .eq('owner_id', userId);
@@ -156,9 +158,9 @@ export function useAdminFeaturedSlots() {
   return useQuery<FeaturedSlotsByIsland>({
     queryKey: ['admin-featured-slots'],
     queryFn: async () => {
-      if (!supabaseAdmin) return buildEmptySlots();
+      if (!supabase) return buildEmptySlots();
 
-      const { data: slots, error } = await supabaseAdmin
+      const { data: slots, error } = await supabase
         .from('featured_slots')
         .select('*')
         .order('active_since', { ascending: true });
@@ -169,10 +171,10 @@ export function useAdminFeaturedSlots() {
       const centerIds = slots?.filter(s => s.listing_type === 'center').map(s => s.listing_id) ?? [];
 
       const { data: practs } = practIds.length
-        ? await supabaseAdmin.from('practitioners').select('id, name').in('id', practIds)
+        ? await supabase.from('practitioners').select('id, name').in('id', practIds)
         : { data: [] };
       const { data: cents } = centerIds.length
-        ? await supabaseAdmin.from('centers').select('id, name').in('id', centerIds)
+        ? await supabase.from('centers').select('id, name').in('id', centerIds)
         : { data: [] };
 
       const nameMap: Record<string, string> = {};
@@ -182,7 +184,7 @@ export function useAdminFeaturedSlots() {
       // Fetch owner emails
       const ownerIds = [...new Set((slots ?? []).map(s => s.owner_id).filter(Boolean))];
       const { data: authData } = ownerIds.length
-        ? await supabaseAdmin.auth.admin.listUsers()
+        ? await supabase.auth.admin.listUsers()
         : { data: { users: [] } };
       const emailMap: Record<string, string> = {};
       for (const u of authData?.users ?? []) emailMap[u.id] = u.email ?? '';
@@ -208,8 +210,8 @@ export function useRemoveFeaturedSlot() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (slotId: string) => {
-      if (!supabaseAdmin) throw new Error('Admin client not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Admin client not configured');
+      const { error } = await supabase
         .from('featured_slots')
         .delete()
         .eq('id', slotId);
@@ -236,9 +238,9 @@ export function useFeaturedListings(island = 'big_island') {
   return useQuery({
     queryKey: ['featured-listings', island],
     queryFn: async () => {
-      if (!supabaseAdmin) return [];
+      if (!supabase) return [];
 
-      const { data: slots, error } = await supabaseAdmin
+      const { data: slots, error } = await supabase
         .from('featured_slots')
         .select('listing_id, listing_type')
         .eq('island', island);
@@ -249,10 +251,10 @@ export function useFeaturedListings(island = 'big_island') {
 
       const [{ data: practs }, { data: cents }] = await Promise.all([
         practIds.length
-          ? supabaseAdmin.from('practitioners').select('id, name, avatar_url, modalities, city, bio, slug').in('id', practIds).eq('status', 'published')
+          ? supabase.from('practitioners').select('id, name, avatar_url, modalities, city, bio, slug').in('id', practIds).eq('status', 'published')
           : Promise.resolve({ data: [] }),
         centerIds.length
-          ? supabaseAdmin.from('centers').select('id, name, avatar_url, modalities, city, description, slug').in('id', centerIds).eq('status', 'published')
+          ? supabase.from('centers').select('id, name, avatar_url, modalities, city, description, slug').in('id', centerIds).eq('status', 'published')
           : Promise.resolve({ data: [] }),
       ]);
 

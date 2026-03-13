@@ -73,9 +73,12 @@ export default function DashboardProfile() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    if (practitioner) {
+    // Only initialize once — prevents background refetches from overwriting unsaved edits
+    if (practitioner && !initialized.current) {
+      initialized.current = true;
       setForm({
         name: practitioner.name ?? '',
         island: practitioner.island ?? 'big_island',
@@ -95,9 +98,15 @@ export default function DashboardProfile() {
     }
   }, [practitioner]);
 
+  // Revoke blob URL to prevent memory leak when component unmounts
+  useEffect(() => {
+    return () => { if (photoPreview) URL.revokeObjectURL(photoPreview); };
+  }, [photoPreview]);
+
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (photoPreview) URL.revokeObjectURL(photoPreview); // revoke previous before creating new
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   };
@@ -126,18 +135,12 @@ export default function DashboardProfile() {
         setPhotoFile(null);
         setPhotoPreview(null);
       }
-      // Save form + avatar_url separately since useSavePractitioner handles the upsert
-      await saveMutation.mutateAsync(form);
-      // If we uploaded a new photo, also update the avatar_url field
-      if (finalAvatarUrl !== avatarUrl) {
-        const { supabase } = await import('@/lib/supabase');
-        const { user } = await import('@/contexts/AuthContext');
-        // Avatar is saved via the mutation payload below
-      }
+      // Include avatar_url in the save payload so it persists to the DB
+      await saveMutation.mutateAsync({ ...form, avatar_url: finalAvatarUrl });
       toast.success('Profile saved! It will appear in the directory once reviewed.');
     } catch (err) {
       toast.error('Failed to save profile. Please try again.');
-      console.error(err);
+      if (import.meta.env.DEV) console.error(err);
     } finally {
       setUploading(false);
     }

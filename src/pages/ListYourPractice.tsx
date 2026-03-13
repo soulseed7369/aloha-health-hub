@@ -44,6 +44,7 @@ export default function ListYourPractice() {
   const checkout = useCreateCheckoutSession();
 
   async function handlePaidPlan(priceId: string) {
+    if (!supabase) return;
     // Validate priceId is one of the expected values
     const validPrices = [STRIPE_PRICES.PREMIUM_MONTHLY, STRIPE_PRICES.FEATURED_MONTHLY];
     if (!validPrices.includes(priceId as any)) {
@@ -66,6 +67,7 @@ export default function ListYourPractice() {
   }
 
   async function handleFreePlan() {
+    if (!supabase) return;
     const { data: { user } } = await supabase.auth.getUser();
     localStorage.setItem('pendingPlan', 'free');
     if (!user) {

@@ -14,7 +14,7 @@ export default function DashboardHome() {
   const { data: billing } = useMyBillingProfile();
   const checkout = useCreateCheckoutSession();
 
-  // Resume any pending plan intent stored before auth redirect
+  // Resume any pending plan intent stored before auth redirect — run once on mount only
   useEffect(() => {
     const pending = localStorage.getItem('pendingPlan');
     // Validate pendingPlan is one of the expected values to prevent abuse
@@ -28,7 +28,8 @@ export default function DashboardHome() {
       { priceId: pending },
       { onError: (e: Error) => toast.error(e.message) },
     );
-  }, [checkout]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const hasProfile = !!practitioner?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';

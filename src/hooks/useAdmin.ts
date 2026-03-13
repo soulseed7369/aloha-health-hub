@@ -1,8 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase as supabaseAdmin } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import type { PractitionerRow, CenterRow, ArticleRow } from '@/types/database';
 
 const IMAGE_BUCKET = 'practitioner-images'; // the Supabase storage bucket for all listing images
+
+/** Escape SQL LIKE wildcards in user-supplied search strings. */
+function escapeLike(s: string) {
+  return s.replace(/[%_\\]/g, '\\$&');
+}
 
 // ─── Query params & result types ────────────────────────────────────────────
 
@@ -28,7 +33,7 @@ export interface AdminQueryResult<T> {
 // ─── Upload helpers ─────────────────────────────────────────────────────────
 
 export async function uploadPractitionerImage(file: File): Promise<string> {
-  if (!supabaseAdmin) {
+  if (!supabase) {
     throw new Error(
       'Admin operations require proper server-side setup. ' +
       'Image uploads must be performed via an authenticated Edge Function with service role access.'
@@ -51,16 +56,16 @@ export async function uploadPractitionerImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   // Use 'practitioners/' prefix — matches the bucket RLS policy used by uploadMyPhoto
   const path = `practitioners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabaseAdmin.storage
+  const { error } = await supabase.storage
     .from(IMAGE_BUCKET)
     .upload(path, file, { upsert: true });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
-  const { data } = supabaseAdmin.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
 
 export async function uploadCenterImage(file: File): Promise<string> {
-  if (!supabaseAdmin) {
+  if (!supabase) {
     throw new Error(
       'Admin operations require proper server-side setup. ' +
       'Image uploads must be performed via an authenticated Edge Function with service role access.'
@@ -83,11 +88,11 @@ export async function uploadCenterImage(file: File): Promise<string> {
   const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   // Use 'practitioners/' prefix — matches the bucket RLS policy
   const path = `practitioners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabaseAdmin.storage
+  const { error } = await supabase.storage
     .from(IMAGE_BUCKET)
     .upload(path, file, { upsert: true });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
-  const { data } = supabaseAdmin.storage.from(IMAGE_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -108,14 +113,14 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
   return useQuery<AdminQueryResult<PractitionerRow>>({
     queryKey: ['admin-practitioners', params],
     queryFn: async () => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
+      if (!supabase) throw new Error('Supabase not configured');
 
-      let query = supabaseAdmin
+      let query = supabase
         .from('practitioners')
         .select('*, center:centers!practitioners_center_id_fkey(id,name)', { count: 'exact' });
 
       if (search) {
-        query = query.ilike('name', `%${search}%`);
+        query = query.ilike('name', `%${escapeLike(search)}%`);
       }
 
       if (island && island !== 'all') {
@@ -163,8 +168,8 @@ export const usePublishPractitioner = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'published' | 'draft' }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
         .from('practitioners')
         .update({ status })
         .eq('id', id);
@@ -181,8 +186,8 @@ export const useDeletePractitioner = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
         .from('practitioners')
         .delete()
         .eq('id', id);
@@ -201,8 +206,8 @@ export const useInsertPractitioner = () => {
     mutationFn: async (
       practitioner: Omit<PractitionerRow, 'id' | 'created_at' | 'updated_at'>
     ) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { data, error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { data, error } = await supabase
         .from('practitioners')
         .insert(practitioner)
         .select()
@@ -224,8 +229,8 @@ export const useUpdatePractitioner = () => {
       id,
       ...payload
     }: { id: string } & Partial<Omit<PractitionerRow, 'id' | 'created_at' | 'updated_at'>>) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { data, error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { data, error } = await supabase
         .from('practitioners')
         .update(payload)
         .eq('id', id)
@@ -260,14 +265,14 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
   return useQuery<AdminQueryResult<CenterRow>>({
     queryKey: ['admin-centers', params],
     queryFn: async () => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
+      if (!supabase) throw new Error('Supabase not configured');
 
-      let query = supabaseAdmin
+      let query = supabase
         .from('centers')
         .select('*', { count: 'exact' });
 
       if (search) {
-        query = query.ilike('name', `%${search}%`);
+        query = query.ilike('name', `%${escapeLike(search)}%`);
       }
 
       if (island && island !== 'all') {
@@ -337,8 +342,8 @@ export const useBatchPublish = () => {
       ids: string[];
       status: 'published' | 'draft' | 'archived';
     }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
         .from(table)
         .update({ status })
         .in('id', ids);
@@ -365,8 +370,8 @@ export const useBatchDelete = () => {
       table: 'practitioners' | 'centers';
       ids: string[];
     }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
         .from(table)
         .delete()
         .in('id', ids);
@@ -386,8 +391,8 @@ export const useAllCentersSimple = () => {
   return useQuery<{ id: string; name: string }[]>({
     queryKey: ['admin-centers-simple'],
     queryFn: async () => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { data, error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { data, error } = await supabase
         .from('centers')
         .select('id, name')
         .eq('status', 'published')
@@ -403,8 +408,8 @@ export const usePublishCenter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: 'published' | 'draft' }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
         .from('centers')
         .update({ status })
         .eq('id', id);
@@ -422,8 +427,8 @@ export const useDeleteCenter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
         .from('centers')
         .delete()
         .eq('id', id);
@@ -441,8 +446,8 @@ export const useInsertCenter = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (center: Omit<CenterRow, 'id' | 'created_at' | 'updated_at'>) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { data, error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { data, error } = await supabase
         .from('centers')
         .insert(center)
         .select()
@@ -465,8 +470,8 @@ export const useUpdateCenter = () => {
       id,
       ...payload
     }: { id: string } & Partial<Omit<CenterRow, 'id' | 'created_at' | 'updated_at'>>) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { data, error } = await supabaseAdmin
+      if (!supabase) throw new Error('Supabase not configured');
+      const { data, error } = await supabase
         .from('centers')
         .update(payload)
         .eq('id', id)
@@ -493,10 +498,10 @@ export const useConvertPractitionerToCenter = () => {
       practitioner: PractitionerRow;
       centerType: 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio';
     }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
+      if (!supabase) throw new Error('Supabase not configured');
 
       // Insert as center
-      const { error: insertError } = await supabaseAdmin
+      const { error: insertError } = await supabase
         .from('centers')
         .insert({
           name: practitioner.name,
@@ -527,7 +532,7 @@ export const useConvertPractitionerToCenter = () => {
       if (insertError) throw insertError;
 
       // Delete the practitioner record
-      const { error: deleteError } = await supabaseAdmin
+      const { error: deleteError } = await supabase
         .from('practitioners')
         .delete()
         .eq('id', practitioner.id);
@@ -550,10 +555,10 @@ export const useConvertCenterToPractitioner = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (center: CenterRow) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
+      if (!supabase) throw new Error('Supabase not configured');
 
       // Insert as practitioner
-      const { error: insertError } = await supabaseAdmin
+      const { error: insertError } = await supabase
         .from('practitioners')
         .insert({
           name: center.name,
@@ -580,7 +585,7 @@ export const useConvertCenterToPractitioner = () => {
       if (insertError) throw insertError;
 
       // Delete the center record
-      const { error: deleteError } = await supabaseAdmin
+      const { error: deleteError } = await supabase
         .from('centers')
         .delete()
         .eq('id', center.id);
@@ -601,7 +606,7 @@ export const useConvertCenterToPractitioner = () => {
 const ARTICLE_BUCKET = 'practitioner-images'; // reuse same bucket
 
 export async function uploadArticleImage(file: File): Promise<string> {
-  if (!supabaseAdmin) {
+  if (!supabase) {
     throw new Error(
       'Admin operations require proper server-side setup. ' +
       'Image uploads must be performed via an authenticated Edge Function with service role access.'
@@ -623,11 +628,11 @@ export async function uploadArticleImage(file: File): Promise<string> {
   // Sanitize extension to prevent path traversal
   const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
   const path = `articles/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-  const { error } = await supabaseAdmin.storage
+  const { error } = await supabase.storage
     .from(ARTICLE_BUCKET)
     .upload(path, file, { upsert: true });
   if (error) throw error;
-  const { data } = supabaseAdmin.storage.from(ARTICLE_BUCKET).getPublicUrl(path);
+  const { data } = supabase.storage.from(ARTICLE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
 }
 
@@ -638,9 +643,9 @@ export const useAllArticles = (params: { search?: string; status?: 'all' | 'publ
   return useQuery<ArticleRow[]>({
     queryKey: ['admin-articles', params],
     queryFn: async () => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      let query = supabaseAdmin.from('articles').select('*');
-      if (search) query = query.ilike('title', `%${search}%`);
+      if (!supabase) throw new Error('Supabase not configured');
+      let query = supabase.from('articles').select('*');
+      if (search) query = query.ilike('title', `%${escapeLike(search)}%`);
       if (status !== 'all') query = query.eq('status', status);
       query = query.order('created_at', { ascending: false });
       const { data, error } = await query;
@@ -670,8 +675,8 @@ export const useInsertArticle = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload: ArticlePayload) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin.from('articles').insert(payload);
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase.from('articles').insert(payload);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -685,8 +690,8 @@ export const useUpdateArticle = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, payload }: { id: string; payload: Partial<ArticlePayload> }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin.from('articles').update(payload).eq('id', id);
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase.from('articles').update(payload).eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -700,8 +705,8 @@ export const useDeleteArticle = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
-      const { error } = await supabaseAdmin.from('articles').delete().eq('id', id);
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase.from('articles').delete().eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -733,12 +738,12 @@ export const useSetListingTier = () => {
       ownerId: string | null;
       previousTier: string | null;
     }) => {
-      if (!supabaseAdmin) throw new Error('Supabase not configured');
+      if (!supabase) throw new Error('Supabase not configured');
 
       const table = listingType === 'practitioner' ? 'practitioners' : 'centers';
 
       // Update the listing tier
-      const { error: updateError } = await supabaseAdmin
+      const { error: updateError } = await supabase
         .from(table)
         .update({ tier })
         .eq('id', listingId);
@@ -746,7 +751,7 @@ export const useSetListingTier = () => {
 
       // If promoting to featured → create featured_slot
       if (tier === 'featured') {
-        const { error: slotError } = await supabaseAdmin
+        const { error: slotError } = await supabase
           .from('featured_slots')
           .upsert({
             listing_id: listingId,
@@ -759,7 +764,7 @@ export const useSetListingTier = () => {
 
       // If demoting from featured → remove featured_slot
       if (previousTier === 'featured' && tier !== 'featured') {
-        const { error: deleteError } = await supabaseAdmin
+        const { error: deleteError } = await supabase
           .from('featured_slots')
           .delete()
           .eq('listing_id', listingId);

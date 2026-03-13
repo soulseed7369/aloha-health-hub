@@ -12,6 +12,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { ArrowLeft, Facebook, Twitter, Link2, Check } from 'lucide-react';
+import DOMPurify from 'dompurify';
 import { useArticleBySlug } from '@/hooks/useArticles';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { JsonLd } from '@/components/JsonLd';
@@ -203,7 +204,7 @@ export default function ArticleDetail() {
         {article.body ? (
           <div
             className="prose prose-stone max-w-none"
-            dangerouslySetInnerHTML={{ __html: article.body }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(article.body) }}
           />
         ) : (
           /* Fallback: show excerpt if no body */

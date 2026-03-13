@@ -53,7 +53,7 @@ export default function DashboardRetreats() {
       setShowForm(false);
     } catch (err) {
       toast.error("Failed to save retreat. Please try again.");
-      console.error(err);
+      if (import.meta.env.DEV) console.error(err);
     }
   };
 
@@ -64,7 +64,7 @@ export default function DashboardRetreats() {
       toast.success(`"${title}" has been removed.`);
     } catch (err) {
       toast.error("Failed to remove retreat. Please try again.");
-      console.error(err);
+      if (import.meta.env.DEV) console.error(err);
     } finally {
       setDeletingId(null);
     }
