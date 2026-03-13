@@ -174,7 +174,7 @@ export default function WebsitePackages() {
             <span className={`text-sm flex items-center gap-1.5 ${bitcoinEnabled ? 'text-amber-600 font-medium' : 'text-muted-foreground'}`}>
               Pay with Bitcoin
               <Badge variant="outline" className="text-xs border-amber-300 text-amber-600">
-                −10% setup
+                10% discount
               </Badge>
             </span>
           </div>
