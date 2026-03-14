@@ -225,26 +225,26 @@ export default function WebsitePackages() {
             <div className="rounded-xl overflow-hidden border border-border group hover:shadow-md transition-shadow">
               <div
                 className="h-36 flex items-end p-4 relative"
-                style={{ background: "linear-gradient(135deg, #1E2A1A 0%, #C95C2E 100%)" }}
+                style={{ background: "linear-gradient(135deg, #86A68A 0%, #B8776A 100%)" }}
               >
-                <div className="absolute inset-0 opacity-20"
+                <div className="absolute inset-0 opacity-25"
                   style={{ backgroundImage: "url('https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=60')", backgroundSize: "cover", backgroundPosition: "center" }}
                 />
                 <div className="relative">
-                  <p className="text-[10px] font-semibold tracking-[0.18em] text-white/60 uppercase mb-0.5">Yoga &amp; Breathwork</p>
-                  <p className="text-white font-semibold text-lg leading-tight" style={{ fontFamily: "Georgia, serif" }}>Kai Nalani</p>
-                  <p className="text-white/60 text-xs">Kapaa, Kauai</p>
+                  <p className="text-[10px] font-semibold tracking-[0.18em] text-white/70 uppercase mb-0.5">Yoga &amp; Meditation</p>
+                  <p className="text-white font-semibold text-lg leading-tight" style={{ fontFamily: "Georgia, serif" }}>Kaia Pua</p>
+                  <p className="text-white/70 text-xs">Kailua-Kona, Big Island</p>
                 </div>
               </div>
               <div className="p-4 bg-white">
                 <div className="flex gap-1.5 mb-3">
-                  {["#FFFDF5", "#1E2A1A", "#C95C2E", "#C4963A"].map(c => (
+                  {["#FEFAF4", "#B8776A", "#86A68A", "#BFA06A"].map(c => (
                     <div key={c} className="h-4 w-4 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: c }} />
                   ))}
-                  <span className="text-xs text-muted-foreground ml-1">Sunset forest palette</span>
+                  <span className="text-xs text-muted-foreground ml-1">Dusty rose & sage palette</span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
-                  Full-height hero photo, class offerings grid, dark testimonials section with nature background.
+                  Full-bleed hero with offerings grid, weekly schedule, and warm testimonials section.
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {["Classes", "Private Sessions", "Retreats", "Testimonials"].map(tag => (
