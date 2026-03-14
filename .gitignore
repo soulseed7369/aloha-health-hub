@@ -39,6 +39,10 @@ __pycache__/
 # Supabase local temp
 supabase/.temp/
 
+# Task scratch and session notes — local only, not tracked in git
+tasks/todo.md
+tasks/lessons.md
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
