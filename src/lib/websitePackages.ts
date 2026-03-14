@@ -146,9 +146,13 @@ export const EARLY_BIRD_WINDOW_DAYS = 7;
 export const EARLY_BIRD_DISCOUNT_PCT = 0.10;
 export const BITCOIN_DISCOUNT_PCT = 0.10;
 
-// March 2026 promo — 20% off setup fee for the entire month
-export const MARCH_PROMO_DISCOUNT_PCT = 0.20;
-export const MARCH_PROMO_LABEL = 'March Special — 20% off';
+// March 2026 promo — fixed dollar savings per package
+export const MARCH_PROMO_SAVINGS: Record<'starter' | 'growth' | 'pro', number> = {
+  starter: 50,
+  growth: 100,
+  pro: 200,
+};
+export const MARCH_PROMO_LABEL = 'March Special';
 
 export function isMarchPromoActive(): boolean {
   const now = new Date();
@@ -182,21 +186,27 @@ export function getEarlyBirdStatus(createdAt: string | null | undefined): EarlyB
 
 /**
  * Calculate discounted setup fee.
- * Discounts stack additively on the setup fee only (monthly is never discounted).
- * March promo is applied first (highest priority); other discounts stack on top.
+ * March promo is a fixed dollar amount; Bitcoin is a percentage applied after.
+ * Monthly fee is never discounted.
  */
 export function calcSetupPrice(
   baseSetup: number,
   earlyBird: boolean,
   bitcoin: boolean,
-  marchPromo: boolean = false,
+  marchPromoSavings: number = 0,
 ): { final: number; savings: number; totalPct: number } {
-  let totalPct = 0;
-  if (marchPromo) totalPct += MARCH_PROMO_DISCOUNT_PCT;
-  if (earlyBird) totalPct += EARLY_BIRD_DISCOUNT_PCT;
-  if (bitcoin) totalPct += BITCOIN_DISCOUNT_PCT;
-  // Cap at 40% total discount
-  totalPct = Math.min(totalPct, 0.40);
-  const savings = Math.round(baseSetup * totalPct);
-  return { final: baseSetup - savings, savings, totalPct };
+  // Fixed dollar off first (March promo)
+  let afterFixed = baseSetup - marchPromoSavings;
+
+  // Percentage discounts applied to remaining balance
+  let pct = 0;
+  if (earlyBird) pct += EARLY_BIRD_DISCOUNT_PCT;
+  if (bitcoin) pct += BITCOIN_DISCOUNT_PCT;
+
+  const pctSavings = Math.round(afterFixed * pct);
+  const totalSavings = marchPromoSavings + pctSavings;
+  const final = Math.max(0, baseSetup - totalSavings);
+  const totalPct = baseSetup > 0 ? totalSavings / baseSetup : 0;
+
+  return { final, savings: totalSavings, totalPct };
 }

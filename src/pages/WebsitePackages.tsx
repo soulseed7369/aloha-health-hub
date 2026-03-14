@@ -15,6 +15,7 @@ import {
   calcSetupPrice,
   isMarchPromoActive,
   MARCH_PROMO_LABEL,
+  MARCH_PROMO_SAVINGS,
 } from "@/lib/websitePackages";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -62,7 +63,7 @@ const FAQ = [
   },
   {
     q: "Who writes the content?",
-    a: "You can provide your own copy and photos, or add copywriting from our add-ons ($100–$200/page). We recommend at least a professional headshot — it makes a significant difference.",
+    a: "Copywriting is included in all packages — we'll write the copy for your site based on a short intake questionnaire about your practice, style, and offerings. You'll review and approve before anything goes live. We just ask that you provide your own photos; a professional headshot makes a significant difference.",
   },
   {
     q: "How many revisions are included?",
@@ -102,7 +103,7 @@ export default function WebsitePackages() {
           <div className="container flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-rose-800">
             <span className="text-base">🌺</span>
             <span className="font-semibold">{MARCH_PROMO_LABEL}:</span>
-            <span>20% off all setup fees — offer ends March 31st</span>
+            <span>$50, $100, or $200 off setup — offer ends March 31st</span>
             <span className="text-rose-400 hidden sm:inline">·</span>
             <span className="text-rose-700">Stack with Bitcoin for an extra 10%</span>
           </div>
@@ -327,10 +328,24 @@ export default function WebsitePackages() {
             </span>
           </div>
 
+          {/* Active discounts summary */}
+          {(marchPromo || showEarlyBird || bitcoinEnabled) && (
+            <div className="mb-6 rounded-xl border border-sage/30 bg-sage/5 px-5 py-3 text-center text-sm text-sage-dark">
+              <strong>Discounts active: </strong>
+              {marchPromo && <span>March Special (${MARCH_PROMO_SAVINGS.starter}/${ MARCH_PROMO_SAVINGS.growth}/${MARCH_PROMO_SAVINGS.pro} off)</span>}
+              {marchPromo && (showEarlyBird || bitcoinEnabled) && <span className="mx-1.5">+</span>}
+              {showEarlyBird && !marchPromo && <span>Early bird −10%</span>}
+              {showEarlyBird && !marchPromo && bitcoinEnabled && <span className="mx-1.5">+</span>}
+              {bitcoinEnabled && <span>Bitcoin −10%</span>}
+              <span className="text-muted-foreground ml-1.5">— applied to setup fee only.</span>
+            </div>
+          )}
+
           {/* Cards */}
           <div className="grid gap-6 md:grid-cols-3">
             {PACKAGES.map((pkg) => {
-              const { final, savings } = calcSetupPrice(pkg.setupFee, showEarlyBird, bitcoinEnabled, marchPromo);
+              const marchSavings = marchPromo ? MARCH_PROMO_SAVINGS[pkg.id] : 0;
+              const { final, savings } = calcSetupPrice(pkg.setupFee, showEarlyBird, bitcoinEnabled, marchSavings);
               const hasDiscount = savings > 0;
               const BonusIcon = pkg.bonusTier === 'featured' ? Crown : Star;
 
@@ -423,18 +438,6 @@ export default function WebsitePackages() {
             })}
           </div>
 
-          {/* Active discounts summary */}
-          {(marchPromo || showEarlyBird || bitcoinEnabled) && (
-            <div className="mt-6 rounded-xl border border-sage/30 bg-sage/5 px-5 py-3 text-center text-sm text-sage-dark">
-              <strong>Discounts active: </strong>
-              {marchPromo && <span>March Special −20%</span>}
-              {marchPromo && (showEarlyBird || bitcoinEnabled) && <span className="mx-1.5">+</span>}
-              {showEarlyBird && !marchPromo && <span>Early bird −10%</span>}
-              {showEarlyBird && !marchPromo && bitcoinEnabled && <span className="mx-1.5">+</span>}
-              {bitcoinEnabled && <span>Bitcoin −10%</span>}
-              <span className="text-muted-foreground ml-1.5">— applied to setup fee only.</span>
-            </div>
-          )}
         </div>
       </section>
 
