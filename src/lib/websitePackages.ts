@@ -103,10 +103,10 @@ export const ADD_ON_CATEGORIES: AddOnCategory[] = [
     title: 'Content & Design',
     icon: 'Paintbrush',
     items: [
-      { name: 'Extra page', price: '$150' },
-      { name: 'Copywriting per page', price: '$100–$200' },
-      { name: 'Gallery section', price: '$100' },
-      { name: 'Logo or brand polish', price: '$150–$400' },
+      { name: 'Extra page', price: '$100' },
+      { name: 'Copywriting', price: 'Included' },
+      { name: 'Gallery section', price: 'Included' },
+      { name: 'Logo design', price: '$150–$300' },
     ],
   },
   {
@@ -146,6 +146,15 @@ export const EARLY_BIRD_WINDOW_DAYS = 7;
 export const EARLY_BIRD_DISCOUNT_PCT = 0.10;
 export const BITCOIN_DISCOUNT_PCT = 0.10;
 
+// March 2026 promo — 20% off setup fee for the entire month
+export const MARCH_PROMO_DISCOUNT_PCT = 0.20;
+export const MARCH_PROMO_LABEL = 'March Special — 20% off';
+
+export function isMarchPromoActive(): boolean {
+  const now = new Date();
+  return now.getFullYear() === 2026 && now.getMonth() === 2; // month is 0-indexed
+}
+
 export interface EarlyBirdStatus {
   eligible: boolean;
   daysRemaining: number;
@@ -174,15 +183,20 @@ export function getEarlyBirdStatus(createdAt: string | null | undefined): EarlyB
 /**
  * Calculate discounted setup fee.
  * Discounts stack additively on the setup fee only (monthly is never discounted).
+ * March promo is applied first (highest priority); other discounts stack on top.
  */
 export function calcSetupPrice(
   baseSetup: number,
   earlyBird: boolean,
   bitcoin: boolean,
+  marchPromo: boolean = false,
 ): { final: number; savings: number; totalPct: number } {
   let totalPct = 0;
+  if (marchPromo) totalPct += MARCH_PROMO_DISCOUNT_PCT;
   if (earlyBird) totalPct += EARLY_BIRD_DISCOUNT_PCT;
   if (bitcoin) totalPct += BITCOIN_DISCOUNT_PCT;
+  // Cap at 40% total discount
+  totalPct = Math.min(totalPct, 0.40);
   const savings = Math.round(baseSetup * totalPct);
   return { final: baseSetup - savings, savings, totalPct };
 }

@@ -13,6 +13,8 @@ import {
   ADD_ON_CATEGORIES,
   getEarlyBirdStatus,
   calcSetupPrice,
+  isMarchPromoActive,
+  MARCH_PROMO_LABEL,
 } from "@/lib/websitePackages";
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -86,6 +88,7 @@ export default function WebsitePackages() {
 
   const earlyBird = getEarlyBirdStatus(practitioner?.created_at ?? null);
   const showEarlyBird = !!user && earlyBird.eligible;
+  const marchPromo = isMarchPromoActive();
 
   const DISCOVERY_MAILTO =
     "mailto:aloha@hawaiiwellness.net?subject=Website%20Discovery%20Call&body=Hi%2C%20I%27m%20interested%20in%20learning%20more%20about%20your%20website%20packages%20for%20my%20wellness%20practice.";
@@ -93,8 +96,21 @@ export default function WebsitePackages() {
   return (
     <main className="min-h-screen">
 
+      {/* ── March promo banner ───────────────────────────────────────────────── */}
+      {marchPromo && (
+        <div className="bg-rose-50 border-b border-rose-200 py-3">
+          <div className="container flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-rose-800">
+            <span className="text-base">🌺</span>
+            <span className="font-semibold">{MARCH_PROMO_LABEL}:</span>
+            <span>20% off all setup fees — offer ends March 31st</span>
+            <span className="text-rose-400 hidden sm:inline">·</span>
+            <span className="text-rose-700">Stack with Bitcoin for an extra 10%</span>
+          </div>
+        </div>
+      )}
+
       {/* ── Early-bird banner ────────────────────────────────────────────────── */}
-      {showEarlyBird && (
+      {showEarlyBird && !marchPromo && (
         <div className="bg-amber-50 border-b border-amber-200 py-3">
           <div className="container flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm text-amber-800">
             <Clock className="h-4 w-4 flex-shrink-0" />
@@ -314,7 +330,7 @@ export default function WebsitePackages() {
           {/* Cards */}
           <div className="grid gap-6 md:grid-cols-3">
             {PACKAGES.map((pkg) => {
-              const { final, savings } = calcSetupPrice(pkg.setupFee, showEarlyBird, bitcoinEnabled);
+              const { final, savings } = calcSetupPrice(pkg.setupFee, showEarlyBird, bitcoinEnabled, marchPromo);
               const hasDiscount = savings > 0;
               const BonusIcon = pkg.bonusTier === 'featured' ? Crown : Star;
 
@@ -408,11 +424,13 @@ export default function WebsitePackages() {
           </div>
 
           {/* Active discounts summary */}
-          {(showEarlyBird || bitcoinEnabled) && (
+          {(marchPromo || showEarlyBird || bitcoinEnabled) && (
             <div className="mt-6 rounded-xl border border-sage/30 bg-sage/5 px-5 py-3 text-center text-sm text-sage-dark">
               <strong>Discounts active: </strong>
-              {showEarlyBird && <span>Early bird −10%</span>}
-              {showEarlyBird && bitcoinEnabled && <span className="mx-1.5">+</span>}
+              {marchPromo && <span>March Special −20%</span>}
+              {marchPromo && (showEarlyBird || bitcoinEnabled) && <span className="mx-1.5">+</span>}
+              {showEarlyBird && !marchPromo && <span>Early bird −10%</span>}
+              {showEarlyBird && !marchPromo && bitcoinEnabled && <span className="mx-1.5">+</span>}
               {bitcoinEnabled && <span>Bitcoin −10%</span>}
               <span className="text-muted-foreground ml-1.5">— applied to setup fee only.</span>
             </div>
@@ -443,7 +461,7 @@ export default function WebsitePackages() {
                       {cat.items.map((item) => (
                         <div key={item.name} className="flex items-center justify-between gap-4 text-sm">
                           <span className="text-muted-foreground">{item.name}</span>
-                          <span className="font-medium text-foreground whitespace-nowrap">{item.price}</span>
+                          <span className={`font-medium whitespace-nowrap ${item.price === 'Included' ? 'text-sage font-semibold' : 'text-foreground'}`}>{item.price}</span>
                         </div>
                       ))}
                     </div>
