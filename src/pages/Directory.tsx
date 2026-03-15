@@ -28,7 +28,7 @@ const USE_NEW_SEARCH = import.meta.env.VITE_USE_NEW_SEARCH !== 'false';
 // ── Canonical modalities (shown in filter dropdown) ──────────────────────────
 const FILTER_MODALITIES = [
   "Acupuncture", "Art Therapy", "Astrology", "Ayurveda", "Breathwork", "Chiropractic", "Counseling",
-  "Energy Healing", "Family Constellation", "Functional Medicine", "Hawaiian Healing", "Herbalism",
+  "Energy Healing", "Family Constellation", "Fitness", "Functional Medicine", "Hawaiian Healing", "Herbalism",
   "Hypnotherapy", "IV Therapy", "Life Coaching", "Lomilomi / Hawaiian Healing", "Longevity",
   "Massage", "Meditation", "Nature Therapy", "Naturopathic", "Nutrition", "Physical Therapy",
   "Psychic", "Psychotherapy", "Reiki", "Ritualist", "Somatic Therapy", "Soul Guidance",

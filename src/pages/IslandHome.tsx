@@ -42,6 +42,7 @@ const BROWSE_MODALITIES = [
   'Energy Healing',
   'Somatic Therapy',
   'Nutrition',
+  'Fitness',
   'Functional Medicine',
   'Lomilomi / Hawaiian Healing',
   'Counseling',
