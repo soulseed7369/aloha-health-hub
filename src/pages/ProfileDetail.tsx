@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import {
   CheckCircle, MapPin, Phone, Mail, Globe, ExternalLink, ArrowLeft,
-  Quote, Flag, Instagram, Facebook, Linkedin, Link2, Check, Clock,
+  Store, Instagram, Facebook, Linkedin, Link2, Check, Clock,
   CalendarClock,
 } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
@@ -24,6 +24,18 @@ import { BookingEmbed } from "@/components/BookingEmbed";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
+
+// ── Modality chip colour (matches ProviderCard logic) ────────────────────────
+const M_SAGE = new Set(["Massage","Craniosacral","Reiki","Energy Healing","Lomilomi / Hawaiian Healing","Hawaiian Healing","Watsu / Water Therapy","Physical Therapy","Osteopathic","Chiropractic","Network Chiropractic","Acupuncture","TCM (Traditional Chinese Medicine)","Ayurveda","Naturopathic","Functional Medicine","Herbalism","IV Therapy","Longevity","Dentistry","Nervous System Regulation"]);
+const M_OCEAN = new Set(["Yoga","Breathwork","Meditation","Nature Therapy","Sound Healing","Art Therapy"]);
+const M_TERRA = new Set(["Psychotherapy","Counseling","Life Coaching","Hypnotherapy","Family Constellation","Soul Guidance","Astrology","Psychic","Ritualist","Birth Doula","Midwife","Women's Health","Trauma-Informed Care","Somatic Therapy"]);
+
+function modalityChipClass(m: string): string {
+  if (M_SAGE.has(m))  return "bg-sage-light text-sage border border-sage/30";
+  if (M_OCEAN.has(m)) return "bg-ocean-light text-ocean border border-ocean/30";
+  if (M_TERRA.has(m)) return "bg-terracotta-light text-terracotta border border-terracotta/30";
+  return "bg-secondary text-secondary-foreground border border-border";
+}
 
 // ── Share button ──────────────────────────────────────────────────────────────
 function ShareProfileButton({ name }: { name: string }) {
@@ -279,8 +291,15 @@ const ProfileDetail = () => {
                   </Badge>
                 )}
                 {p.acceptingClients && (
-                  <Badge variant="secondary">Accepting New Clients</Badge>
+                  <Badge className="gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    Accepting New Clients
+                  </Badge>
                 )}
+                {/* Top 2 modalities shown up-front so visitors orient immediately */}
+                {p.services.slice(0, 2).map((s) => (
+                  <span key={s} className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${modalityChipClass(s)}`}>{s}</span>
+                ))}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-4">
                 <ShareProfileButton name={p.name} />
@@ -310,14 +329,16 @@ const ProfileDetail = () => {
           {p.services.length > 0 && (
             <div>
               <h2 className="mb-3 font-display text-xl font-bold">Services &amp; Modalities</h2>
-              <ul className="grid gap-2 sm:grid-cols-2">
+              <div className="flex flex-wrap gap-2">
                 {p.services.map((service) => (
-                  <li key={service} className="flex items-center gap-2 text-sm">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                  <span
+                    key={service}
+                    className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium border ${modalityChipClass(service)}`}
+                  >
                     {service}
-                  </li>
+                  </span>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
 
@@ -356,14 +377,17 @@ const ProfileDetail = () => {
               <h2 className="mb-4 font-display text-xl font-bold">What Clients Say</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {p.testimonials.map((t, i) => (
-                  <Card key={i} className="bg-secondary/30">
+                  <Card key={i} className="border border-border bg-card shadow-sm">
                     <CardContent className="p-4">
-                      <Quote className="mb-2 h-5 w-5 text-primary/40" />
+                      {/* Star rating — these are curated testimonials, always 5-star */}
+                      <div className="mb-2 text-sm text-amber-400 leading-none" aria-label="5 star rating">
+                        ★★★★★
+                      </div>
                       <p className="mb-3 text-sm leading-relaxed text-muted-foreground">
                         {t.text}
                       </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{t.author}</span>
+                      <div className="flex items-center justify-between border-t border-border/40 pt-2">
+                        <span className="text-sm font-semibold">{t.author}</span>
                         {t.date && (
                           <span className="text-xs text-muted-foreground">{t.date}</span>
                         )}
@@ -411,20 +435,21 @@ const ProfileDetail = () => {
               </div>
               <div className="space-y-3 p-4">
                 {p.address && <p className="text-sm font-medium">{p.address}</p>}
-                <div className="space-y-2 text-sm text-muted-foreground">
+                <div className="space-y-2 text-sm">
                   {p.phone && (
-                    <a href={`tel:${p.phone}`} className="flex items-center gap-2 hover:text-foreground">
-                      <Phone className="h-4 w-4" /> {p.phone}
+                    <a href={`tel:${p.phone}`} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors">
+                      <Phone className="h-4 w-4 flex-shrink-0" /> {p.phone}
                     </a>
                   )}
                   {p.email && (
-                    <a href={`mailto:${p.email}`} className="flex items-center gap-2 hover:text-foreground">
-                      <Mail className="h-4 w-4" /> {p.email}
+                    <a href={`mailto:${p.email}`} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0">
+                      <Mail className="h-4 w-4 flex-shrink-0" /> <span className="truncate">{p.email}</span>
                     </a>
                   )}
                   {p.website && (
-                    <a href={p.website} className="flex items-center gap-2 hover:text-foreground" target="_blank" rel="noopener noreferrer">
-                      <Globe className="h-4 w-4" /> Website
+                    <a href={p.website} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0" target="_blank" rel="noopener noreferrer">
+                      <Globe className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{p.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
                     </a>
                   )}
                 </div>
@@ -476,16 +501,16 @@ const ProfileDetail = () => {
 
           {/* Claim this listing */}
           {!isClaimed && (
-            <Card className="border-dashed border-muted-foreground/30 bg-muted/30">
+            <Card className="border-dashed border-primary/30 bg-primary/5">
               <CardContent className="p-4 text-center">
-                <Flag className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
+                <Store className="mx-auto mb-2 h-5 w-5 text-primary" />
                 <p className="mb-1 text-sm font-medium">Is this your practice?</p>
                 <p className="mb-3 text-xs text-muted-foreground">
                   Claim this listing to manage your profile, add photos, and respond to clients.
                 </p>
-                <Button asChild variant="outline" size="sm" className="w-full">
+                <Button asChild size="sm" className="w-full">
                   <Link to={`/auth?claim=${id}`}>
-                    Claim this listing
+                    Claim this listing →
                   </Link>
                 </Button>
               </CardContent>

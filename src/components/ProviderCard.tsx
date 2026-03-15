@@ -31,6 +31,31 @@ function AvatarFallback({ name, className }: { name: string; className?: string 
   );
 }
 
+// ── Modality → colour class ───────────────────────────────────────────────────
+const MODALITY_SAGE = new Set([
+  "Massage","Craniosacral","Reiki","Energy Healing","Lomilomi / Hawaiian Healing",
+  "Hawaiian Healing","Watsu / Water Therapy","Physical Therapy","Osteopathic",
+  "Chiropractic","Network Chiropractic","Acupuncture","TCM (Traditional Chinese Medicine)",
+  "Ayurveda","Naturopathic","Functional Medicine","Herbalism","IV Therapy","Longevity",
+  "Dentistry","Nervous System Regulation",
+]);
+const MODALITY_OCEAN = new Set([
+  "Yoga","Breathwork","Meditation","Nature Therapy","Sound Healing","Art Therapy",
+]);
+const MODALITY_TERRA = new Set([
+  "Psychotherapy","Counseling","Life Coaching","Hypnotherapy","Family Constellation",
+  "Soul Guidance","Astrology","Psychic","Ritualist","Birth Doula","Midwife",
+  "Women's Health","Trauma-Informed Care","Somatic Therapy",
+]);
+
+/** Returns a Tailwind className string for a modality pill based on its category */
+function modalityBadgeClass(m: string): string {
+  if (MODALITY_SAGE.has(m))  return "bg-sage-light text-sage border border-sage/30";
+  if (MODALITY_OCEAN.has(m)) return "bg-ocean-light text-ocean border border-ocean/30";
+  if (MODALITY_TERRA.has(m)) return "bg-terracotta-light text-terracotta border border-terracotta/30";
+  return "bg-secondary text-secondary-foreground";
+}
+
 // ── Tier → border / shadow classes ───────────────────────────────────────────
 function tierCardClasses(tier?: string) {
   if (tier === "featured") return "border-2 border-amber-300 shadow-lg bg-amber-50/30";
@@ -74,16 +99,16 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
       <Link to={`/profile/${provider.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
         <Card className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(provider.tier)}`}>
           <div className="flex gap-4 p-4">
-            {/* Avatar */}
+            {/* Avatar — 72px for stronger human presence */}
             {hasImage ? (
               <img
                 src={provider.image}
                 alt={`Photo of ${provider.name}`}
-                className="h-16 w-16 flex-shrink-0 rounded-lg object-cover"
+                className="h-[72px] w-[72px] flex-shrink-0 rounded-lg object-cover"
                 loading="lazy"
               />
             ) : (
-              <AvatarFallback name={provider.name} className="h-16 w-16 flex-shrink-0 rounded-lg text-lg" />
+              <AvatarFallback name={provider.name} className="h-[72px] w-[72px] flex-shrink-0 rounded-lg text-xl" />
             )}
 
             {/* Info */}
@@ -97,7 +122,11 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 )}
               </div>
               {provider.businessName && (
-                <p className="mb-0.5 truncate text-sm text-muted-foreground">{provider.businessName}</p>
+                <p className="truncate text-sm text-muted-foreground">{provider.businessName}</p>
+              )}
+              {/* Bio snippet — 1 line teaser, falls back to nothing gracefully */}
+              {provider.bio && (
+                <p className="truncate text-xs text-muted-foreground/80 italic leading-snug mb-0.5">{provider.bio}</p>
               )}
               <div className="mb-1.5 flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
@@ -108,11 +137,11 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   </span>
                 )}
               </div>
-              {/* Modality pills */}
+              {/* Colour-coded modality pills by category */}
               {visibleModalities.length > 0 && (
                 <div className="mb-1.5 flex flex-wrap gap-1">
                   {visibleModalities.map((m) => (
-                    <Badge key={m} variant="secondary" className="text-xs font-normal">{m}</Badge>
+                    <span key={m} className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-normal ${modalityBadgeClass(m)}`}>{m}</span>
                   ))}
                   {extraCount > 0 && (
                     <Badge variant="outline" className="text-xs font-normal">+{extraCount} more</Badge>
@@ -230,7 +259,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
           ) : null}
           <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
             {visibleModalities.length > 1 && visibleModalities.slice(1).map((m) => (
-              <Badge key={m} variant="secondary" className="text-[10px] font-normal py-0">{m}</Badge>
+              <span key={m} className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-normal ${modalityBadgeClass(m)}`}>{m}</span>
             ))}
             {extraCount > 0 && (
               <Badge variant="outline" className="text-[10px] font-normal py-0">+{extraCount}</Badge>
