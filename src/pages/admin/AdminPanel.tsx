@@ -3881,8 +3881,8 @@ python scripts/12_gm_dedup.py --island big_island</pre>
               <h5 className="text-sm font-medium">2. Preview the review queue (first 50 records)</h5>
               <div className="bg-gray-800 text-gray-100 p-3 rounded text-xs font-mono overflow-x-auto">
                 <pre>cd pipeline
-jq '. | {{'name', '_review_reason', '_possible_match_name'}}' \
-  output/gm_review.jsonl | head -50</pre>
+{`jq '. | {"name", "_review_reason", "_possible_match_name"}' \\
+  output/gm_review.jsonl | head -50`}</pre>
               </div>
             </div>
 
