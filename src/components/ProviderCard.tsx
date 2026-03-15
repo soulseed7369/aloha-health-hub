@@ -1,6 +1,26 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MapPin, ExternalLink } from "lucide-react";
+
+// ── Island badge (compact, for use in cards) ─────────────────────────────────
+const ISLAND_CFG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
+  big_island: { label: "Big Island", icon: "🌋", color: "#7c3aed", bg: "#f5f3ff" },
+  maui:       { label: "Maui",       icon: "🌿", color: "#065f46", bg: "#ecfdf5" },
+  oahu:       { label: "Oʻahu",      icon: "🏙️",  color: "#1e40af", bg: "#eff6ff" },
+  kauai:      { label: "Kauaʻi",    icon: "🌺",  color: "#92400e", bg: "#fef3c7" },
+};
+function IslandPill({ island }: { island: string }) {
+  const cfg = ISLAND_CFG[island];
+  if (!cfg) return null;
+  return (
+    <span
+      className="inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold flex-shrink-0"
+      style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}25` }}
+    >
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+}
 import type { Provider } from "@/data/mockData";
 import { Link } from "react-router-dom";
 import { formatDistance } from "@/lib/geoUtils";
@@ -114,28 +134,32 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
             {/* Info */}
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors">
-                  {provider.name}
-                </h3>
+                <div className="min-w-0">
+                  {/* Personal name always primary — never replaced by business name */}
+                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight">
+                    {provider.name}
+                  </h3>
+                  {/* Business name always a muted subtitle */}
+                  {provider.businessName && (
+                    <p className="truncate text-xs text-muted-foreground">{provider.businessName}</p>
+                  )}
+                </div>
                 {provider.tier && provider.tier !== "free" && (
                   <TierBadge tier={provider.tier} className="flex-shrink-0" />
                 )}
               </div>
-              {provider.businessName && (
-                <p className="truncate text-sm text-muted-foreground">{provider.businessName}</p>
-              )}
-              {/* Bio snippet — 1 line teaser, falls back to nothing gracefully */}
+              {/* Bio snippet — 1 line teaser */}
               {provider.bio && (
-                <p className="truncate text-xs text-muted-foreground/80 italic leading-snug mb-0.5">{provider.bio}</p>
+                <p className="mt-0.5 truncate text-xs text-muted-foreground/80 italic leading-snug">{provider.bio}</p>
               )}
-              <div className="mb-1.5 flex items-center gap-1 text-sm text-muted-foreground">
+              {/* Location row — city + island badge side by side */}
+              <div className="mt-1 mb-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
-                <span className="truncate">{provider.location}</span>
+                <span className="truncate">{provider.location?.split(',')[0]}</span>
                 {provider.distanceMiles != null && (
-                  <span className="ml-1 flex-shrink-0 text-xs text-muted-foreground/70">
-                    · {formatDistance(provider.distanceMiles)}
-                  </span>
+                  <span className="flex-shrink-0 text-muted-foreground/70">· {formatDistance(provider.distanceMiles)}</span>
                 )}
+                {provider.island && <IslandPill island={provider.island} />}
               </div>
               {/* Colour-coded modality pills by category */}
               {visibleModalities.length > 0 && (

@@ -37,6 +37,30 @@ function modalityChipClass(m: string): string {
   return "bg-secondary text-secondary-foreground border border-border";
 }
 
+// ── Island display config ─────────────────────────────────────────────────────
+const ISLAND_CONFIG: Record<string, { label: string; icon: string; color: string; bg: string; gradient: string }> = {
+  big_island: { label: "Big Island of Hawaiʻi", icon: "🌋", color: "#7c3aed", bg: "#f5f3ff", gradient: "linear-gradient(135deg, hsl(260,25%,96%), hsl(200,20%,96%))" },
+  maui:       { label: "Maui",                  icon: "🌿", color: "#065f46", bg: "#ecfdf5", gradient: "linear-gradient(135deg, hsl(143,25%,95%), hsl(160,20%,96%))" },
+  oahu:       { label: "Oʻahu",                 icon: "🏙️",  color: "#1e40af", bg: "#eff6ff", gradient: "linear-gradient(135deg, hsl(215,30%,96%), hsl(200,25%,96%))" },
+  kauai:      { label: "Kauaʻi",               icon: "🌺",  color: "#92400e", bg: "#fef3c7", gradient: "linear-gradient(135deg, hsl(35,30%,96%), hsl(25,25%,96%))" },
+};
+
+function islandHeaderGradient(island: string | null): string {
+  return ISLAND_CONFIG[island ?? '']?.gradient ?? "linear-gradient(135deg, hsl(143,15%,96%), hsl(200,15%,96%))";
+}
+
+function IslandBadge({ island }: { island: string }) {
+  const cfg = ISLAND_CONFIG[island] ?? ISLAND_CONFIG.big_island;
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+      style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30` }}
+    >
+      {cfg.icon} {cfg.label}
+    </span>
+  );
+}
+
 // ── Share button ──────────────────────────────────────────────────────────────
 function ShareProfileButton({ name }: { name: string }) {
   const [copied, setCopied] = useState(false);
@@ -267,49 +291,76 @@ const ProfileDetail = () => {
         </Breadcrumb>
       </div>
 
-      {/* Hero */}
-      <section className="relative mt-4">
-        <div className="h-48 overflow-hidden md:h-64">
-          <img src={p.coverImage} alt={`${p.name} cover`} className="h-full w-full object-cover" loading="eager" />
-        </div>
-        <div className="container relative">
-          <div className="flex flex-col items-start gap-4 pb-6 pt-0 md:flex-row md:items-end md:gap-6">
-            <img
-              src={p.profileImage}
-              alt={p.name}
-              className="-mt-16 h-32 w-32 rounded-xl border-4 border-background object-cover shadow-lg"
-            />
-            <div className="flex-1">
-              <h1 className="font-display text-2xl font-bold md:text-3xl">{p.name}</h1>
-              {p.businessName && (
-                <p className="mt-0.5 text-base font-medium text-muted-foreground">{p.businessName}</p>
+      {/* Profile Header — island-tinted gradient, no stock cover image */}
+      <section className="mt-4">
+        <div className="container">
+          <div
+            className="rounded-xl overflow-hidden border border-border"
+            style={{ background: islandHeaderGradient(p.island) }}
+          >
+            <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5">
+              {/* Avatar — larger, circular, face-first */}
+              {p.profileImage ? (
+                <img
+                  src={p.profileImage}
+                  alt={p.name}
+                  className="h-24 w-24 flex-shrink-0 rounded-full border-4 border-background object-cover shadow-lg sm:h-28 sm:w-28"
+                />
+              ) : (
+                <div className="h-24 w-24 flex-shrink-0 rounded-full border-4 border-background bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-2xl font-semibold text-white shadow-lg sm:h-28 sm:w-28">
+                  {p.name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase()}
+                </div>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                {p.verified && (
-                  <Badge className="gap-1 bg-sage text-white">
-                    <CheckCircle className="h-3 w-3" /> Verified
-                  </Badge>
+
+              {/* Name + business + location + badges */}
+              <div className="flex-1 min-w-0">
+                {/* Personal name is always the primary identity */}
+                <h1 className="font-display text-2xl font-bold leading-tight md:text-3xl">{p.name}</h1>
+                {/* Business name always muted subtitle — never primary */}
+                {p.businessName && (
+                  <p className="mt-0.5 text-sm font-medium text-muted-foreground">{p.businessName}</p>
                 )}
-                {p.acceptingClients && (
-                  <Badge className="gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Accepting New Clients
-                  </Badge>
-                )}
-                {/* Top 2 modalities shown up-front so visitors orient immediately */}
-                {p.services.slice(0, 2).map((s) => (
-                  <span key={s} className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${modalityChipClass(s)}`}>{s}</span>
-                ))}
+
+                {/* Island + location row */}
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  {p.island && <IslandBadge island={p.island} />}
+                  {p.location && (
+                    <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                      {p.location.split(',')[0]}
+                    </span>
+                  )}
+                </div>
+
+                {/* Status + top modalities */}
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  {p.verified && (
+                    <Badge className="gap-1 bg-sage text-white">
+                      <CheckCircle className="h-3 w-3" /> Verified
+                    </Badge>
+                  )}
+                  {p.acceptingClients && (
+                    <Badge className="gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Accepting New Clients
+                    </Badge>
+                  )}
+                  {p.services.slice(0, 2).map((s) => (
+                    <span key={s} className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${modalityChipClass(s)}`}>{s}</span>
+                  ))}
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap items-center gap-4">
-                <ShareProfileButton name={p.name} />
-                {lastUpdatedLabel && (
-                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <CalendarClock className="h-3.5 w-3.5" />
-                    {isClaimed ? 'Managed by practitioner' : 'Profile updated'} · {lastUpdatedLabel}
-                  </span>
-                )}
-              </div>
+            </div>
+
+            {/* Share + last-updated footer strip */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 bg-background/40 px-5 py-2.5">
+              <ShareProfileButton name={p.name} />
+              {lastUpdatedLabel && (
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CalendarClock className="h-3.5 w-3.5" />
+                  {isClaimed ? 'Managed by practitioner' : 'Profile updated'} · {lastUpdatedLabel}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -430,9 +481,24 @@ const ProfileDetail = () => {
 
           <Card>
             <CardContent className="p-0">
-              <div className="flex h-40 items-center justify-center rounded-t-lg bg-ocean-light">
-                <MapPin className="h-8 w-8 text-ocean" />
-              </div>
+              {/* Map — OSM iframe when lat/lng available, styled fallback otherwise */}
+              {p.lat && p.lng ? (
+                <iframe
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${p.lng - 0.015},${p.lat - 0.01},${p.lng + 0.015},${p.lat + 0.01}&layer=mapnik&marker=${p.lat},${p.lng}`}
+                  width="100%"
+                  height="160"
+                  className="w-full block rounded-t-lg border-0"
+                  title={`Map showing location of ${p.name}`}
+                  loading="lazy"
+                />
+              ) : (
+                <div className="flex h-40 items-center justify-center rounded-t-lg bg-ocean-light">
+                  <div className="text-center">
+                    <MapPin className="mx-auto h-7 w-7 text-ocean mb-1" />
+                    <span className="text-xs font-medium text-ocean">{p.location || 'Hawaiʻi'}</span>
+                  </div>
+                </div>
+              )}
               <div className="space-y-3 p-4">
                 {p.address && <p className="text-sm font-medium">{p.address}</p>}
                 <div className="space-y-2 text-sm">

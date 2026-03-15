@@ -61,6 +61,8 @@ export interface Provider {
   distanceMiles?: number;
   /** External booking URL (e.g. Calendly, Mindbody) */
   externalBookingUrl?: string | null;
+  /** Island key: 'big_island' | 'maui' | 'oahu' | 'kauai' */
+  island?: string;
 }
 
 export interface Center {

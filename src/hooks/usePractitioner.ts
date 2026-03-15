@@ -12,7 +12,7 @@ export interface PractitionerProfile {
   name: string;
   businessName: string | null;  // practice / business name shown under practitioner name
   title: string;
-  coverImage: string;
+  island: string | null;   // 'big_island' | 'maui' | 'oahu' | 'kauai'
   profileImage: string;
   verified: boolean;
   acceptingClients: boolean;
@@ -54,7 +54,7 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     name: row.name,
     businessName: (row as any).business_name ?? null,
     title: row.modalities.join(', ') || 'Wellness Practitioner',
-    coverImage: PLACEHOLDER_COVER,
+    island: row.island ?? null,
     profileImage: row.avatar_url || PLACEHOLDER_PROFILE,
     verified: false, // not stored in v1 schema
     acceptingClients: row.accepts_new_clients,
@@ -98,7 +98,7 @@ export function usePractitioner(id: string | undefined) {
           name: profileData.name,
           businessName: null,
           title: profileData.title,
-          coverImage: profileData.coverImage,
+          island: 'big_island',
           profileImage: profileData.profileImage,
           verified: profileData.verified,
           acceptingClients: profileData.acceptingClients,
