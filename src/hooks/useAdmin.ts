@@ -780,3 +780,33 @@ export const useSetListingTier = () => {
     },
   });
 };
+
+// ─── Pipeline corrections (admin feedback for classification improvements) ───
+
+export const useRecordCorrection = () => {
+  return useMutation({
+    mutationFn: async ({
+      listingId,
+      listingType,
+      field,
+      oldValue,
+      newValue,
+    }: {
+      listingId: string;
+      listingType: ListingType;
+      field: string;
+      oldValue: unknown;
+      newValue: unknown;
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase.from('pipeline_corrections').insert({
+        listing_id: listingId,
+        listing_type: listingType,
+        field,
+        old_value: oldValue,
+        new_value: newValue,
+      });
+      if (error) throw error;
+    },
+  });
+};

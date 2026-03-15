@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { Plus, Trash2, Eye, EyeOff, Loader2, Upload, X, ImagePlus, Pencil, ChevronLeft, ChevronRight, ArrowLeftRight, CheckCircle, XCircle, FileText, ExternalLink, Flag, Users, Star, Crown, MapPin as MapPinIcon } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Loader2, Upload, X, ImagePlus, Pencil, ChevronLeft, ChevronRight, ArrowLeftRight, CheckCircle, XCircle, FileText, ExternalLink, Flag, Users, Star, Crown, MapPin as MapPinIcon, ClipboardList } from 'lucide-react';
 import {
   AdminQueryParams,
   useAllPractitioners,
@@ -32,10 +32,11 @@ import {
   useBatchDelete,
   uploadPractitionerImage,
   uploadCenterImage,
+  useSetListingTier,
+  useRecordCorrection,
 } from '@/hooks/useAdmin';
 import { useAdminFlags, useUpdateFlag, useDeleteFlag, type FlagStatus } from '@/hooks/useListingFlags';
 import { useAdminAccounts, useSetAccountTier, useAdminFeaturedSlots, useRemoveFeaturedSlot, type AccountTier } from '@/hooks/useAccounts';
-import { useSetListingTier } from '@/hooks/useAdmin';
 import type { PractitionerRow, CenterRow } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 
@@ -65,7 +66,7 @@ const CITIES_BY_ISLAND: Record<string, string[]> = {
 const MODALITIES_LIST = [
   'Acupuncture', 'Alternative Therapy', 'Art Therapy', 'Astrology', 'Ayurveda',
   'Birth Doula', 'Breathwork', 'Chiropractic', 'Counseling',
-  'Craniosacral', 'Dentistry', 'Energy Healing', 'Family Constellation', 'Functional Medicine',
+  'Craniosacral', 'Dentistry', 'Energy Healing', 'Family Constellation', 'Fitness', 'Functional Medicine',
   'Hawaiian Healing', 'Herbalism', 'Hypnotherapy', 'IV Therapy', 'Life Coaching',
   'Lomilomi / Hawaiian Healing', 'Longevity', 'Massage', 'Meditation', 'Midwife',
   'Nature Therapy', 'Naturopathic', 'Nervous System Regulation', 'Network Chiropractic',
@@ -148,7 +149,7 @@ interface ClaimRequest {
 const CLAIM_DOCS_BUCKET = 'claim-documents';
 
 const AdminPanel = () => {
-  const [activeTab, setActiveTab] = useState<'practitioners' | 'centers' | 'claims' | 'articles'>('practitioners');
+  const [activeTab, setActiveTab] = useState<'practitioners' | 'centers' | 'claims' | 'articles' | 'flags' | 'accounts' | 'leads'>('practitioners');
   const [isAddPractitionerOpen, setIsAddPractitionerOpen] = useState(false);
   const [isAddCenterOpen, setIsAddCenterOpen] = useState(false);
 
@@ -192,7 +193,7 @@ const AdminPanel = () => {
   const [editingPractitioner, setEditingPractitioner] = useState<PractitionerRow | null>(null);
   const [editingCenter, setEditingCenter] = useState<CenterRow | null>(null);
   const [convertingPractitioner, setConvertingPractitioner] = useState<PractitionerRow | null>(null);
-  const [convertCenterType, setConvertCenterType] = useState<'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio'>('wellness_center');
+  const [convertCenterType, setConvertCenterType] = useState<'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio' | 'fitness_center'>('wellness_center');
   const [convertingCenter, setConvertingCenter] = useState<CenterRow | null>(null);
   const [geocoding, setGeocoding] = useState(false);
 
@@ -238,6 +239,9 @@ const AdminPanel = () => {
   // ── Edit practitioner form state ──────────────────────────────────────────
   const [editPractitionerForm, setEditPractitionerForm] = useState({
     name: '',
+    first_name: '' as string,
+    last_name: '' as string,
+    display_name: '' as string,
     business_name: '' as string,
     modalities: [] as string[],
     bio: '',
@@ -270,7 +274,7 @@ const AdminPanel = () => {
   const [centerForm, setCenterForm] = useState({
     name: '',
     description: '',
-    center_type: 'wellness_center' as 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio',
+    center_type: 'wellness_center' as 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio' | 'fitness_center',
     city: '',
     address: '',
     phone: '',
@@ -298,7 +302,7 @@ const AdminPanel = () => {
   const [editCenterForm, setEditCenterForm] = useState({
     name: '',
     description: '',
-    center_type: 'wellness_center' as 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio',
+    center_type: 'wellness_center' as 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio' | 'fitness_center',
     city: '',
     address: '',
     phone: '',
@@ -359,6 +363,7 @@ const AdminPanel = () => {
   const deletePractitioner = useDeletePractitioner();
   const insertPractitioner = useInsertPractitioner();
   const updatePractitioner = useUpdatePractitioner();
+  const recordCorrection = useRecordCorrection();
 
   const publishCenter = usePublishCenter();
   const deleteCenter = useDeleteCenter();
@@ -531,6 +536,9 @@ const AdminPanel = () => {
   const openEditPractitionerDialog = (p: PractitionerRow) => {
     setEditPractitionerForm({
       name: p.name,
+      first_name: (p as any).first_name || '',
+      last_name: (p as any).last_name || '',
+      display_name: (p as any).display_name || '',
       business_name: p.business_name || '',
       modalities: [...(p.modalities || [])],
       bio: p.bio || '',
@@ -575,6 +583,24 @@ const AdminPanel = () => {
         ...editPractitionerForm,
         avatar_url: avatarUrl,
       });
+
+      // Record modality correction if this is a draft and modalities changed
+      if (editingPractitioner.status === 'draft') {
+        const originalModalities = editingPractitioner.modalities || [];
+        const newModalities = editPractitionerForm.modalities || [];
+        const modalitiesChanged = JSON.stringify(originalModalities.sort()) !== JSON.stringify(newModalities.sort());
+
+        if (modalitiesChanged) {
+          recordCorrection.mutate({
+            listingId: editingPractitioner.id,
+            listingType: 'practitioner',
+            field: 'modalities',
+            oldValue: originalModalities,
+            newValue: newModalities,
+          });
+        }
+      }
+
       toast.success('Saved');
       setEditingPractitioner(null);
     } catch (err) {
@@ -1150,11 +1176,11 @@ const AdminPanel = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={v => {
-        const tab = v as 'practitioners' | 'centers' | 'claims' | 'articles';
+        const tab = v as typeof activeTab;
         setActiveTab(tab);
         if (tab === 'claims') fetchClaims(claimStatusFilter);
       }}>
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="practitioners">
             Practitioners {practResult ? `(${practTotal})` : ''}
           </TabsTrigger>
@@ -1175,12 +1201,33 @@ const AdminPanel = () => {
             <Users className="h-3.5 w-3.5" />
             Accounts
           </TabsTrigger>
+          <TabsTrigger value="leads" className="gap-1.5">
+            <Star className="h-3.5 w-3.5" />
+            Leads
+          </TabsTrigger>
+          <TabsTrigger value="queue" className="gap-1.5">
+            <ClipboardList className="h-3.5 w-3.5" />
+            Queue
+          </TabsTrigger>
         </TabsList>
 
         {/* ── PRACTITIONERS TAB ── */}
         <TabsContent value="practitioners" className="mt-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Practitioners</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold">Practitioners</h2>
+              {/* Review Queue quick-filter */}
+              <Button
+                variant={statusFilter === 'draft' ? 'default' : 'outline'}
+                size="sm"
+                className="h-7 text-xs gap-1"
+                onClick={() => setStatusFilter(statusFilter === 'draft' ? 'all' : 'draft')}
+              >
+                <CheckCircle className="h-3.5 w-3.5" />
+                Review Queue
+                {statusFilter === 'draft' && <X className="h-3 w-3 ml-0.5" />}
+              </Button>
+            </div>
             <Dialog open={isAddPractitionerOpen} onOpenChange={setIsAddPractitionerOpen}>
               <DialogTrigger asChild>
                 <Button><Plus className="h-4 w-4 mr-2" />Add Practitioner</Button>
@@ -1662,6 +1709,16 @@ const AdminPanel = () => {
             </div>
           )}
 
+          {statusFilter === 'draft' && practitioners.length > 0 && (
+            <div className="mb-4 p-3 rounded-lg border border-amber-200 bg-amber-50/60 flex items-start gap-2">
+              <span className="text-amber-500 mt-0.5">⚠</span>
+              <div className="text-sm">
+                <span className="font-semibold text-amber-800">{practitioners.length} draft practitioners</span>
+                <span className="text-amber-700"> awaiting review. Use controls below to publish, edit, or delete each one. Near-miss duplicates are in <code className="font-mono text-xs bg-amber-100 px-1 rounded">pipeline/output/gm_review.jsonl</code>.</span>
+              </div>
+            </div>
+          )}
+
           {practitionersLoading
             ? <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-20 w-full" />)}</div>
             : practitioners && practitioners.length > 0
@@ -1753,6 +1810,7 @@ const AdminPanel = () => {
                           <SelectItem value="yoga_studio">Yoga Studio</SelectItem>
                           <SelectItem value="clinic">Clinic</SelectItem>
                           <SelectItem value="retreat_center">Retreat Center</SelectItem>
+                          <SelectItem value="fitness_center">Fitness Center</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1837,6 +1895,7 @@ const AdminPanel = () => {
                 <SelectItem value="yoga_studio">Yoga Studio</SelectItem>
                 <SelectItem value="clinic">Clinic</SelectItem>
                 <SelectItem value="retreat_center">Retreat Center</SelectItem>
+                <SelectItem value="fitness_center">Fitness Center</SelectItem>
               </SelectContent>
             </Select>
             <Select value={missingDataFilter} onValueChange={v => { setMissingDataFilter(v); setCenterPage(0); }}>
@@ -2100,6 +2159,16 @@ const AdminPanel = () => {
         <TabsContent value="accounts" className="mt-6">
           <AdminAccounts />
         </TabsContent>
+
+        {/* ── LEADS TAB ── */}
+        <TabsContent value="leads" className="mt-6">
+          <AdminLeads />
+        </TabsContent>
+
+        {/* ── QUEUE TAB ── */}
+        <TabsContent value="queue" className="mt-6">
+          <AdminQueue />
+        </TabsContent>
       </Tabs>
 
       {/* ── Edit Practitioner Dialog ── */}
@@ -2194,10 +2263,43 @@ const AdminPanel = () => {
               </div>
 
               <div>
-                <Label htmlFor="ep-name">Name *</Label>
-                <Input id="ep-name" placeholder="Full name"
+                <Label htmlFor="ep-name">Name (pipeline / display fallback) *</Label>
+                <Input id="ep-name" placeholder="Full name or business name from pipeline"
                   value={editPractitionerForm.name}
                   onChange={e => handleEditPractitionerChange('name', e.target.value)} required />
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Shown only if First + Last Name are blank.
+                </p>
+              </div>
+
+              {/* Personal name fields — highest display priority */}
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-md border border-blue-200 bg-blue-50/50">
+                <div className="col-span-2">
+                  <p className="text-xs font-medium text-blue-700 mb-2">
+                    Personal Name <span className="font-normal text-blue-500">(shown on card instead of Name above)</span>
+                  </p>
+                </div>
+                <div>
+                  <Label htmlFor="ep-first-name">First Name</Label>
+                  <Input id="ep-first-name" placeholder="Jane"
+                    value={editPractitionerForm.first_name}
+                    onChange={e => handleEditPractitionerChange('first_name', e.target.value)} />
+                </div>
+                <div>
+                  <Label htmlFor="ep-last-name">Last Name</Label>
+                  <Input id="ep-last-name" placeholder="Doe"
+                    value={editPractitionerForm.last_name}
+                    onChange={e => handleEditPractitionerChange('last_name', e.target.value)} />
+                </div>
+                <div className="col-span-2">
+                  <Label htmlFor="ep-display-name">Display Name Override</Label>
+                  <Input id="ep-display-name" placeholder="Leave blank to use First + Last"
+                    value={editPractitionerForm.display_name}
+                    onChange={e => handleEditPractitionerChange('display_name', e.target.value)} />
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    e.g. "Jamie Belmarez" if legal name differs from preferred name.
+                  </p>
+                </div>
               </div>
 
               <div>
@@ -2695,6 +2797,7 @@ const AdminPanel = () => {
                       <SelectItem value="yoga_studio">Yoga Studio</SelectItem>
                       <SelectItem value="clinic">Clinic</SelectItem>
                       <SelectItem value="retreat_center">Retreat Center</SelectItem>
+                      <SelectItem value="fitness_center">Fitness Center</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -3024,6 +3127,7 @@ const AdminPanel = () => {
                   <SelectItem value="clinic">Clinic</SelectItem>
                   <SelectItem value="spa">Spa</SelectItem>
                   <SelectItem value="retreat_center">Retreat Center</SelectItem>
+                  <SelectItem value="fitness_center">Fitness Center</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -3540,6 +3644,267 @@ function AdminAccounts() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Admin Leads Tab ──────────────────────────────────────────────────────────
+
+function AdminLeads() {
+  const [island, setIsland] = useState('all');
+  const [minScore, setMinScore] = useState(50);
+  const [noWebsiteOnly, setNoWebsiteOnly] = useState(false);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchLeads = async () => {
+    if (!supabase) return;
+    setLoading(true);
+    try {
+      const fetchTable = async (table: string) => {
+        let q = supabase!
+          .from(table)
+          .select('id, name, first_name, last_name, island, city, email, phone, website_url, website_platform, website_score, no_website_lead, lead_score, tier, status, modalities')
+          .gte('lead_score', minScore)
+          .order('lead_score', { ascending: false })
+          .limit(200);
+        if (island !== 'all') q = q.eq('island', island);
+        if (noWebsiteOnly) q = q.eq('no_website_lead', true);
+        const { data } = await q;
+        return (data || []).map(r => ({ ...r, _table: table }));
+      };
+      const [practs, centers] = await Promise.all([
+        fetchTable('practitioners'),
+        fetchTable('centers'),
+      ]);
+      // Merge and sort by lead_score
+      const merged = [...practs, ...centers].sort(
+        (a, b) => (b.lead_score ?? 0) - (a.lead_score ?? 0)
+      );
+      setLeads(merged);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchLeads(); }, [island, minScore, noWebsiteOnly]);
+
+  const platformBadgeColor = (platform: string | null) => {
+    if (!platform || platform === 'none') return 'bg-red-100 text-red-700';
+    if (['godaddy', 'weebly', 'strikingly', 'jimdo'].includes(platform))
+      return 'bg-orange-100 text-orange-700';
+    if (['wix', 'wordpress'].includes(platform))
+      return 'bg-yellow-100 text-yellow-700';
+    return 'bg-gray-100 text-gray-600';
+  };
+
+  const scoreColor = (score: number | null) => {
+    if (score === null || score === undefined) return 'text-gray-400';
+    if (score >= 75) return 'text-red-600 font-bold';
+    if (score >= 50) return 'text-orange-500 font-semibold';
+    return 'text-green-600';
+  };
+
+  const displayName = (r: any) =>
+    r.first_name ? `${r.first_name} ${r.last_name || ''}`.trim() : r.name;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold">Marketing Leads</h2>
+        <p className="text-sm text-muted-foreground">{leads.length} listings</p>
+      </div>
+      <p className="text-sm text-muted-foreground mb-4">
+        Listings ranked by website staleness and missing contact info — best targets for selling website upgrades.
+      </p>
+
+      {/* Filters */}
+      <div className="flex gap-2 flex-wrap mb-4 items-center">
+        <Select value={island} onValueChange={setIsland}>
+          <SelectTrigger className="h-8 w-32 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Islands</SelectItem>
+            {ISLANDS.map(i => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={String(minScore)} onValueChange={v => setMinScore(Number(v))}>
+          <SelectTrigger className="h-8 w-36 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="30">Score ≥ 30 (all)</SelectItem>
+            <SelectItem value="50">Score ≥ 50 (warm)</SelectItem>
+            <SelectItem value="65">Score ≥ 65 (hot)</SelectItem>
+            <SelectItem value="80">Score ≥ 80 (top)</SelectItem>
+          </SelectContent>
+        </Select>
+        <label className="flex items-center gap-1.5 text-xs cursor-pointer select-none">
+          <input type="checkbox" checked={noWebsiteOnly}
+            onChange={e => setNoWebsiteOnly(e.target.checked)} className="w-3.5 h-3.5" />
+          No website only
+        </label>
+        <Button variant="outline" size="sm" onClick={fetchLeads} disabled={loading}>
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Refresh'}
+        </Button>
+      </div>
+
+      {/* Legend */}
+      <div className="flex gap-3 text-xs text-muted-foreground mb-3">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-500 inline-block" />Hot (75+)</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400 inline-block" />Warm (50–74)</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Cool (&lt;50)</span>
+      </div>
+
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+        </div>
+      ) : leads.length === 0 ? (
+        <p className="text-center text-muted-foreground py-12">
+          No leads found. Run script 22 with <code>--score-leads --apply</code> to populate scores.
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b text-xs text-muted-foreground">
+                <th className="text-left py-2 pr-3 font-medium">Name</th>
+                <th className="text-left py-2 pr-3 font-medium">Island / City</th>
+                <th className="text-left py-2 pr-3 font-medium">Platform</th>
+                <th className="text-center py-2 pr-3 font-medium">Site Score</th>
+                <th className="text-center py-2 pr-3 font-medium">Lead Score</th>
+                <th className="text-left py-2 pr-3 font-medium">Contact</th>
+                <th className="text-left py-2 font-medium">Website</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {leads.map(r => (
+                <tr key={`${r._table}-${r.id}`} className="hover:bg-muted/30 group">
+                  <td className="py-2 pr-3">
+                    <div className="font-medium leading-tight">{displayName(r)}</div>
+                    <div className="text-xs text-muted-foreground capitalize">
+                      {r._table === 'practitioners' ? 'practitioner' : 'center'}
+                      {r.no_website_lead && (
+                        <span className="ml-1.5 text-red-600 font-semibold">· no website</span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="py-2 pr-3 text-xs">
+                    <div>{ISLANDS.find(i => i.value === r.island)?.label ?? r.island}</div>
+                    <div className="text-muted-foreground">{r.city}</div>
+                  </td>
+                  <td className="py-2 pr-3">
+                    {r.website_platform ? (
+                      <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${platformBadgeColor(r.website_platform)}`}>
+                        {r.website_platform}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
+                  </td>
+                  <td className={`py-2 pr-3 text-center text-sm ${scoreColor(r.website_score)}`}>
+                    {r.website_score ?? '—'}
+                  </td>
+                  <td className={`py-2 pr-3 text-center text-sm font-bold ${scoreColor(r.lead_score)}`}>
+                    {r.lead_score ?? '—'}
+                  </td>
+                  <td className="py-2 pr-3 text-xs">
+                    {r.email ? (
+                      <a href={`mailto:${r.email}`}
+                        className="text-blue-600 hover:underline truncate block max-w-[160px]">
+                        {r.email}
+                      </a>
+                    ) : (
+                      <span className="text-red-500 text-xs">no email</span>
+                    )}
+                    {r.phone && (
+                      <div className="text-muted-foreground">{r.phone}</div>
+                    )}
+                  </td>
+                  <td className="py-2 text-xs">
+                    {r.website_url ? (
+                      <a href={r.website_url} target="_blank" rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline flex items-center gap-1">
+                        <ExternalLink className="h-3 w-3" />
+                        <span className="truncate max-w-[140px]">
+                          {r.website_url.replace(/^https?:\/\/(www\.)?/, '')}
+                        </span>
+                      </a>
+                    ) : (
+                      <span className="text-red-500">no website</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Admin Queue Tab ──────────────────────────────────────────────────────────
+
+function AdminQueue() {
+  return (
+    <div className="space-y-6">
+      <Card className="border-amber-200 bg-amber-50/40">
+        <CardContent className="pt-6">
+          <h3 className="text-lg font-semibold mb-3 text-amber-900">Near-Miss Review Queue</h3>
+          <p className="text-sm text-amber-800 mb-4">
+            Near-miss review records are practitioners or wellness centers that score <strong>70–84% name similarity</strong> to existing database records during the deduplication step. They need manual review to decide:
+          </p>
+          <ul className="list-disc list-inside text-sm text-amber-800 space-y-1 ml-2">
+            <li><strong>Accept as New</strong> — the match score is misleading; insert as a new record</li>
+            <li><strong>Merge with Existing</strong> — confirm it's a duplicate and manually merge the data</li>
+            <li><strong>Discard</strong> — it's spam or irrelevant; skip it</li>
+          </ul>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="pt-6">
+          <h4 className="font-semibold mb-3">How to Access Review Records</h4>
+          <p className="text-sm text-gray-600 mb-4">
+            Near-miss records are generated by the pipeline deduplication script and stored in <code className="font-mono bg-gray-100 px-2 py-1 rounded text-xs">pipeline/output/gm_review.jsonl</code>. A future enhancement will load these directly into this admin panel. For now, use the workflow below:
+          </p>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <h5 className="text-sm font-medium">1. Run the pipeline dedup script</h5>
+              <div className="bg-gray-800 text-gray-100 p-3 rounded text-xs font-mono overflow-x-auto">
+                <pre>cd pipeline
+python scripts/12_gm_dedup.py --island big_island</pre>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h5 className="text-sm font-medium">2. Preview the review queue (first 50 records)</h5>
+              <div className="bg-gray-800 text-gray-100 p-3 rounded text-xs font-mono overflow-x-auto">
+                <pre>cd pipeline
+jq '. | {{'name', '_review_reason', '_possible_match_name'}}' \
+  output/gm_review.jsonl | head -50</pre>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <h5 className="text-sm font-medium">3. View full record details</h5>
+              <div className="bg-gray-800 text-gray-100 p-3 rounded text-xs font-mono overflow-x-auto">
+                <pre>cd pipeline
+jq '.' output/gm_review.jsonl | less</pre>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-blue-200 bg-blue-50/40">
+        <CardContent className="pt-6">
+          <h4 className="font-semibold mb-2 text-blue-900">Future Enhancement</h4>
+          <p className="text-sm text-blue-800">
+            A future release will automatically import near-miss records into a Supabase <code className="font-mono bg-blue-100 px-1 rounded text-xs">pipeline_review_queue</code> table, and this tab will show an interactive review interface with accept/merge/discard buttons for each record.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

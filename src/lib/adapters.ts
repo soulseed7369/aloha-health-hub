@@ -27,6 +27,7 @@ const CENTER_TYPE_LABELS: Record<CenterRow['center_type'], string> = {
   yoga_studio: 'Yoga Studio',
   clinic: 'Clinic',
   retreat_center: 'Retreat Center',
+  fitness_center: 'Fitness Center',
 };
 
 // ─── practitionerRowToProvider ───────────────────────────────────────────────
