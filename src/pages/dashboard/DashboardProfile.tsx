@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, X, ExternalLink, Loader2, Lock, Crown } from "lucide-react";
+import { Upload, X, ExternalLink, Loader2, Lock, Crown, ShieldCheck, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useMyPractitioner, useSavePractitioner, uploadMyPhoto, type PractitionerFormData } from "@/hooks/useMyPractitioner";
+import { ContactVerification } from "@/components/ContactVerification";
+import { useRequestReview } from "@/hooks/useVerification";
 
 const ISLANDS = [
   { value: 'big_island', label: 'Big Island' },
@@ -76,6 +78,7 @@ const emptyForm: PractitionerFormData = {
 export default function DashboardProfile() {
   const { data: practitioner, isLoading } = useMyPractitioner();
   const saveMutation = useSavePractitioner();
+  const requestReview = useRequestReview();
   const [form, setForm] = useState<PractitionerFormData>(emptyForm);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -228,7 +231,18 @@ export default function DashboardProfile() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="email">Contact Email (public)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="email">Contact Email (public)</Label>
+                {practitioner?.id && (
+                  <ContactVerification
+                    listingId={practitioner.id}
+                    listingType="practitioner"
+                    channel="email"
+                    value={form.email}
+                    verified={!!(practitioner as any).email_verified_at}
+                  />
+                )}
+              </div>
               <Input
                 id="email"
                 type="email"
@@ -238,7 +252,18 @@ export default function DashboardProfile() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="phone">Phone</Label>
+                {practitioner?.id && (
+                  <ContactVerification
+                    listingId={practitioner.id}
+                    listingType="practitioner"
+                    channel="phone"
+                    value={form.phone}
+                    verified={!!(practitioner as any).phone_verified_at}
+                  />
+                )}
+              </div>
               <Input
                 id="phone"
                 type="tel"
@@ -481,6 +506,85 @@ export default function DashboardProfile() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Verification + Request Review CTA */}
+      {practitioner?.id && practitioner.status === 'draft' && (
+        <Card className={
+          (practitioner as any).email_verified_at || (practitioner as any).phone_verified_at
+            ? 'border-sage/30 bg-sage/5'
+            : 'border-amber-200 bg-amber-50/50'
+        }>
+          <CardContent className="p-4 space-y-3">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className={`h-5 w-5 mt-0.5 flex-shrink-0 ${
+                (practitioner as any).email_verified_at || (practitioner as any).phone_verified_at
+                  ? 'text-sage' : 'text-amber-600'
+              }`} />
+              <div className="flex-1">
+                <p className="text-sm font-semibold">
+                  {(practitioner as any).email_verified_at || (practitioner as any).phone_verified_at
+                    ? 'Contact info verified — ready for review!'
+                    : 'Verify your contact info to go live'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {(practitioner as any).email_verified_at || (practitioner as any).phone_verified_at
+                    ? 'Click "Request Review" to submit your listing for admin approval.'
+                    : 'Verify at least your email or phone number above, then request a review to publish your listing.'}
+                </p>
+              </div>
+            </div>
+            {((practitioner as any).email_verified_at || (practitioner as any).phone_verified_at) && (
+              <div className="flex items-center gap-3 ml-8">
+                <div className="flex gap-2 text-xs">
+                  {(practitioner as any).email_verified_at && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600">
+                      <CheckCircle className="h-3 w-3" /> Email verified
+                    </span>
+                  )}
+                  {(practitioner as any).phone_verified_at && (
+                    <span className="inline-flex items-center gap-1 text-emerald-600">
+                      <CheckCircle className="h-3 w-3" /> Phone verified
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  className="ml-auto"
+                  onClick={async () => {
+                    try {
+                      await requestReview.mutateAsync({
+                        listingId: practitioner.id,
+                        listingType: 'practitioner',
+                      });
+                      toast.success('Review requested! Our team will review your listing within 1–2 business days.');
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Failed to request review');
+                    }
+                  }}
+                  disabled={requestReview.isPending}
+                >
+                  {requestReview.isPending
+                    ? <><Loader2 className="h-3 w-3 animate-spin mr-1" />Requesting…</>
+                    : 'Request Review'}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Pending review status */}
+      {practitioner?.status === 'pending_review' && (
+        <Card className="border-ocean/30 bg-ocean-light/20">
+          <CardContent className="p-4 flex items-center gap-3">
+            <CheckCircle className="h-5 w-5 text-ocean flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-ocean">Review in progress</p>
+              <p className="text-xs text-muted-foreground">Your listing is being reviewed. You'll be notified when it goes live.</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="flex justify-end">
         <Button size="lg" onClick={handleSave} disabled={saveMutation.isPending || uploading}>

@@ -316,6 +316,81 @@ NAME_KEYWORDS: list[tuple[str, str]] = [
     ("integrative dentist", "Dentistry"),
 ]
 
+# ── Exclusion filters (learned from Big Island audit 2026-03-15) ──────────────
+# These Google types indicate non-wellness businesses that should never be ingested
+EXCLUDED_GOOGLE_TYPES = {
+    "hospital", "emergency_room", "fire_station", "police",
+    "pharmacy", "drugstore",
+    "veterinary_care", "pet_store",
+    "grocery_or_supermarket", "supermarket", "convenience_store",
+    "restaurant", "cafe", "bakery", "bar", "meal_delivery", "meal_takeaway",
+    "hair_care", "hair_salon", "barber_shop",
+    "real_estate_agency", "insurance_agency", "bank", "atm",
+    "car_repair", "car_dealer", "gas_station",
+    "school", "university", "library", "museum",
+    "church", "synagogue", "mosque", "hindu_temple",
+    "funeral_home", "cemetery",
+    "post_office", "courthouse", "city_hall",
+    "laundry", "locksmith", "storage",
+}
+
+# Name patterns that indicate non-wellness businesses (case-insensitive)
+EXCLUDED_NAME_PATTERNS = [
+    r'\bhospital\b',
+    r'\bemergency\s*(room|department|services)\b',
+    r'\bfamily\s*medicine\b',
+    r'\bfamily\s*practice\b',
+    r'\bprimary\s*care\b',
+    r'\bpediatric(s|ian)?\b',
+    r'\bdermatolog',
+    r'\bcardiolog',
+    r'\borthop(a?ed)',
+    r'\burology\b',
+    r'\bgastroenterolog',
+    r'\boncolog',
+    r'\bophthalmolog',
+    r'\bradiology\b',
+    r'\bpathology\b',
+    r'\b(oral\s*)?surgery\b',
+    r'\bsurgeon\b',
+    r'\bsurgical\b',
+    r'\bpharmac',
+    r'\bveterinar',
+    r'\banimal\s*(hospital|clinic)\b',
+    r'\bcommunity\s*center\b',
+    r'\bsenior\s*center\b',
+    r'\bYMCA\b',
+    r'\bgrocery\b',
+    r'\bsupermarket\b',
+    r'\bhealth\s*food\s*store\b',
+    r'\bnail\s*(salon|bar)\b',
+    r'\bbeauty\s*(salon|shop)\b',
+    r'\bhair\s*salon\b',
+    r'\bbarber\s*shop\b',
+    r'\btanning\s*(salon|bed)\b',
+    r'\binsurance\b',
+    r'\binternal\s*medicine\b',
+    r'\bmedical\s*(group|associates|office)\b',
+    r'\brehabilitation\s*hospital\b',
+]
+
+
+def should_exclude(name: str, types: list[str]) -> str | None:
+    """Return exclusion reason if this listing should be skipped, else None."""
+    # Check Google types
+    for t in types:
+        if t in EXCLUDED_GOOGLE_TYPES:
+            return f"excluded_google_type:{t}"
+
+    # Check name patterns
+    name_lower = name.lower()
+    for pattern in EXCLUDED_NAME_PATTERNS:
+        if re.search(pattern, name_lower):
+            return f"excluded_name_pattern:{pattern}"
+
+    return None
+
+
 CENTER_TYPES = {"spa", "gym", "yoga_studio", "health", "wellness_center"}
 PRACTITIONER_TYPES = {"physiotherapist", "chiropractor", "dentist", "doctor"}
 CENTER_NAME_KEYWORDS = [
@@ -515,6 +590,11 @@ def convert(raw: dict) -> dict | None:
     if raw.get("business_status") == "PERMANENTLY_CLOSED":
         return None
 
+    # ── Exclusion filter (learned from Big Island audit) ──────────────────────
+    exclusion = should_exclude(name, types)
+    if exclusion:
+        return None  # silently skip; counted in main loop
+
     phone   = normalize_phone(
         raw.get("formatted_phone_number") or raw.get("international_phone_number")
     )
@@ -589,11 +669,23 @@ if __name__ == "__main__":
         sys.exit(1)
 
     practitioners, centers, skipped = [], [], 0
+    excluded = 0
     low_confidence = 0
+    exclusion_reasons: dict[str, int] = {}
 
     with open(raw_path) as f:
         for line in f:
             raw = json.loads(line)
+            name = raw.get("name", "").strip()
+            types = raw.get("types", [])
+
+            # Pre-conversion exclusion check (also runs inside convert,
+            # but tracking stats here)
+            reason = should_exclude(name, types)
+            if reason:
+                excluded += 1
+                exclusion_reasons[reason] = exclusion_reasons.get(reason, 0) + 1
+
             rec = convert(raw)
             if rec is None:
                 skipped += 1
@@ -615,5 +707,10 @@ if __name__ == "__main__":
     total = len(practitioners) + len(centers)
     print(f"✓ Classified {len(practitioners)} practitioners + {len(centers)} centers")
     print(f"  {low_confidence}/{total} records have low overall confidence (<0.50) → flagged for Claude review")
-    print(f"  Skipped {skipped} (permanently closed or below min-ratings)")
+    print(f"  Excluded {excluded} non-wellness listings (hospitals, doctors, salons, etc.)")
+    if exclusion_reasons:
+        top_reasons = sorted(exclusion_reasons.items(), key=lambda x: -x[1])[:10]
+        for reason, count in top_reasons:
+            print(f"    {reason}: {count}")
+    print(f"  Skipped {skipped - excluded} others (permanently closed or below min-ratings)")
     print(f"  Output → {out_path}")

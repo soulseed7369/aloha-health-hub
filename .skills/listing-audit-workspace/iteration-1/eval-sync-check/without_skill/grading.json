@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "identifies-all-modality-locations",
+      "passed": true,
+      "evidence": "Lists 5+ locations for Sound Healing/Sound Bath: DashboardProfile.tsx line 40, AdminPanel.tsx line 75, 11_gm_classify.py line 51, seed_taxonomy.sql line 55, plus UI references (SearchBar.tsx, IslandHome.tsx, Directory.tsx, ProfileDetail.tsx)."
+    },
+    {
+      "text": "identifies-all-center-type-locations",
+      "passed": true,
+      "evidence": "Identifies 5 locations: database.ts (CenterRow type), DashboardCenters.tsx (centerTypeLabels), AdminPanel.tsx (type annotations), 11_gm_classify.py (CENTER_TYPES), and migrations. Also mentions 23_classify_centers.py, 19_centers_cleanup.py, and 30_backfill_taxonomy.py (exceeds 4)."
+    },
+    {
+      "text": "checks-taxonomy-table",
+      "passed": true,
+      "evidence": "Mentions 'supabase/migrations/20260310000003_seed_taxonomy.sql' and notes that taxonomy_terms must include entries. Specifically references provider_type terms needing updates for coworking_space."
+    },
+    {
+      "text": "checks-db-constraint",
+      "passed": true,
+      "evidence": "Section 'Locations that need updates' item 2 explicitly references 'supabase/migrations/20260315000001_add_fitness_center_type.sql' with CHECK constraint definition and states need to 'Create new migration file to add coworking_space to CHECK constraint'."
+    },
+    {
+      "text": "notes-sound-healing-exists",
+      "passed": true,
+      "evidence": "Report notes 'The codebase currently has Sound Healing, NOT Sound Bath' and clarifies 'These are different items', asking whether Sound Bath is meant to replace Sound Healing or be a new separate modality."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

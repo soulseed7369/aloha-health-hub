@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "reports-published-vs-draft-counts",
+      "passed": true,
+      "evidence": "Executive Summary clearly states: 'Published: 0 practitioners, 0 centers (0 total)' and 'Draft: 20 practitioners, 28 centers (48 total)'. Further emphasizes in Marketing Push section: 'ALL 48 listings are in DRAFT status. None are published yet.'"
+    },
+    {
+      "text": "assesses-photo-coverage",
+      "passed": true,
+      "evidence": "Quality Assessment section reports: 'Practitioners: Have photos: 0/20 (0%)' and 'Centers: Have photos: 0/28 (0%)'. Also lists 'Critical Issues to Fix Before Publishing: Practitioners Missing Photos (20)' and 'Centers Missing Photos (28)'."
+    },
+    {
+      "text": "assesses-bio-coverage",
+      "passed": true,
+      "evidence": "Quality Assessment reports 'Practitioners: Have good bio (>10 words): 2/20 (10%)' and 'Centers: Have good description (>10 words): 0/28 (0%)'. Lists 'Practitioners Missing Good Bio (18)' with specific counts."
+    },
+    {
+      "text": "identifies-worst-listings",
+      "passed": true,
+      "evidence": "Report names specific worst listings: In practitioners, lists 'Cheri Bantilan MS, RD at Hui No Ke Ola Pono (45/100)' as worst. Lists all 28 centers as problematic 'Centers Missing Photos' and '28 centers have identical problems (0 photos, 0 descriptions, 0 contact info)' with examples like '808 Wellness Spa & Healing Center' and 'Aloha Family Chiropractic and Wellness'."
+    },
+    {
+      "text": "gives-actionable-recommendation",
+      "passed": true,
+      "evidence": "Report provides clear 'Next Steps for Marketing Push' with three phases: Phase 1: Data Cleanup (1-2 weeks), Phase 2: QA & Review (1 week), Phase 3: Publishing (1 day). Explicitly states 'Do NOT send traffic until: At least 80% of practitioners have photos, At least 80% have good bios, All have valid contact info, All modality data is canonical. Current readiness: 0% — All listings are draft. Target launch date: 1-2 weeks if you have resources to fill gaps.'"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

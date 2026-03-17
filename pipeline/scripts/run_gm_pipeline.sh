@@ -53,37 +53,46 @@ cd "$(dirname "$0")/.."
 PYTHON=$(command -v python3 || command -v python)
 
 echo ""
-echo "── Step 1/9 · Text search + nearby radial → Place IDs ──"
+echo "── Step 1/10 · Text search + nearby radial → Place IDs ─"
 $PYTHON scripts/09_gm_search.py --island "$ISLAND" $DRY_RUN $SKIP_NEARBY
 
 echo ""
-echo "── Step 2/9 · Fetch Place Details ──────────────────────"
+echo "── Step 2/10 · Fetch Place Details ─────────────────────"
 $PYTHON scripts/10_gm_details.py $DRY_RUN
 
 echo ""
-echo "── Step 3/9 · Classify & confidence scoring ─────────────"
+echo "── Step 3/10 · Classify & confidence scoring ────────────"
 $PYTHON scripts/11_gm_classify.py --min-ratings "$MIN_RATINGS"
 
 echo ""
 if [ -z "$SKIP_CLAUDE" ]; then
-  echo "── Step 3b/9 · Claude Haiku re-classify low-confidence ──"
+  echo "── Step 3b/10 · Claude Haiku re-classify low-confidence ──"
   $PYTHON scripts/14_claude_classify.py
   echo ""
 else
-  echo "── Step 3b/9 · [Skipped — --skip-claude flag set] ───────"
+  echo "── Step 3b/10 · [Skipped — --skip-claude flag set] ───────"
   echo ""
 fi
 
-echo "── Step 4/9 · Dedup against Supabase DB ─────────────────"
+echo "── Step 4/10 · Dedup against Supabase DB ────────────────"
 $PYTHON scripts/12_gm_dedup.py --island "$ISLAND"
 
 echo ""
-echo "── Step 5/9 · Upsert to Supabase ────────────────────────"
+echo "── Step 5/10 · Upsert to Supabase ───────────────────────"
 $PYTHON scripts/13_gm_upsert.py $DRY_RUN
 
 echo ""
+if [ -z "$DRY_RUN" ]; then
+  echo "── Step 5b/10 · Post-ingest cleanup (learned from audits) ─"
+  echo "    Fixing empty strings, normalizing modalities/cities, checking coordinates…"
+  $PYTHON scripts/27_post_ingest_cleanup.py --island "$ISLAND"
+else
+  echo "── Step 5b/10 · [Skipped — dry-run mode] ──────────────────"
+fi
+
+echo ""
 if [ -z "$SKIP_ENRICH" ] && [ -z "$DRY_RUN" ]; then
-  echo "── Step 6/9 · Enrich draft listings (fill missing fields) ──"
+  echo "── Step 6/10 · Enrich draft listings (fill missing fields) ──"
   echo "    Crawling newly inserted draft listings for email, phone, bio, photo…"
   $PYTHON scripts/22_website_enrich.py \
     --island "$ISLAND" \
@@ -91,7 +100,7 @@ if [ -z "$SKIP_ENRICH" ] && [ -z "$DRY_RUN" ]; then
     --apply
 
   echo ""
-  echo "── Step 7/9 · Website enrichment + lead scoring ──────────"
+  echo "── Step 7/10 · Website enrichment + lead scoring ─────────"
   echo "    Crawling draft listings inserted in this run…"
   $PYTHON scripts/22_website_enrich.py \
     --island "$ISLAND" \
@@ -100,14 +109,14 @@ if [ -z "$SKIP_ENRICH" ] && [ -z "$DRY_RUN" ]; then
     --apply
 
   echo ""
-  echo "── Step 8/9 · Name extraction from existing name field ──"
+  echo "── Step 8/10 · Name extraction from existing name field ─"
   echo "    Parsing first_name / last_name from practitioner names…"
   $PYTHON scripts/26_extract_names.py \
     --island "$ISLAND" \
     --apply
 
   echo ""
-  echo "── Step 9/9 · Lead scoring (no-website listings) ────────"
+  echo "── Step 9/10 · Lead scoring (no-website listings) ────────"
   echo "    Flagging listings with no website as leads…"
   $PYTHON scripts/22_website_enrich.py \
     --island "$ISLAND" \
@@ -117,9 +126,9 @@ if [ -z "$SKIP_ENRICH" ] && [ -z "$DRY_RUN" ]; then
     --apply
 else
   if [ -n "$DRY_RUN" ]; then
-    echo "── Steps 6–9 · [Skipped in dry-run mode] ────────────────"
+    echo "── Steps 6–10 · [Skipped in dry-run mode] ───────────────"
   else
-    echo "── Steps 6–9 · [Skipped — --skip-enrich flag set] ───────"
+    echo "── Steps 6–10 · [Skipped — --skip-enrich flag set] ──────"
     echo "    Run manually:"
     echo "      python scripts/22_website_enrich.py --island $ISLAND --status draft --apply"
     echo "      python scripts/22_website_enrich.py --island $ISLAND --status draft --score-leads --apply"

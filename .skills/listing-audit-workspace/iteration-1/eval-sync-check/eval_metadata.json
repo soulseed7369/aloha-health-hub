@@ -1,0 +1,27 @@
+{
+  "eval_id": 2,
+  "eval_name": "sync-check",
+  "prompt": "We just added a new modality called 'Sound Bath' and a new center type 'coworking_space'. Can you verify everything is in sync across the codebase — the DB constraints, TypeScript types, UI lists, taxonomy, pipeline scripts? Don't fix anything, just tell me everywhere that needs updating.",
+  "assertions": [
+    {
+      "name": "identifies-all-modality-locations",
+      "description": "Lists at least 5 of the 7 files where modalities are defined"
+    },
+    {
+      "name": "identifies-all-center-type-locations",
+      "description": "Lists at least 4 of the 5 files where center_types are defined"
+    },
+    {
+      "name": "checks-taxonomy-table",
+      "description": "Mentions taxonomy_terms table in Supabase as a location needing the new modality"
+    },
+    {
+      "name": "checks-db-constraint",
+      "description": "Mentions the CHECK constraint on centers.center_type as needing update"
+    },
+    {
+      "name": "notes-sound-healing-exists",
+      "description": "Recognizes that 'Sound Healing' already exists and 'Sound Bath' may be a synonym or separate modality"
+    }
+  ]
+}

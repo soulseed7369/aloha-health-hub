@@ -1,0 +1,27 @@
+{
+  "eval_id": 3,
+  "eval_name": "maui-readiness",
+  "prompt": "I'm about to do a marketing push for Maui practitioners. How many are published vs draft? Are the published ones good enough quality to send traffic to — do they have photos, bios, working contact info? Which ones look broken or embarrassing?",
+  "assertions": [
+    {
+      "name": "reports-published-vs-draft-counts",
+      "description": "Gives specific counts of published vs draft Maui listings"
+    },
+    {
+      "name": "assesses-photo-coverage",
+      "description": "Reports what percentage/count of listings have photos"
+    },
+    {
+      "name": "assesses-bio-coverage",
+      "description": "Reports what percentage/count have bio/description content"
+    },
+    {
+      "name": "identifies-worst-listings",
+      "description": "Names specific listings that would look bad or broken"
+    },
+    {
+      "name": "gives-actionable-recommendation",
+      "description": "Provides clear next steps (e.g., run script 22, don't launch yet)"
+    }
+  ]
+}

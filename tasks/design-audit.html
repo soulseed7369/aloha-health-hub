@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aloha Health Hub — Listing Design Audit</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f3ef;
+    --card: #fffefb;
+    --border: #e8e0d5;
+    --primary: #c9643a;
+    --primary-light: #f5e8e1;
+    --sage: #5a8060;
+    --sage-light: #ddeee3;
+    --ocean: #1a4a5e;
+    --ocean-light: #d8eaf3;
+    --muted: #6b7280;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --red: #dc2626;
+    --red-light: #fee2e2;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --yellow-light: #fef9c3;
+    --text: #1c3040;
+    --radius: 10px;
+    --shadow: 0 1px 4px rgba(0,0,0,.08), 0 4px 16px rgba(0,0,0,.06);
+  }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; }
+
+  /* ── Layout ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
+  .header { text-align: center; margin-bottom: 48px; }
+  .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 6px; }
+  .header p { color: var(--muted); font-size: 15px; }
+  .pill-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+  .pill-tag.issue { background: var(--red-light); color: var(--red); }
+  .pill-tag.fix { background: var(--green-light); color: var(--green); }
+  .pill-tag.tip { background: var(--yellow-light); color: #92400e; }
+
+  /* ── Section headers ── */
+  .section { margin-bottom: 56px; }
+  .section-title { font-size: 19px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+  .section-subtitle { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+  .badge-num { width: 26px; height: 26px; border-radius: 50%; background: var(--primary); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  /* ── Before/After ── */
+  .ba { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+  @media (max-width: 700px) { .ba { grid-template-columns: 1fr; } }
+  .ba-panel { border-radius: var(--radius); overflow: hidden; }
+  .ba-label { padding: 8px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; }
+  .ba-label.before { background: #fee2e2; color: #b91c1c; }
+  .ba-label.after { background: var(--green-light); color: #15803d; }
+  .ba-content { padding: 16px; background: var(--card); border: 1px solid var(--border); border-top: none; }
+
+  /* ── Mock card — BEFORE ── */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .card.featured-card { border: 2px solid #fcd34d; background: #fffbeb; }
+
+  /* compact card before */
+  .compact-before { display: flex; gap: 12px; padding: 14px; }
+  .avatar-sm { width: 56px; height: 56px; border-radius: 8px; background: linear-gradient(135deg,#5eead4,#22d3ee); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 16px; }
+  .info { flex: 1; min-width: 0; }
+  .name-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+  .pname { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .loc { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .mod-pills { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .mod-pill { padding: 2px 8px; background: #f3f4f6; border-radius: 99px; font-size: 11px; color: #374151; }
+  .mod-pill.highlight { background: var(--sage-light); color: var(--sage); }
+  .accepting { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #16a34a; font-weight: 500; }
+  .dot-green { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; }
+  .annotation { font-size: 11px; background: #fff3cd; border: 1px dashed #f59e0b; border-radius: 6px; padding: 4px 8px; color: #92400e; margin-top: 8px; }
+
+  /* compact card after */
+  .avatar-after { width: 72px; height: 72px; border-radius: 10px; background: linear-gradient(135deg,#5eead4,#22d3ee); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 18px; }
+  .bio-snippet { font-size: 12px; color: var(--muted); margin-top: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
+  .mod-pill-sage { padding: 2px 8px; background: var(--sage-light); color: var(--sage); border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .mod-pill-ocean { padding: 2px 8px; background: var(--ocean-light); color: var(--ocean); border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .mod-pill-terracotta { padding: 2px 8px; background: var(--primary-light); color: var(--primary); border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .book-btn { margin-left: auto; padding: 4px 12px; background: var(--primary); color: #fff; border-radius: 6px; font-size: 11px; font-weight: 600; border: none; cursor: pointer; white-space: nowrap; }
+  .separator { width: 1px; background: var(--border); margin: 0 4px; }
+
+  /* ── Profile page mockups ── */
+  .profile-before { }
+  .cover-before { height: 120px; background: linear-gradient(135deg, #d1fae5, #bfdbfe); position: relative; }
+  .cover-after { height: 120px; background: linear-gradient(120deg, #064e3b 0%, #065f46 40%, #047857 100%); position: relative; }
+  .cover-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.45)); }
+  .profile-img-before { width: 72px; height: 72px; border-radius: 10px; border: 3px solid #fff; background: linear-gradient(135deg,#f87171,#fb923c); margin-top: -36px; margin-left: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+  .profile-img-after { width: 80px; height: 80px; border-radius: 50%; border: 3px solid #fff; background: linear-gradient(135deg,#f87171,#fb923c); margin-top: -40px; margin-left: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.2); position: relative; z-index: 2; }
+  .profile-header-content { padding: 8px 16px 12px; }
+  .profile-h1 { font-size: 16px; font-weight: 700; }
+  .profile-subtitle { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .badges-row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .badge-verified { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: var(--sage-light); color: var(--sage); border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .badge-accepting { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; background: var(--green-light); color: #15803d; border-radius: 99px; font-size: 11px; font-weight: 600; }
+
+  /* services */
+  .services-before { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .service-item-before { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .dot-item { width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+  .services-after { display: flex; flex-wrap: wrap; gap: 6px; }
+  .service-chip { padding: 4px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; border: 1.5px solid; }
+  .chip-sage { background: var(--sage-light); color: var(--sage); border-color: #a7d5b8; }
+  .chip-ocean { background: var(--ocean-light); color: var(--ocean); border-color: #9ecae1; }
+  .chip-terra { background: var(--primary-light); color: var(--primary); border-color: #f0b69e; }
+
+  /* map placeholder */
+  .map-before { height: 100px; background: var(--ocean-light); display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  .map-after { height: 100px; border-radius: 8px; overflow: hidden; position: relative; background: #e8f4e8; }
+  .map-after-inner { position: absolute; inset: 0; background: linear-gradient(135deg, #90c58a 0%, #5a9e5a 30%, #3d7a3d 60%, #2d5a2d 100%); display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px; color: #fff; font-size: 11px; font-weight: 600; }
+  .map-pin-icon { width: 24px; height: 24px; background: #fff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+  .map-pin-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); transform: rotate(45deg); }
+
+  /* testimonials */
+  .testimonial-before { background: #f9fafb; border-radius: 8px; padding: 10px 12px; }
+  .testimonial-after { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; position: relative; }
+  .quote-mark { font-size: 36px; line-height: 1; color: var(--primary); opacity: .25; font-family: Georgia,serif; position: absolute; top: 6px; left: 10px; }
+  .stars { display: flex; gap: 2px; color: #f59e0b; font-size: 12px; margin-bottom: 4px; }
+  .testimonial-text { font-size: 12px; line-height: 1.5; color: #374151; margin-bottom: 8px; padding-top: 4px; }
+  .testimonial-author { font-size: 11px; font-weight: 600; color: var(--text); }
+
+  /* claim card */
+  .claim-before { text-align: center; padding: 14px; border: 1px dashed #9ca3af; border-radius: 8px; }
+  .claim-after { text-align: center; padding: 14px; border: 1px dashed #9ca3af; border-radius: 8px; background: var(--primary-light); }
+  .claim-icon-before { font-size: 20px; margin-bottom: 6px; }
+  .claim-icon-after { font-size: 20px; margin-bottom: 6px; }
+
+  /* ── Summary table ── */
+  .summary-grid { display: grid; gap: 12px; }
+  .summary-row { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; display: grid; grid-template-columns: 32px 1fr auto; gap: 12px; align-items: start; }
+  .priority-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .pri-high { background: var(--red); }
+  .pri-med { background: #f59e0b; }
+  .pri-low { background: #60a5fa; }
+  .summary-title { font-weight: 600; font-size: 13px; margin-bottom: 3px; }
+  .summary-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+  .effort-tag { padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .effort-easy { background: var(--green-light); color: #15803d; }
+  .effort-medium { background: var(--yellow-light); color: #92400e; }
+  .effort-hard { background: var(--ocean-light); color: var(--ocean); }
+
+  /* ── Nav ── */
+  .sticky-nav { position: sticky; top: 0; z-index: 100; background: rgba(247,243,239,.95); backdrop-filter: blur(8px); border-bottom: 1px solid var(--border); padding: 0 20px; display: flex; gap: 0; overflow-x: auto; }
+  .nav-item { padding: 12px 16px; font-size: 13px; font-weight: 500; color: var(--muted); text-decoration: none; white-space: nowrap; border-bottom: 2px solid transparent; transition: all .15s; }
+  .nav-item:hover { color: var(--primary); }
+  .nav-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  hr.divider { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<nav class="sticky-nav">
+  <a href="#overview" class="nav-item active">Overview</a>
+  <a href="#compact-card" class="nav-item">Directory Card</a>
+  <a href="#profile-header" class="nav-item">Profile Header</a>
+  <a href="#services" class="nav-item">Services</a>
+  <a href="#sidebar" class="nav-item">Sidebar</a>
+  <a href="#testimonials" class="nav-item">Testimonials</a>
+  <a href="#priority" class="nav-item">Priority List</a>
+</nav>
+
+<div class="page">
+
+  <div class="header">
+    <h1>Aloha Health Hub — Listing Design Audit</h1>
+    <p>Visual analysis of <strong>ProviderCard</strong>, <strong>ProfileDetail</strong>, and related components · March 2026</p>
+  </div>
+
+  <!-- ── OVERVIEW ── -->
+  <div class="section" id="overview">
+    <div class="section-title"><div class="badge-num">→</div> What's Working Well</div>
+    <div class="section-subtitle">Baseline quality before diving into improvements</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+      <div class="card" style="padding:14px">
+        <div style="font-size:18px;margin-bottom:6px;">🎨</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Color system is solid</div>
+        <div style="font-size:12px;color:var(--muted)">Sage, terracotta, ocean — these are evocative of Hawaii and work well together. The palette feels authentic.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:18px;margin-bottom:6px;">📱</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Mobile sticky CTA is smart</div>
+        <div style="font-size:12px;color:var(--muted)">Fixed bottom bar on mobile is the right call. Keeps the booking action visible without cluttering the content.</div>
+      </div>
+      <div class="card" style="padding:14px">
+        <div style="font-size:18px;margin-bottom:6px;">⚡</div>
+        <div style="font-weight:600;font-size:13px;margin-bottom:4px;">Tier differentiation</div>
+        <div style="font-size:12px;color:var(--muted)">Featured gold border + crown badge is tasteful. The hierarchy of free → premium → featured is clear without being obnoxious.</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:12px 16px;background:var(--amber-light);border-radius:var(--radius);font-size:13px;border-left:3px solid var(--amber)">
+      <strong>Core issue:</strong> The design is <em>functional</em> but misses the warmth and trust-building needed for a wellness marketplace. Visitors choosing a practitioner need to feel a human connection quickly. The current layout prioritizes information density over emotional resonance.
+    </div>
+  </div>
+
+  <!-- ── COMPACT CARD ── -->
+  <div class="section" id="compact-card">
+    <div class="section-title"><div class="badge-num">1</div> Directory Card (Compact Mode)</div>
+    <div class="section-subtitle">Used on the main directory page — the most important touchpoint</div>
+    <div class="ba">
+      <div class="ba-panel">
+        <div class="ba-label before">⚠ Current</div>
+        <div class="ba-content">
+          <div class="card" style="margin-bottom:8px">
+            <div class="compact-before">
+              <div class="avatar-sm">EF</div>
+              <div class="info">
+                <div class="name-row">
+                  <span class="pname">Elizabeth Fenton</span>
+                  <span style="font-size:10px;padding:1px 7px;background:#fef3c7;color:#92400e;border-radius:99px;font-weight:600;">👑 Featured</span>
+                </div>
+                <div class="loc">📍 Kailua-Kona, Big Island</div>
+                <div class="mod-pills">
+                  <span class="mod-pill">Massage</span>
+                  <span class="mod-pill">Craniosacral</span>
+                  <span class="mod-pill">Somatic Therapy</span>
+                </div>
+                <div class="accepting"><span class="dot-green"></span>Accepting Clients</div>
+              </div>
+            </div>
+          </div>
+          <div class="annotation">❌ 56px avatar is too small to feel human</div>
+          <div class="annotation" style="margin-top:4px">❌ No bio snippet — provider feels like a listing, not a person</div>
+          <div class="annotation" style="margin-top:4px">❌ All modality pills look identical — no visual hierarchy</div>
+          <div class="annotation" style="margin-top:4px">❌ "Accepting Clients" competes with modalities for attention</div>
+        </div>
+      </div>
+      <div class="ba-panel">
+        <div class="ba-label after">✓ Recommended</div>
+        <div class="ba-content">
+          <div class="card" style="border:2px solid #fcd34d;background:#fffbeb;margin-bottom:8px">
+            <div class="compact-before" style="gap:14px;padding:16px">
+              <div class="avatar-after">EF</div>
+              <div class="info">
+                <div class="name-row" style="margin-bottom:0">
+                  <span class="pname" style="font-size:15px">Elizabeth Fenton</span>
+                  <span style="font-size:10px;padding:1px 8px;background:#fef3c7;color:#92400e;border-radius:99px;font-weight:600;">👑 Featured</span>
+                </div>
+                <div class="bio-snippet" style="-webkit-line-clamp:1">Deep tissue & craniosacral specialist helping bodies release stored tension.</div>
+                <div class="loc" style="margin-top:4px">📍 Kailua-Kona · In Person & Online</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;align-items:center">
+                  <span class="mod-pill-sage">Massage</span>
+                  <span class="mod-pill-sage">Craniosacral</span>
+                  <span class="mod-pill-ocean">Somatic Therapy</span>
+                  <span style="flex:1"></span>
+                  <button class="book-btn">Book →</button>
+                </div>
+                <div class="accepting" style="margin-top:6px"><span class="dot-green"></span>Accepting new clients</div>
+              </div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--sage);margin-top:4px">✅ 72px avatar — more human, easier to scan</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ 1-line bio creates connection before clicking</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Color-coded modalities by category group</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Book button pulls right — clear hierarchy</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-top:4px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">💡 Modality Color Coding (suggested categories)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        <span class="mod-pill-sage">Massage · Craniosacral · Somatic · Reiki · Energy Healing</span>
+        <span class="mod-pill-ocean">Yoga · Breathwork · Meditation · Movement</span>
+        <span class="mod-pill-terracotta">Psychotherapy · Counseling · Life Coaching · Hypnotherapy</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:8px">Sage = body/somatic · Ocean = movement/mind · Terracotta = mental/emotional · neutral grey = everything else</div>
+    </div>
+  </div>
+
+  <!-- ── PROFILE HEADER ── -->
+  <div class="section" id="profile-header">
+    <div class="section-title"><div class="badge-num">2</div> Profile Page Header</div>
+    <div class="section-subtitle">First impression on the full profile — cover + photo + name</div>
+    <div class="ba">
+      <div class="ba-panel">
+        <div class="ba-label before">⚠ Current</div>
+        <div class="ba-content">
+          <div class="card" style="overflow:hidden">
+            <div class="cover-before">
+              <!-- generic flat teal/blue gradient — no character -->
+            </div>
+            <div class="profile-img-before"></div>
+            <div class="profile-header-content">
+              <div class="profile-h1">Elizabeth Ann Fenton</div>
+              <div class="profile-subtitle">Healing Arts by Elizabeth</div>
+              <div class="badges-row">
+                <span class="badge-verified">✓ Verified</span>
+                <span class="badge-accepting">Accepting New Clients</span>
+              </div>
+            </div>
+          </div>
+          <div class="annotation" style="margin-top:8px">❌ Cover defaults to flat gradient — meaningless for unclaimed profiles</div>
+          <div class="annotation" style="margin-top:4px">❌ Profile image is square/rectangular (rounded-xl) — inconsistent with circular avatars on cards</div>
+          <div class="annotation" style="margin-top:4px">❌ No session type or location visible in header — requires scrolling to find</div>
+        </div>
+      </div>
+      <div class="ba-panel">
+        <div class="ba-label after">✓ Recommended</div>
+        <div class="ba-content">
+          <div class="card" style="overflow:hidden">
+            <div class="cover-after">
+              <div class="cover-overlay"></div>
+              <!-- Deep forest cover image with gradient overlay -->
+              <div style="position:absolute;bottom:12px;left:104px;color:#fff;font-size:11px;opacity:.8">📍 Kailua-Kona · Big Island</div>
+            </div>
+            <div style="display:flex;align-items:flex-end;padding:0 16px 0 16px;margin-top:-44px;position:relative;z-index:2;gap:12px">
+              <div class="profile-img-after"></div>
+              <div style="padding-bottom:8px">
+                <div style="font-size:16px;font-weight:700;color:var(--text)">Elizabeth Ann Fenton</div>
+                <div style="font-size:12px;color:var(--muted)">Healing Arts by Elizabeth · In Person & Online</div>
+              </div>
+            </div>
+            <div style="padding:8px 16px 12px;display:flex;flex-wrap:wrap;gap:6px">
+              <span class="badge-verified">✓ Verified</span>
+              <span class="badge-accepting">● Accepting Clients</span>
+              <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:var(--ocean-light);color:var(--ocean);border-radius:99px;font-size:11px;font-weight:600;">Massage · Craniosacral</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--sage);margin-top:8px">✅ Dark gradient cover — works for any image or default</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Location in cover area — visible without scrolling</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Key modalities in header — orientation on arrival</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Circular avatar — consistent with card components</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:#fff8e7;border:1px solid #fde68a;border-radius:var(--radius);padding:12px 14px;margin-top:4px;font-size:12px">
+      <strong>Default cover idea:</strong> For unclaimed profiles without a cover image, use a blurred nature photo from a small curated set of Hawaii landscapes (one per island). Far better than a flat gradient — builds atmosphere without requiring provider action.
+    </div>
+  </div>
+
+  <!-- ── SERVICES ── -->
+  <div class="section" id="services">
+    <div class="section-title"><div class="badge-num">3</div> Services & Modalities Section</div>
+    <div class="section-subtitle">On the profile page, how modalities are displayed in the main content area</div>
+    <div class="ba">
+      <div class="ba-panel">
+        <div class="ba-label before">⚠ Current</div>
+        <div class="ba-content">
+          <div style="margin-bottom:8px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:10px">Services &amp; Modalities</div>
+            <div class="services-before">
+              <div class="service-item-before"><div class="dot-item"></div>Massage</div>
+              <div class="service-item-before"><div class="dot-item"></div>Craniosacral</div>
+              <div class="service-item-before"><div class="dot-item"></div>Somatic Therapy</div>
+              <div class="service-item-before"><div class="dot-item"></div>Trauma-Informed Care</div>
+              <div class="service-item-before"><div class="dot-item"></div>Nervous System Regulation</div>
+              <div class="service-item-before"><div class="dot-item"></div>Energy Healing</div>
+            </div>
+          </div>
+          <div class="annotation">❌ Bullet-dot list looks like a resume — clinical, not inviting</div>
+          <div class="annotation" style="margin-top:4px">❌ 2-column grid breaks badly when item names are long</div>
+          <div class="annotation" style="margin-top:4px">❌ "TCM (Traditional Chinese Medicine)" overflows column</div>
+        </div>
+      </div>
+      <div class="ba-panel">
+        <div class="ba-label after">✓ Recommended</div>
+        <div class="ba-content">
+          <div style="margin-bottom:8px">
+            <div style="font-weight:700;font-size:14px;margin-bottom:10px">Services &amp; Modalities</div>
+            <div class="services-after">
+              <span class="service-chip chip-sage">Massage</span>
+              <span class="service-chip chip-sage">Craniosacral</span>
+              <span class="service-chip chip-sage">Somatic Therapy</span>
+              <span class="service-chip chip-sage">Trauma-Informed Care</span>
+              <span class="service-chip chip-sage">Nervous System Regulation</span>
+              <span class="service-chip chip-ocean">Energy Healing</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--sage);margin-top:8px">✅ Pill chips — visually scan-friendly, consistent with directory cards</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Handles variable-length names without layout breakage</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Color grouping gives visual pattern to what the provider does</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SIDEBAR ── -->
+  <div class="section" id="sidebar">
+    <div class="section-title"><div class="badge-num">4</div> Sidebar: Map / Contact Card</div>
+    <div class="section-subtitle">The contact card in the right sidebar is a critical conversion element</div>
+    <div class="ba">
+      <div class="ba-panel">
+        <div class="ba-label before">⚠ Current</div>
+        <div class="ba-content">
+          <div class="map-before">
+            <div style="text-align:center;color:var(--ocean)">
+              <div style="font-size:24px;margin-bottom:4px">📍</div>
+              <div style="font-size:11px;font-weight:600">Map placeholder only</div>
+            </div>
+          </div>
+          <div style="padding:12px;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:8px">1234 Alii Drive, Kailua-Kona</div>
+            <div style="font-size:12px;color:var(--muted)">📞 (808) 555-1234</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">✉️ elizabeth@healingarts.com</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">🌐 Website</div>
+          </div>
+          <div class="annotation" style="margin-top:8px">❌ h-40 colored block with MapPin icon — adds no value, wastes 160px</div>
+          <div class="annotation" style="margin-top:4px">❌ Flat list — no visual grouping between location, phone, email</div>
+          <div class="annotation" style="margin-top:4px">❌ "Website" link text is generic — doesn't encourage clicking</div>
+        </div>
+      </div>
+      <div class="ba-panel">
+        <div class="ba-label after">✓ Recommended</div>
+        <div class="ba-content">
+          <div class="map-after">
+            <div class="map-after-inner">
+              <!-- Simulated satellite/terrain map of Kona area -->
+              <div style="font-size:30px;margin-bottom:2px">🗺️</div>
+              <div>Embed real map (Leaflet + OSM tile)</div>
+              <div style="font-size:10px;opacity:.8">lat 19.640 · lng -155.996</div>
+            </div>
+          </div>
+          <div style="padding:12px;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px">
+            <div style="font-weight:600;font-size:12px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">📍 1234 Alii Drive, Kailua-Kona, HI</div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+              <a href="#" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--primary);text-decoration:none;font-weight:500">📞 <span>(808) 555-1234</span></a>
+              <a href="#" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--primary);text-decoration:none;font-weight:500">✉️ <span>elizabeth@healingarts.com</span></a>
+              <a href="#" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--primary);text-decoration:none;font-weight:500">🌐 <span>Visit healingarts-elizabeth.com →</span></a>
+            </div>
+            <div class="badge-accepting" style="font-size:11px;margin-top:4px">● Accepting new clients</div>
+          </div>
+          <div style="font-size:11px;color:var(--sage);margin-top:8px">✅ Real Leaflet.js embed — shows exact location, interactive</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Contact items are tappable/styled as links (not just text)</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Actual website URL shown — builds trust</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px">Claim This Listing Card — icon confusion fix</div>
+      <div class="ba">
+        <div class="ba-panel">
+          <div class="ba-label before">⚠ Current — Flag icon</div>
+          <div class="ba-content">
+            <div class="claim-before">
+              <div class="claim-icon-before">🚩</div>
+              <div style="font-weight:600;font-size:13px;margin-bottom:4px">Is this your practice?</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Claim this listing to manage your profile, add photos, and respond to clients.</div>
+              <div style="padding:5px 12px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-weight:500">Claim this listing</div>
+            </div>
+            <div class="annotation" style="margin-top:8px">❌ Flag 🚩 = "report a problem" in most UIs. Confusing overlap with the flag button at the bottom of the page.</div>
+          </div>
+        </div>
+        <div class="ba-panel">
+          <div class="ba-label after">✓ Recommended — Store/person icon</div>
+          <div class="ba-content">
+            <div class="claim-after">
+              <div class="claim-icon-after">🏪</div>
+              <div style="font-weight:600;font-size:13px;margin-bottom:4px">Is this your practice?</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Claim this listing to manage your profile, add photos, and respond to clients.</div>
+              <div style="padding:5px 12px;background:var(--primary);color:#fff;border-radius:6px;font-size:12px;font-weight:600;display:inline-block">Claim this listing →</div>
+            </div>
+            <div style="font-size:11px;color:var(--sage);margin-top:8px">✅ Store/building icon — clearly means "this is a business profile"</div>
+            <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Primary-colored button increases CTR on an important conversion action</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TESTIMONIALS ── -->
+  <div class="section" id="testimonials">
+    <div class="section-title"><div class="badge-num">5</div> Testimonials</div>
+    <div class="section-subtitle">Client social proof — one of the strongest trust signals on a profile</div>
+    <div class="ba">
+      <div class="ba-panel">
+        <div class="ba-label before">⚠ Current</div>
+        <div class="ba-content">
+          <div class="testimonial-before">
+            <div style="font-size:18px;color:var(--primary);opacity:.3;font-family:Georgia;margin-bottom:4px">"</div>
+            <div style="font-size:12px;color:#374151;margin-bottom:8px">Elizabeth's sessions are deeply transformative. I felt held and supported in a way I've never experienced before with a practitioner.</div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="font-size:11px;font-weight:600">Sarah K.</span>
+              <span style="font-size:11px;color:var(--muted)">Jan 2025</span>
+            </div>
+          </div>
+          <div class="annotation" style="margin-top:8px">❌ Gray background (bg-secondary/30) has low contrast — feels washed out</div>
+          <div class="annotation" style="margin-top:4px">❌ No star rating — testimonials without ratings look unverified</div>
+          <div class="annotation" style="margin-top:4px">❌ Quote mark is large but too transparent to read as intentional design</div>
+        </div>
+      </div>
+      <div class="ba-panel">
+        <div class="ba-label after">✓ Recommended</div>
+        <div class="ba-content">
+          <div class="testimonial-after">
+            <div class="stars">★★★★★</div>
+            <div class="testimonial-text">Elizabeth's sessions are deeply transformative. I felt held and supported in a way I've never experienced before with a practitioner.</div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="testimonial-author">Sarah K.</span>
+              <span style="font-size:11px;color:var(--muted)">Jan 2025</span>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--sage);margin-top:8px">✅ White card + border — clearly delineated from page background</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ ★★★★★ stars — implicit 5-star rating, feels verified</div>
+          <div style="font-size:11px;color:var(--sage);margin-top:2px">✅ Cleaner quote layout — content first, attribution second</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PRIORITY LIST ── -->
+  <div class="section" id="priority">
+    <div class="section-title"><div class="badge-num">→</div> Full Priority List</div>
+    <div class="section-subtitle">Ranked by impact × effort. Start at the top.</div>
+    <div class="summary-grid">
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-high"></div></div>
+        <div>
+          <div class="summary-title">Add bio snippet to compact directory card</div>
+          <div class="summary-desc">Even 1 line of bio dramatically improves trust before clicking. Providers with no bio should show their top modality as a fallback tagline.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 15 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-high"></div></div>
+        <div>
+          <div class="summary-title">Color-code modality pills by category</div>
+          <div class="summary-desc">Body/somatic = sage, mind/movement = ocean, mental/emotional = terracotta. Adds visual scan speed and brand polish. Define ~4-5 category → color mappings in a constant.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 30 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-high"></div></div>
+        <div>
+          <div class="summary-title">Replace services dot-list with pill chips on profile page</div>
+          <div class="summary-desc">Change the grid of dot-prefixed items in "Services & Modalities" to flex-wrap pill chips. Matches the card style, handles long names better, and feels more modern.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 20 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-high"></div></div>
+        <div>
+          <div class="summary-title">Fix the "Claim this listing" icon (Flag → Store/UserPlus)</div>
+          <div class="summary-desc">The Flag icon is universally understood as "report a problem." Switching to Store, Building2, or UserPlus from lucide-react removes the confusion. Also make the button filled primary color.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 5 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-med"></div></div>
+        <div>
+          <div class="summary-title">Increase compact card avatar from 56px → 72px</div>
+          <div class="summary-desc">Bigger avatar = more human connection. The current 56px is too small to distinguish faces. 72px is the sweet spot for a compact layout.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 2 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-med"></div></div>
+        <div>
+          <div class="summary-title">Add star ratings to testimonial cards</div>
+          <div class="summary-desc">Testimonials without star ratings look like unverified text. Adding ★★★★★ (hardcoded 5-star since these are curated) dramatically increases perceived credibility. Also: white card + border instead of gray background.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 15 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-med"></div></div>
+        <div>
+          <div class="summary-title">Show location + key modalities in profile header</div>
+          <div class="summary-desc">Currently visitors have to scroll down to find where the practitioner is located. Add location and top 2 modalities as badges in the header, visible immediately. Zero-scroll orientation.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 20 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-med"></div></div>
+        <div>
+          <div class="summary-title">Make contact items in sidebar visually clickable</div>
+          <div class="summary-desc">Phone, email, and website in the sidebar are all links, but styled as plain muted text. Switching to primary-colored, underline-on-hover links increases tap/click rate significantly on mobile.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 10 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-med"></div></div>
+        <div>
+          <div class="summary-title">Add island-specific default cover images</div>
+          <div class="summary-desc">For profiles without a cover image, use a curated set of 4 Hawaii landscape photos (one per island). Even a simple lush forest or ocean shot transforms the page from "blank" to "atmospheric." Can be a static import per island.</div>
+        </div>
+        <span class="effort-tag effort-medium">Medium · 1 hr</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-med"></div></div>
+        <div>
+          <div class="summary-title">Embed real Leaflet map in sidebar (replace placeholder)</div>
+          <div class="summary-desc">The current h-40 ocean-light block adds no value. When lat/lng is available, render a real Leaflet map — 3 lines of code. When not available, show a static Google Maps screenshot or a styled area placeholder with the city name, not a blank color block.</div>
+        </div>
+        <span class="effort-tag effort-medium">Medium · 2 hr</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-low"></div></div>
+        <div>
+          <div class="summary-title">Unify avatar shape (cards vs. profile page)</div>
+          <div class="summary-desc">Cards use rounded-full (circle), profile page uses rounded-xl (square). Pick one — circles are more standard for people photos. This is a minor consistency issue.</div>
+        </div>
+        <span class="effort-tag effort-easy">Easy · 5 min</span>
+      </div>
+
+      <div class="summary-row">
+        <div style="display:flex;justify-content:center"><div class="priority-dot pri-low"></div></div>
+        <div>
+          <div class="summary-title">Add "Read more" collapse for long bios on profile</div>
+          <div class="summary-desc">Long bios push everything else down. Truncate to ~3 lines with a "Read more" toggle. This is a nice-to-have once the above are done.</div>
+        </div>
+        <span class="effort-tag effort-medium">Medium · 45 min</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── QUICK WINS ── -->
+  <div class="section">
+    <div style="background:var(--sage-light);border:1px solid #a7d5b8;border-radius:var(--radius);padding:20px 24px">
+      <div style="font-weight:700;font-size:15px;margin-bottom:12px;color:var(--sage)">⚡ Quick Wins — Do These First (under 1 hour total)</div>
+      <ol style="padding-left:20px;display:grid;gap:8px">
+        <li style="font-size:13px">Bio snippet on compact card — 1 line, falls back to first modality</li>
+        <li style="font-size:13px">Replace <code style="background:#fff;padding:1px 4px;border-radius:3px;font-size:12px">Flag</code> with <code style="background:#fff;padding:1px 4px;border-radius:3px;font-size:12px">Store</code> icon in the claim card + make button filled</li>
+        <li style="font-size:13px">Bump avatar from <code style="background:#fff;padding:1px 4px;border-radius:3px;font-size:12px">h-16 w-16</code> to <code style="background:#fff;padding:1px 4px;border-radius:3px;font-size:12px">h-[72px] w-[72px]</code> in compact card</li>
+        <li style="font-size:13px">Switch services dot-list to flex-wrap chips (copy pill style from ProviderCard)</li>
+        <li style="font-size:13px">Add ★★★★★ and white-card styling to testimonials</li>
+        <li style="font-size:13px">Style sidebar contact links as primary-colored clickable links</li>
+      </ol>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Highlight active nav item on scroll
+const sections = document.querySelectorAll('.section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  navItems.forEach(n => {
+    n.classList.toggle('active', n.getAttribute('href') === '#' + current);
+  });
+});
+</script>
+</body>
+</html>

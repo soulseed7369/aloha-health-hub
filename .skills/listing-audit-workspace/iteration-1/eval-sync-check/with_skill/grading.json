@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "identifies-all-modality-locations",
+      "passed": true,
+      "evidence": "Lists 9 locations for Sound Bath modality: AdminPanel.tsx, DashboardProfile.tsx, Directory.tsx, IslandHome.tsx, 11_gm_classify.py, 24_normalize_modalities.py, seed_taxonomy.sql, seed_aliases.sql, and canonical-modalities.md reference (exceeds 5 required)."
+    },
+    {
+      "text": "identifies-all-center-type-locations",
+      "passed": true,
+      "evidence": "Lists 8 locations for coworking_space: database.ts (TypeScript type), adapters.ts, DashboardCenters.tsx, AdminPanel.tsx (4 separate SelectItem groups), and migration file (exceeds 4 required)."
+    },
+    {
+      "text": "checks-taxonomy-table",
+      "passed": true,
+      "evidence": "Section 'Part 1' specifically notes 'taxonomy_terms table doesn't have Sound Bath term' and mentions 'seed_taxonomy.sql' migration as needing Sound Bath term insertion for the new search system."
+    },
+    {
+      "text": "checks-db-constraint",
+      "passed": true,
+      "evidence": "Section 'Critical Issues C4' explicitly mentions 'CHECK constraint on centers.center_type column doesn't include the value' and 'Critical Issues C2' notes database will reject saves. Migration example provided showing ALTER TABLE constraint update."
+    },
+    {
+      "text": "notes-sound-healing-exists",
+      "passed": true,
+      "evidence": "Report recognizes 'Sound Healing' already exists (documented in seed_taxonomy.sql) and notes that 'Sound Bath' may be a separate modality or synonym. Critical Finding states 'Sound Bath exists in production data (found in actual listing names)' but is missing from UI lists."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

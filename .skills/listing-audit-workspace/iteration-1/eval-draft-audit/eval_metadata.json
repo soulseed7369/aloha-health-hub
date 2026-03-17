@@ -1,0 +1,31 @@
+{
+  "eval_id": 1,
+  "eval_name": "draft-audit",
+  "prompt": "Run a data quality audit on our Big Island draft listings. I want to know what's blocking us from publishing them — missing fields, bad modalities, duplicates, whatever. Give me the worst problems first with SQL to fix them.",
+  "assertions": [
+    {
+      "name": "uses-structured-format",
+      "description": "Output uses a structured report format with sections (executive summary, issues by severity, etc.) rather than free-form text"
+    },
+    {
+      "name": "identifies-non-canonical-modalities",
+      "description": "Specifically identifies non-canonical modality values (like lowercase or synonym variants)"
+    },
+    {
+      "name": "provides-sql-fixes",
+      "description": "Includes runnable SQL statements to fix identified issues"
+    },
+    {
+      "name": "reports-field-completeness",
+      "description": "Reports field completeness as percentages (email %, phone %, bio %, photo %)"
+    },
+    {
+      "name": "detects-duplicates",
+      "description": "Identifies potential duplicate listings (by phone, website, or name similarity)"
+    },
+    {
+      "name": "uses-correct-column-names",
+      "description": "Uses 'bio' for practitioners and 'description' for centers (not the other way around)"
+    }
+  ]
+}

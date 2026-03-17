@@ -45,7 +45,7 @@ updated_at    timestamptz
 ### `centers` table (key columns)
 Same shape as practitioners plus:
 ```
-center_type   text     -- 'spa' | 'wellness_center' | 'clinic' | 'retreat_center'
+center_type   text     -- 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'fitness_center'
 photos        text[]   -- array of image URLs (max 5)
 working_hours jsonb    -- { mon: {open, close} | null, tue: ..., ... }
 testimonials  jsonb[]
@@ -116,13 +116,13 @@ kauai:      Lihue, Kapaa, Hanalei, Princeville, Poipu, Koloa,
             Hanapepe, Waimea, Kilauea, Kalaheo
 ```
 
-### Canonical modalities list (43 total — used in checkboxes and pipeline)
+### Canonical modalities list (44 total — used in checkboxes and pipeline)
 Source of truth: `DashboardProfile.tsx` and `AdminPanel.tsx` (MODALITIES / MODALITIES_LIST arrays).
 Pipeline script `11_gm_classify.py` must stay in sync with this list.
 
 Acupuncture, Alternative Therapy, Art Therapy, Astrology, Ayurveda,
 Birth Doula, Breathwork, Chiropractic, Counseling, Craniosacral,
-Dentistry, Energy Healing, Family Constellation, Functional Medicine,
+Dentistry, Energy Healing, Family Constellation, Fitness, Functional Medicine,
 Hawaiian Healing, Herbalism, Hypnotherapy, IV Therapy, Life Coaching,
 Lomilomi / Hawaiian Healing, Longevity, Massage, Meditation, Midwife,
 Nature Therapy, Naturopathic, Nervous System Regulation, Network Chiropractic,

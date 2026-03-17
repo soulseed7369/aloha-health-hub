@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "uses-structured-format",
+      "passed": true,
+      "evidence": "Report uses clear sections (Executive Summary, Critical Issues, Warnings, Field Completeness Heatmap, Key Findings, Recommended Next Steps, SQL Fixes, Appendix) with subsections and tables rather than free-form text."
+    },
+    {
+      "text": "identifies-non-canonical-modalities",
+      "passed": true,
+      "evidence": "Section 'C2: Non-Canonical Modalities' specifically identifies 2 listings with invalid modalities: 'energy healing' and 'Trauma Informed Services', clearly marking them as not matching the canonical list."
+    },
+    {
+      "text": "provides-sql-fixes",
+      "passed": true,
+      "evidence": "Section 'SQL Fixes for Critical Issues' provides complete, runnable SQL statements including: modality validation query, URL fixes with UPDATE statements, and coordinate cleanup for geocoding."
+    },
+    {
+      "text": "reports-field-completeness",
+      "passed": true,
+      "evidence": "Section 'Field Completeness Heatmap' provides percentages for all critical fields: practitioners show 100% name, 93% phone, 10% email, 16% avatar_url, 19% bio, 32% website_url; centers show 100% name, 95% phone, 28% email, 54% avatar_url, 56% description, 69% website_url."
+    },
+    {
+      "text": "detects-duplicates",
+      "passed": true,
+      "evidence": "Section 'W5: Duplicate Contact Information Across Listings' identifies 11 duplicate clusters with specific counts: 3 duplicate phone numbers affecting 4+ listings each, 1 duplicate email, 7 duplicate domains with examples like 'malamaponomassage.com' (3 listings), 'massagebook.com' (4 listings)."
+    },
+    {
+      "text": "uses-correct-column-names",
+      "passed": true,
+      "evidence": "Report uses 'bio' for practitioners (e.g., 'bio | 23/121 | 19%') and 'description' for centers (e.g., 'description | 159/283 | 56%'), correctly distinguishing between the two table schemas."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  }
+}

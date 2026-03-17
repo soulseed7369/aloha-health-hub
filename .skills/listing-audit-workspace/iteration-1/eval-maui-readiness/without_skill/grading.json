@@ -1,0 +1,35 @@
+{
+  "expectations": [
+    {
+      "text": "reports-published-vs-draft-counts",
+      "passed": true,
+      "evidence": "Report states in 'Executive Summary' metrics table: 'Published Listings: 0' with status '🔴 BLOCKER', 'Total Practitioners: 20' (All Draft), 'Total Centers: 28' (All Draft). Section 'CRITICAL ISSUE: All practitioner listings are in draft status and invisible to the public.'"
+    },
+    {
+      "text": "assesses-photo-coverage",
+      "passed": true,
+      "evidence": "Key Metrics table shows 'Have photos: Practitioners 0/20 (0%), Centers 0/28 (0%)'. Section 'BLOCKERS for Marketing Push' item 2 states 'Zero Avatar Photos (0/48)' and '0% photo coverage across all listings'."
+    },
+    {
+      "text": "assesses-bio-coverage",
+      "passed": true,
+      "evidence": "Key Metrics table reports 'Have good bio/desc (>10 words): Practitioners 2/20 (10%), Centers 0/28 (0%)'. Section 'BLOCKERS' item 3 states 'Missing Professional Bios/Descriptions (2/48)' with note 'Only 2 practitioners have bios; 0 centers have descriptions'."
+    },
+    {
+      "text": "identifies-worst-listings",
+      "passed": true,
+      "evidence": "Report specifically names worst practitioners: 'Cheri Bantilan (15% - WORST): Missing photo, bio, phone, email' in Wailuku section. Notes 'All 28 centers suffer from identical, catastrophic data gaps' and lists specific worst cities: 'Wailuku: WORST performing city' at 21% average quality."
+    },
+    {
+      "text": "gives-actionable-recommendation",
+      "passed": true,
+      "evidence": "Report provides clear recommendations with 'Immediate Actions (Before Marketing Push)' section stating '1. DO NOT PUBLISH any listings in current state' and '2. Initiate Contact Campaign' with specific required data. Timeline estimate: '4-6 weeks before ready for marketing push'. Conclusion explicitly states 'Marketing Push Readiness: FAIL' with clear conditions: 'Do not drive paid traffic to Maui directory until: 1. At least 5-10 listings published, 2. Average quality score exceeds 70%, 3. Contact info completion reaches 95%+'"
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 0,
+    "total": 5,
+    "pass_rate": 1.0
+  }
+}

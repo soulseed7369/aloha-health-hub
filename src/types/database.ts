@@ -37,8 +37,10 @@ export interface PractitionerRow {
   booking_label: string | null;
   accepts_new_clients: boolean;
   avatar_url: string | null;
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'pending_review' | 'published' | 'archived';
   tier: 'free' | 'premium' | 'featured';
+  email_verified_at: string | null;
+  phone_verified_at: string | null;
   created_at: string;
   updated_at: string;
   center_id: string | null;
@@ -91,8 +93,10 @@ export interface CenterRow {
   avatar_url: string | null;
   photos: string[];
   modalities: string[];
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'pending_review' | 'published' | 'archived';
   tier: 'free' | 'premium' | 'featured';
+  email_verified_at: string | null;
+  phone_verified_at: string | null;
   created_at: string;
   updated_at: string;
   session_type: 'in_person' | 'online' | 'both';

@@ -22,7 +22,7 @@ Default: `big_island` (hardcoded fallback in most places — be suspicious of li
 ```
 Hilo, Kailua-Kona, Waimea, Captain Cook, Pahoa, Holualoa,
 Hawi, Honokaa, Volcano, Waikoloa, Keaau, Ocean View,
-Kapaau, Na Alehu
+Kapaau, Na Alehu, Kealakekua
 ```
 
 Pipeline config also recognizes: Kamuela (= Waimea), Kurtistown, Papaikou, Mountain View, Pepeekeo, Hakalau, Laupahoehoe, Naalehu

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Building, Calendar, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock } from "lucide-react";
+import { User, Building, Calendar, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
@@ -33,6 +33,7 @@ export default function DashboardHome() {
 
   const hasProfile = !!practitioner?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';
+  const hasVerifiedContact = !!(practitioner as any)?.email_verified_at || !!(practitioner as any)?.phone_verified_at;
   const earlyBird = getEarlyBirdStatus(practitioner?.created_at ?? null);
 
   // ── Profile completeness ──────────────────────────────────────────────────
@@ -57,6 +58,13 @@ export default function DashboardHome() {
       label: 'Complete your profile',
       description: 'Add your name, modalities, location, and photo.',
       done: hasProfile,
+      to: '/dashboard/profile',
+    },
+    {
+      id: 'verify',
+      label: 'Verify your contact info',
+      description: 'Verify your email or phone to prove you own this listing.',
+      done: hasVerifiedContact,
       to: '/dashboard/profile',
     },
     {

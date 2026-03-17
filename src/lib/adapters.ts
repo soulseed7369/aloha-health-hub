@@ -79,6 +79,7 @@ export function practitionerRowToProvider(row: PractitionerRowWithBusiness): Pro
     externalBookingUrl: row.external_booking_url ?? undefined,
     island: row.island ?? undefined,
     updatedAt: row.updated_at ?? undefined,
+    verified: !!(row as any).email_verified_at || !!(row as any).phone_verified_at,
   };
 }
 

@@ -752,9 +752,11 @@ const AdminPanel = () => {
   };
 
   // ── Publish/delete handlers ───────────────────────────────────────────────
-  const togglePractitionerPublish = async (id: string, status: 'published' | 'draft') => {
+  const togglePractitionerPublish = async (id: string, status: string) => {
     try {
-      await publishPractitioner.mutateAsync({ id, status: status === 'published' ? 'draft' : 'published' });
+      // pending_review → published; published → draft; draft → published
+      const newStatus = status === 'published' ? 'draft' : 'published';
+      await publishPractitioner.mutateAsync({ id, status: newStatus });
       toast.success('Status updated');
     } catch { toast.error('Failed to update status'); }
   };

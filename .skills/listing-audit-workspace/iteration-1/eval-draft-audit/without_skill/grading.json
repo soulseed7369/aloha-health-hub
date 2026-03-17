@@ -1,0 +1,40 @@
+{
+  "expectations": [
+    {
+      "text": "uses-structured-format",
+      "passed": true,
+      "evidence": "Report uses sections (CRITICAL ISSUES, WARNINGS, POTENTIAL DUPLICATES, SUMMARY & NEXT STEPS) with subsections, SQL code blocks, and structured lists rather than free-form text."
+    },
+    {
+      "text": "identifies-non-canonical-modalities",
+      "passed": true,
+      "evidence": "Section 'Invalid Modalities' identifies 2 listings with non-canonical values: 'energy healing' and 'Trauma Informed Services', noting these won't appear in search filters."
+    },
+    {
+      "text": "provides-sql-fixes",
+      "passed": true,
+      "evidence": "Multiple SQL sections provided: queries to find bad contact info, modality replacement example, sessions scripts with UPDATE statements and example geocoding."
+    },
+    {
+      "text": "reports-field-completeness",
+      "passed": false,
+      "evidence": "Report does not provide a structured field completeness summary with percentages. It mentions missing bios (224 listings) and missing photos (385 listings) in narrative form but does not provide a heatmap or percentage table for all fields across practitioners and centers separately."
+    },
+    {
+      "text": "detects-duplicates",
+      "passed": true,
+      "evidence": "Section 'POTENTIAL DUPLICATES' identifies 10 groups of duplicates with phone matches, website matches, and specific examples including malamaponomassage.com (3 listings), massagebook.com (3-4 listings), and others."
+    },
+    {
+      "text": "uses-correct-column-names",
+      "passed": true,
+      "evidence": "Report correctly distinguishes 'bio' for practitioners and 'description' for centers when discussing field completeness issues."
+    }
+  ],
+  "summary": {
+    "passed": 5,
+    "failed": 1,
+    "total": 6,
+    "pass_rate": 0.833
+  }
+}

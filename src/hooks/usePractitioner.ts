@@ -57,7 +57,7 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     title: row.modalities.join(', ') || 'Wellness Practitioner',
     island: row.island ?? null,
     profileImage: row.avatar_url || PLACEHOLDER_PROFILE,
-    verified: false, // not stored in v1 schema
+    verified: !!(row as any).email_verified_at || !!(row as any).phone_verified_at,
     acceptingClients: row.accepts_new_clients,
     location: [row.city, row.island].filter(Boolean).join(', '),
     address: row.address,

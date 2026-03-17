@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, ExternalLink } from "lucide-react";
+import { MapPin, ExternalLink, CheckCircle } from "lucide-react";
 
 // ── Island badge (compact, for use in cards) ─────────────────────────────────
 const ISLAND_CFG: Record<string, { label: string; icon: string; color: string; bg: string }> = {
@@ -144,8 +144,9 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   {/* Personal name always primary — never replaced by business name */}
-                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight">
+                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight flex items-center gap-1">
                     {provider.name}
+                    {provider.verified && <CheckCircle className="h-3.5 w-3.5 text-sage flex-shrink-0" />}
                   </h3>
                   {/* Business name always a muted subtitle */}
                   {provider.businessName && (

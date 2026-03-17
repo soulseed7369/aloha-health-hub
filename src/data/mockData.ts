@@ -65,6 +65,8 @@ export interface Provider {
   island?: string;
   /** ISO timestamp of last profile update — used for freshness badge */
   updatedAt?: string;
+  /** Whether the listing has at least one verified contact channel (email or phone) */
+  verified?: boolean;
 }
 
 export interface Center {
