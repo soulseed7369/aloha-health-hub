@@ -28,12 +28,12 @@ const HOW_IT_WORKS = [
   {
     step: "02",
     title: "Proposal & agreement",
-    description: "We\u2019ll send a clear scope of work outlining deliverables, timeline, revision rounds, and payment terms. No surprises.",
+    description: "We'll send a clear scope of work outlining deliverables, timeline, revision rounds, and payment terms. No surprises.",
   },
   {
     step: "03",
     title: "Design & build",
-    description: "We build your site \u2014 typically 2\u20134 weeks depending on package. You\u2019ll review and approve before anything goes live.",
+    description: "We build your site — typically 2–4 weeks depending on package. You'll review and approve before anything goes live.",
   },
   {
     step: "04",
@@ -45,19 +45,19 @@ const HOW_IT_WORKS = [
 const FAQ = [
   {
     q: "How long does it take to build?",
-    a: "Essentials sites typically take 1\u20132 weeks. Standard takes 2\u20133 weeks. Pro takes 3\u20134 weeks. Timelines depend on how quickly you provide content and approve drafts.",
+    a: "Essentials sites typically take 1–2 weeks. Standard takes 2–3 weeks. Pro takes 3–4 weeks. Timelines depend on how quickly you provide content and approve drafts.",
   },
   {
     q: "Do I own the website?",
-    a: "Yes \u2014 you own your domain and all content. If you ever want to move to another host, we\u2019ll help you migrate.",
+    a: "Yes — you own your domain and all content. If you ever want to move to another host, we'll help you migrate.",
   },
   {
     q: "What if I already have a domain?",
-    a: "No problem. We\u2019ll connect your existing domain to your new site. If you don\u2019t have one yet, we\u2019ll help you choose and register one.",
+    a: "No problem. We'll connect your existing domain to your new site. If you don't have one yet, we'll help you choose and register one.",
   },
   {
     q: "Who writes the content?",
-    a: "Professional copywriting is included in every package. We\u2019ll write the copy based on a short intake questionnaire about your practice, style, and offerings. You review and approve before anything goes live. We just ask that you provide your own photos \u2014 a professional headshot makes a big difference.",
+    a: "Professional copywriting is included in every package. We'll write the copy based on a short intake questionnaire about your practice, style, and offerings. You review and approve before anything goes live. We just ask that you provide your own photos — a professional headshot makes a big difference.",
   },
   {
     q: "How many revisions are included?",
@@ -69,11 +69,11 @@ const FAQ = [
   },
   {
     q: "What does social media integration include?",
-    a: "On the Pro package, we connect your Instagram feed, Facebook page, Substack, and other social profiles directly into your website \u2014 so visitors can see your latest posts and follow you without leaving your site.",
+    a: "On the Pro package, we connect your Instagram feed, Facebook page, Substack, and other social profiles directly into your website — so visitors can see your latest posts and follow you without leaving your site.",
   },
   {
     q: "Can I upgrade my package later?",
-    a: "Absolutely. If you start with Essentials and want to add booking, SEO, or more pages later, we can upgrade your site. We\u2019ll credit what you\u2019ve already paid toward the higher package.",
+    a: "Absolutely. If you start with Essentials and want to add booking, SEO, or more pages later, we can upgrade your site. We'll credit what you've already paid toward the higher package.",
   },
 ];
 
@@ -83,7 +83,7 @@ const DISCOVERY_MAILTO =
 export default function WebsitePackages() {
   usePageMeta(
     "Website Packages",
-    "Custom websites built for Hawai\u02BBi wellness providers. Done-for-you sites starting at $497 with Kama\u02BBAina Rate pricing.",
+    "Custom websites built for Hawaiʻi wellness providers. Done-for-you sites starting at $497 with Kamaʻāina Rate pricing.",
   );
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -95,14 +95,14 @@ export default function WebsitePackages() {
       <section className="relative overflow-hidden bg-gradient-to-br from-ocean-light/60 to-secondary/30 py-20">
         <div className="container max-w-3xl text-center">
           <Badge className="mb-5 bg-ocean/10 text-ocean border-ocean/20 text-xs tracking-wide uppercase px-3 py-1">
-            Built for Hawai\u02BBi Wellness Providers
+            Built for Hawaiʻi Wellness Providers
           </Badge>
           <h1 className="mb-5 font-display text-4xl font-bold tracking-tight md:text-5xl">
             A website that helps the right clients choose you
           </h1>
           <p className="text-lg text-muted-foreground md:text-xl leading-relaxed">
             Your listing opens the door. Your website creates the connection.
-            We design websites for Hawai\u02BBi wellness practitioners that build trust,
+            We design websites for Hawaiʻi wellness practitioners that build trust,
             reflect your unique gifts, and help more ideal clients reach out.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -122,12 +122,12 @@ export default function WebsitePackages() {
         </div>
       </section>
 
-      {/* ── Kama\u02BBAina Rate banner ─────────────────────────────────────────── */}
+      {/* ── Kamaʻāina Rate banner ─────────────────────────────────────────── */}
       <section className="bg-gradient-to-br from-amber-50 to-orange-50 border-y border-amber-200 py-8">
         <div className="container max-w-3xl text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Sparkles className="h-6 w-6 text-amber-500" />
-            <h2 className="font-display text-2xl font-bold text-amber-900 md:text-3xl">Kama\u02BB\u0101ina Rate</h2>
+            <h2 className="font-display text-2xl font-bold text-amber-900 md:text-3xl">Kamaʻāina Rate</h2>
             <Sparkles className="h-6 w-6 text-amber-500" />
           </div>
           <p className="text-base text-amber-800 leading-relaxed max-w-lg mx-auto">
@@ -138,7 +138,7 @@ export default function WebsitePackages() {
           <div className="mt-3">
             <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
               <Sparkles className="h-3.5 w-3.5" />
-              Kama\u02BB\u0101ina Rate &mdash; first {KAMAAINA_WEBSITE_SPOTS} websites
+              Kamaʻāina Rate &mdash; first {KAMAAINA_WEBSITE_SPOTS} websites
             </span>
           </div>
         </div>
@@ -152,7 +152,7 @@ export default function WebsitePackages() {
             Done-for-You Websites
           </h2>
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-            A professional website + your directory listing, built by the team that knows Hawai\u02BBi wellness.
+            A professional website + your directory listing, built by the team that knows Hawaiʻi wellness.
           </p>
         </div>
 
@@ -176,7 +176,7 @@ export default function WebsitePackages() {
         <div className="flex justify-center mb-8">
           <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
             <Sparkles className="h-3.5 w-3.5" />
-            Kama\u02BB\u0101ina Rate &mdash; first {KAMAAINA_WEBSITE_SPOTS} websites
+            Kamaʻāina Rate &mdash; first {KAMAAINA_WEBSITE_SPOTS} websites
           </span>
         </div>
 
@@ -206,7 +206,7 @@ export default function WebsitePackages() {
                   <div className="mt-2">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
                       <Sparkles className="h-3 w-3" />
-                      Kama\u02BB\u0101ina Rate
+                      Kamaʻāina Rate
                     </span>
                   </div>
                 </div>
