@@ -300,7 +300,7 @@ export interface UserProfileRow {
   subscription_status: string | null;    // 'active' | 'past_due' | 'canceled' | 'trialing'
   subscription_period_end: string | null; // ISO timestamp when period ends
   stripe_price_id: string | null;
-  account_type: 'practitioner' | 'center';
+  account_type: 'practitioner' | 'center' | null;
   created_at: string;
   updated_at: string;
 }

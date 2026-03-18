@@ -107,7 +107,36 @@ export default function DashboardBilling() {
       <div>
         <h2 className="mb-4 font-display text-lg font-semibold">Upgrade Your Plan</h2>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        {accountTypeLoading ? (
+          // Show skeleton cards while accountType loads
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Card>
+              <CardContent className="flex flex-col gap-4 p-5">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-8 w-32" />
+                <div className="space-y-2 flex-1">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-4 w-full" />
+                  ))}
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="flex flex-col gap-4 p-5">
+                <Skeleton className="h-6 w-24" />
+                <Skeleton className="h-8 w-32" />
+                <div className="space-y-2 flex-1">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-4 w-full" />
+                  ))}
+                </div>
+                <Skeleton className="h-10 w-full" />
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2">
 
           {/* ── Premium ── */}
           <Card className={currentTier === "premium" ? "ring-2 ring-blue-400" : ""}>
@@ -211,7 +240,8 @@ export default function DashboardBilling() {
               )}
             </CardContent>
           </Card>
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Payment method notice */}

@@ -90,12 +90,9 @@ export default function Auth() {
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
-        // For password sign-in (existing user), save account type immediately
-        if (user) {
-          setAccountType.mutate(selectedAccountType, {
-            onError: (err) => console.error('Failed to set account type:', err),
-          });
-        }
+        // For password sign-in (existing user), save account type before auth context updates
+        // Use localStorage to avoid race condition with stale `user` from AuthContext
+        localStorage.setItem('pendingAccountType', selectedAccountType);
         // navigation handled by useEffect above
       }
     } catch (err: unknown) {

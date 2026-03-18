@@ -16,6 +16,8 @@ export interface AccountTypeData {
 
 /**
  * Fetch the account type for the current user.
+ * Always returns 'practitioner' as default after loading completes.
+ * Returns 'practitioner' | 'center' (never null after loading).
  */
 export function useAccountType() {
   const { user } = useAuth();
@@ -23,8 +25,8 @@ export function useAccountType() {
 
   return useQuery({
     queryKey: ['account-type', user?.id],
-    queryFn: async () => {
-      if (!supabase || !user) return null;
+    queryFn: async (): Promise<AccountType> => {
+      if (!supabase || !user) return 'practitioner';
 
       const { data, error } = await supabase
         .from('user_profiles')
@@ -34,9 +36,10 @@ export function useAccountType() {
 
       if (error) {
         console.error('Failed to fetch account type:', error);
-        return null;
+        return 'practitioner';
       }
 
+      // Default to 'practitioner' if null in database
       return (data?.account_type ?? 'practitioner') as AccountType;
     },
     enabled: !!user,

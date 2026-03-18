@@ -45,15 +45,19 @@ export default function AuthCallback() {
         const pendingAccountType = localStorage.getItem('pendingAccountType') as AccountType | null;
         if (userId && pendingAccountType) {
           try {
-            await supabase
+            const { error: updateError } = await supabase
               .from('user_profiles')
               .update({ account_type: pendingAccountType })
               .eq('id', userId);
-            localStorage.removeItem('pendingAccountType');
+            if (updateError) {
+              console.error('Failed to set account type:', updateError);
+            }
           } catch (err) {
             console.error('Failed to set account type:', err);
           }
         }
+        // Always clean up localStorage, even if upsert failed
+        localStorage.removeItem('pendingAccountType');
 
         // Admin users go straight to the admin panel
         if (isAdmin(data.session?.user?.email)) {

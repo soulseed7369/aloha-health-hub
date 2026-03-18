@@ -14,19 +14,18 @@ export default function DashboardHome() {
   const navigate = useNavigate();
   const { data: practitioner, isLoading: practLoading } = useMyPractitioner();
   const { data: billing } = useMyBillingProfile();
-  const { data: accountType } = useAccountType();
+  const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
   const checkout = useCreateCheckoutSession();
 
   // Route based on account type on first load
   useEffect(() => {
-    if (accountType && !practLoading) {
+    if (!accountTypeLoading && accountType) {
       if (accountType === 'center') {
         navigate('/dashboard/centers', { replace: true });
-      } else if (accountType === 'practitioner') {
-        // Stay on this page for practitioners
       }
+      // else: stay on this page for practitioners
     }
-  }, [accountType, practLoading, navigate]);
+  }, [accountType, accountTypeLoading, navigate]);
 
   // Resume any pending plan intent stored before auth redirect — run once on mount only
   useEffect(() => {
@@ -44,6 +43,18 @@ export default function DashboardHome() {
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // If accountType is loading or is 'center', show loading spinner instead of practitioner content
+  if (accountTypeLoading || accountType === 'center') {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
+        </div>
+      </div>
+    );
+  }
 
   const hasProfile = !!practitioner?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';

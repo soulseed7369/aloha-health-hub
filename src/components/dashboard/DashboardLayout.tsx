@@ -42,8 +42,9 @@ export function DashboardLayout() {
   // Display name: email local part or fallback
   const displayName = user?.email ? user.email.split("@")[0] : "Provider";
 
-  // Determine which sidebar links to show — while loading, show all to avoid flash
-  const sidebarLinks = !accountTypeLoading && accountType === 'center' ? centerLinks : practitionerLinks;
+  // Determine which sidebar links to show
+  // Don't show links while loading to avoid flash of wrong type
+  const sidebarLinks = accountTypeLoading ? [] : (accountType === 'center' ? centerLinks : practitionerLinks);
 
   return (
     <div className="flex min-h-screen bg-muted/40">
@@ -104,28 +105,37 @@ export function DashboardLayout() {
               Admin Panel
             </Link>
           )}
-          {sidebarLinks.map((link) => {
-            const isActive =
-              link.to === "/dashboard"
-                ? location.pathname === "/dashboard"
-                : location.pathname.startsWith(link.to);
-            return (
-              <Link
-                key={link.to}
-                to={link.to}
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
-                )}
-              >
-                <link.icon className="h-4 w-4 shrink-0" />
-                {link.label}
-              </Link>
-            );
-          })}
+          {accountTypeLoading ? (
+            // Show skeleton placeholders while loading to avoid flash of wrong links
+            <>
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-lg" />
+              ))}
+            </>
+          ) : (
+            sidebarLinks.map((link) => {
+              const isActive =
+                link.to === "/dashboard"
+                  ? location.pathname === "/dashboard"
+                  : location.pathname.startsWith(link.to);
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    isActive
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                  )}
+                >
+                  <link.icon className="h-4 w-4 shrink-0" />
+                  {link.label}
+                </Link>
+              );
+            })
+          )}
         </nav>
 
         {/* Sidebar footer — user email + sign out */}
