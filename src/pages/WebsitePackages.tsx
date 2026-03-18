@@ -61,7 +61,7 @@ const FAQ = [
   },
   {
     q: "How many revisions are included?",
-    a: "Essentials includes 1 feedback round during build. Standard includes 1 feedback round + 1 post-delivery revision. Pro includes 1 feedback round + 2 post-delivery revisions. Additional major revisions after that are $149 each.",
+    a: "Essentials includes 1 feedback round during build. Standard includes 1 feedback round + 1 post-delivery revision. Pro includes 2 feedback rounds + 1 post-delivery revision. Additional major revisions after that are $149 each.",
   },
   {
     q: "What about hosting after the included period?",
@@ -131,7 +131,7 @@ export default function WebsitePackages() {
             <Sparkles className="h-6 w-6 text-amber-500" />
           </div>
           <p className="text-base text-amber-800 leading-relaxed max-w-lg mx-auto">
-            Our earliest supporters get special pricing &mdash; <strong>for life</strong>.
+            Our earliest supporters get special pricing.
             <br className="hidden sm:block" />
             Lock in your rate before spots fill up.
           </p>
