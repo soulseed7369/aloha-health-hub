@@ -3,10 +3,12 @@
 export interface Package {
   id: 'essentials' | 'standard' | 'pro';
   name: string;
+  tagline: string;
   price: number;
   kamaaiaPrice: number;
   features: string[];
-  includedSubscription: string;
+  valueCallout: string;
+  afterNote: string;
   highlight?: boolean;
   mailto: string;
 }
@@ -15,49 +17,68 @@ export const PACKAGES: Package[] = [
   {
     id: 'essentials',
     name: 'Essentials',
+    tagline: 'Get online',
     price: 597,
     kamaaiaPrice: 497,
     features: [
-      '3–4 page site (Home, About, Services, Contact)',
-      'Mobile-responsive design',
-      'Contact form',
-      'Linked to your Hawaiʻi Wellness directory profile',
+      'Up to 3 pages',
+      '1 feedback round during build',
+      'Includes 6 months hosting + Premium subscription',
     ],
-    includedSubscription: 'Includes 6 months Premium subscription ($294 value)',
+    valueCallout: 'Includes $468 in hosting & subscription value',
+    afterNote: 'After 6 months — hosting included with active Premium ($49/mo), or $29/mo hosting only',
     mailto: 'mailto:aloha@hawaiiwellness.net?subject=Website%20Bundle%20—%20Essentials',
   },
   {
     id: 'standard',
     name: 'Standard',
+    tagline: 'Get found',
     price: 997,
     kamaaiaPrice: 897,
     features: [
-      '5-page site',
-      'Booking integration (Calendly / Acuity embed)',
-      'Google Business Profile setup',
-      'Basic SEO optimization (meta tags, local schema, Google indexing)',
-      '2 rounds of revisions',
+      'Up to 5 pages',
+      'Booking integration (Calendly, Acuity, or similar)',
+      'Basic search engine optimization (page titles, descriptions, local markup, Google indexing)',
+      '1 feedback round + 1 post-delivery revision',
+      'Includes 9 months hosting + Premium subscription',
     ],
-    includedSubscription: 'Includes 12 months Premium subscription ($588 value)',
+    valueCallout: 'Includes $792 in hosting & subscription value',
+    afterNote: 'After 9 months — hosting included with active Premium ($49/mo), or $39/mo hosting only',
     highlight: true,
     mailto: 'mailto:aloha@hawaiiwellness.net?subject=Website%20Bundle%20—%20Standard',
   },
   {
     id: 'pro',
     name: 'Pro',
+    tagline: 'Get booked and paid',
     price: 1497,
     kamaaiaPrice: 1397,
     features: [
-      'Everything in Standard, plus:',
-      'Blog page',
-      'Advanced SEO (keyword research, internal linking, image optimization, sitemap)',
-      'AI search optimization (FAQ schema, service schema, LocalBusiness structured data)',
-      'Social media header graphics',
-      '3 rounds of revisions',
+      'Up to 8 pages',
+      'Booking integration',
+      'Payment integration (accept payments directly on your site)',
+      'Google Business Profile setup and optimization',
+      'Advanced search engine optimization (keyword research, image optimization, sitemap, Google indexing)',
+      'AI search optimization (structured for AI-powered search results)',
+      '1 feedback round + 2 post-delivery revisions',
+      'Includes 12 months hosting + Premium subscription',
     ],
-    includedSubscription: 'Includes 12 months Premium subscription ($588 value)',
+    valueCallout: 'Includes $1,176 in hosting & subscription value',
+    afterNote: 'After 12 months — hosting included with active Premium ($49/mo), or $49/mo hosting only',
     mailto: 'mailto:aloha@hawaiiwellness.net?subject=Website%20Bundle%20—%20Pro',
   },
+];
+
+// ── What's included with every website ───────────────────────────────────────
+
+export const EVERY_WEBSITE_INCLUDES = [
+  'Bespoke custom design (not a template)',
+  'Mobile-first responsive design',
+  'Professional copywriting included',
+  'Social media link integration',
+  'Contact form',
+  'Enterprise-grade security built in',
+  'Linked to your Hawaiʻi Wellness directory profile',
 ];
 
 // ── Add-on categories ────────────────────────────────────────────────────────

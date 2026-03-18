@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CheckCircle, Mail, ArrowRight, Star, Globe, Palette, TrendingUp, Puzzle, LifeBuoy, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import {
+  CheckCircle, Mail, ArrowRight, Star, Globe, Palette, TrendingUp, Puzzle,
+  LifeBuoy, ChevronDown, ChevronUp, Sparkles, Layout, Smartphone, Pen,
+  Link2, Lock,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +12,7 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import {
   PACKAGES,
   ADD_ON_CATEGORIES,
+  EVERY_WEBSITE_INCLUDES,
   KAMAAINA_WEBSITE_SPOTS,
 } from "@/lib/websitePackages";
 
@@ -18,6 +23,10 @@ const ICON_MAP: Record<string, React.ElementType> = {
   LifeBuoy: LifeBuoy,
 };
 
+const BASE_FEATURE_ICONS: React.ElementType[] = [
+  Layout, Smartphone, Pen, Link2, Mail, Lock, Globe,
+];
+
 const HOW_IT_WORKS = [
   {
     step: "01",
@@ -27,12 +36,12 @@ const HOW_IT_WORKS = [
   {
     step: "02",
     title: "Proposal & agreement",
-    description: "We'll send a clear scope of work outlining deliverables, timeline, revision rounds, and payment terms. No surprises.",
+    description: "We\u2019ll send a clear scope of work outlining deliverables, timeline, revision rounds, and payment terms. No surprises.",
   },
   {
     step: "03",
     title: "Design & build",
-    description: "We build your site — typically 2–4 weeks depending on package. You'll review and approve before anything goes live.",
+    description: "We build your site \u2014 typically 2\u20134 weeks depending on package. You\u2019ll review and approve before anything goes live.",
   },
   {
     step: "04",
@@ -44,27 +53,27 @@ const HOW_IT_WORKS = [
 const FAQ = [
   {
     q: "How long does it take to build?",
-    a: "Essentials sites typically take 1–2 weeks. Standard takes 2–3 weeks. Pro takes 3–4 weeks. Timelines depend on how quickly you can provide content (photos, copy) and approve drafts.",
+    a: "Essentials sites typically take 1\u20132 weeks. Standard takes 2\u20133 weeks. Pro takes 3\u20134 weeks. Timelines depend on how quickly you can provide content (photos, copy) and approve drafts.",
   },
   {
     q: "Do I own the website?",
-    a: "Yes — you own your domain and all content. If you ever want to move to another host, we'll help you migrate.",
+    a: "Yes \u2014 you own your domain and all content. If you ever want to move to another host, we\u2019ll help you migrate.",
   },
   {
     q: "What if I already have a domain?",
-    a: "No problem. We'll connect your existing domain to your new site. If you don't have one yet, we'll help you choose and register one.",
+    a: "No problem. We\u2019ll connect your existing domain to your new site. If you don\u2019t have one yet, we\u2019ll help you choose and register one.",
   },
   {
     q: "Who writes the content?",
-    a: "Copywriting is included in all packages — we'll write the copy for your site based on a short intake questionnaire about your practice, style, and offerings. You'll review and approve before anything goes live. We just ask that you provide your own photos; a professional headshot makes a significant difference.",
+    a: "Copywriting is included in all packages \u2014 we\u2019ll write the copy for your site based on a short intake questionnaire about your practice, style, and offerings. You\u2019ll review and approve before anything goes live. We just ask that you provide your own photos; a professional headshot makes a significant difference.",
   },
   {
     q: "How many revisions are included?",
-    a: "Essentials and Standard include 2 rounds of revisions. Pro includes 3. Additional major revisions are $149 each.",
+    a: "Essentials includes 1 feedback round. Standard includes 1 feedback round + 1 post-delivery revision. Pro includes 1 feedback round + 2 post-delivery revisions. Additional major revisions are $149 each.",
   },
   {
-    q: "What happens after the included Premium subscription?",
-    a: "After your included subscription period ends, your Premium subscription continues at $49/mo (or your Kamaʻāina Rate if applicable). You can cancel anytime.",
+    q: "What happens after the included hosting period?",
+    a: "Hosting is included at no extra cost as long as your Premium or Featured subscription is active. If you cancel your subscription, hosting continues at a standalone rate shown on each package.",
   },
 ];
 
@@ -74,7 +83,7 @@ const DISCOVERY_MAILTO =
 export default function WebsitePackages() {
   usePageMeta(
     "Website Packages",
-    "Custom websites built for Hawaiʻi wellness providers. Done-for-you sites starting at $497 with Kamaʻāina Rate pricing.",
+    "Custom websites built for Hawai\u02BBi wellness providers. Done-for-you sites starting at $497 with Kama\u02BBAina Rate pricing.",
   );
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -86,14 +95,14 @@ export default function WebsitePackages() {
       <section className="relative overflow-hidden bg-gradient-to-br from-ocean-light/60 to-secondary/30 py-20">
         <div className="container max-w-3xl text-center">
           <Badge className="mb-5 bg-ocean/10 text-ocean border-ocean/20 text-xs tracking-wide uppercase px-3 py-1">
-            Built for Hawaiʻi Wellness Providers
+            Built for Hawai\u02BBi Wellness Providers
           </Badge>
           <h1 className="mb-5 font-display text-4xl font-bold tracking-tight md:text-5xl">
             A website that helps the right clients choose you
           </h1>
           <p className="text-lg text-muted-foreground md:text-xl leading-relaxed">
             Your listing opens the door. Your website creates the connection.
-            We design websites for Hawaiʻi wellness practitioners that build trust,
+            We design websites for Hawai\u02BBi wellness practitioners that build trust,
             reflect your unique gifts, and help more ideal clients reach out.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -113,23 +122,23 @@ export default function WebsitePackages() {
         </div>
       </section>
 
-      {/* ── Kamaʻāina Rate banner ─────────────────────────────────────────── */}
+      {/* ── Kama\u02BBAina Rate banner ─────────────────────────────────────────── */}
       <section className="bg-gradient-to-br from-amber-50 to-orange-50 border-y border-amber-200 py-8">
         <div className="container max-w-3xl text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Sparkles className="h-6 w-6 text-amber-500" />
-            <h2 className="font-display text-2xl font-bold text-amber-900 md:text-3xl">Kamaʻāina Rate</h2>
+            <h2 className="font-display text-2xl font-bold text-amber-900 md:text-3xl">Kama\u02BB\u0101ina Rate</h2>
             <Sparkles className="h-6 w-6 text-amber-500" />
           </div>
           <p className="text-base text-amber-800 leading-relaxed max-w-lg mx-auto">
-            Our earliest supporters get special pricing — <strong>for life</strong>.
+            Our earliest supporters get special pricing &mdash; <strong>for life</strong>.
             <br className="hidden sm:block" />
             Lock in your rate before spots fill up.
           </p>
           <div className="mt-3">
             <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
               <Sparkles className="h-3.5 w-3.5" />
-              Kamaʻāina Rate — first {KAMAAINA_WEBSITE_SPOTS} websites
+              Kama\u02BB\u0101ina Rate &mdash; first {KAMAAINA_WEBSITE_SPOTS} websites
             </span>
           </div>
         </div>
@@ -137,14 +146,38 @@ export default function WebsitePackages() {
 
       {/* ── Package cards ──────────────────────────────────────────────────── */}
       <section id="packages" className="container max-w-5xl py-16">
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <h2 className="font-display text-2xl font-bold md:text-3xl flex items-center justify-center gap-2">
             <Globe className="h-6 w-6 text-primary" />
             Done-for-You Websites
           </h2>
           <p className="text-muted-foreground mt-2 max-w-xl mx-auto">
-            A professional website + your directory listing, built by the team that knows Hawaiʻi wellness.
+            A professional website + your directory listing, built by the team that knows Hawai\u02BBi wellness.
           </p>
+        </div>
+
+        {/* What's included with every website */}
+        <div className="rounded-xl border border-border bg-secondary/30 p-6 mb-8">
+          <p className="text-sm font-semibold text-foreground mb-4 text-center">What&apos;s included with every website</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+            {EVERY_WEBSITE_INCLUDES.map((text, i) => {
+              const Icon = BASE_FEATURE_ICONS[i] ?? CheckCircle;
+              return (
+                <div key={text} className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                  <Icon className="h-4 w-4 shrink-0 text-primary" />
+                  {text}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Kama'aina Rate badge */}
+        <div className="flex justify-center mb-8">
+          <span className="inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+            <Sparkles className="h-3.5 w-3.5" />
+            Kama\u02BB\u0101ina Rate &mdash; first {KAMAAINA_WEBSITE_SPOTS} websites
+          </span>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
@@ -162,9 +195,10 @@ export default function WebsitePackages() {
               )}
               <CardContent className={`flex flex-col flex-1 p-6 gap-5 ${pkg.highlight ? "pt-7" : ""}`}>
                 <div>
-                  <p className={`text-sm font-medium uppercase tracking-wider mb-1 ${pkg.highlight ? "text-primary" : "text-muted-foreground"}`}>
+                  <p className={`text-sm font-medium uppercase tracking-wider mb-0.5 ${pkg.highlight ? "text-primary" : "text-muted-foreground"}`}>
                     {pkg.name}
                   </p>
+                  <p className="text-base font-semibold text-foreground/80 mb-2">{pkg.tagline}</p>
                   <div className="flex items-baseline gap-2">
                     <span className="font-display text-4xl font-bold">${pkg.kamaaiaPrice.toLocaleString()}</span>
                     <span className="text-muted-foreground text-lg line-through">${pkg.price.toLocaleString()}</span>
@@ -172,7 +206,7 @@ export default function WebsitePackages() {
                   <div className="mt-2">
                     <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
                       <Sparkles className="h-3 w-3" />
-                      Kamaʻāina Rate
+                      Kama\u02BB\u0101ina Rate
                     </span>
                   </div>
                 </div>
@@ -184,14 +218,18 @@ export default function WebsitePackages() {
                       {f}
                     </li>
                   ))}
-                  <li className="flex items-start gap-2 text-sm">
-                    <Star className={`h-4 w-4 shrink-0 mt-0.5 text-amber-500`} />
-                    <span className="font-medium text-amber-800">{pkg.includedSubscription}</span>
-                  </li>
                 </ul>
 
+                {/* Value callout — prominent */}
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2.5 text-center">
+                  <p className="text-sm font-semibold text-emerald-800">{pkg.valueCallout}</p>
+                </div>
+
+                {/* After-period note */}
+                <p className="text-xs text-muted-foreground text-center leading-relaxed">{pkg.afterNote}</p>
+
                 <Button
-                  className={`w-full mt-auto gap-2`}
+                  className="w-full mt-auto gap-2"
                   variant={pkg.highlight ? "default" : "outline"}
                   asChild
                 >
@@ -208,7 +246,7 @@ export default function WebsitePackages() {
         {/* Footer notes */}
         <div className="mt-8 space-y-1.5 text-center">
           <p className="text-xs text-muted-foreground">
-            After the included subscription period, your Premium subscription continues at $49/mo (or your Kamaʻāina Rate if applicable). Cancel anytime.
+            Hosting is included at no extra cost as long as your Premium or Featured subscription is active.
           </p>
           <p className="text-xs text-muted-foreground">
             Need changes after your included revisions? Additional major revisions are $149 each.
@@ -240,7 +278,7 @@ export default function WebsitePackages() {
       <section className="container max-w-5xl py-16">
         <div className="text-center mb-10">
           <h2 className="font-display text-2xl font-bold md:text-3xl">Need more?</h2>
-          <p className="text-muted-foreground mt-2">Add these to any package — just let us know during your discovery call.</p>
+          <p className="text-muted-foreground mt-2">Add these to any package &mdash; just let us know during your discovery call.</p>
         </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {ADD_ON_CATEGORIES.map((cat) => {
