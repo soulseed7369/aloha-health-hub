@@ -1,110 +1,163 @@
 /**
- * Minimal iCal (.ics) generation utilities.
- * Generates RFC 5545-compliant VCALENDAR strings from event data.
+ * iCal (.ics) import utilities for center owners.
+ *
+ * Centers can paste a Google Calendar / Apple Calendar iCal URL or upload
+ * a .ics file to bulk-populate their events dashboard.
+ *
+ * Parses RFC 5545 VCALENDAR → array of EventFormData-compatible objects.
  */
 
-function icalDate(dateStr: string, timeStr: string | null): string {
-  // Returns YYYYMMDDTHHMMSS (local) or YYYYMMDD (all-day)
-  if (!timeStr) {
-    return dateStr.replace(/-/g, '');
+import type { EventFormData } from "@/hooks/useCenterEvents";
+
+// ─── Internal VEVENT shape ────────────────────────────────────────────────────
+
+interface ParsedVEvent {
+  summary:     string;
+  description: string;
+  dtstart:     string;   // raw value e.g. "20260401T090000" or "20260401"
+  dtend:       string;
+  location:    string;
+  url:         string;
+  rrule:       string;   // raw RRULE value e.g. "FREQ=WEEKLY;BYDAY=TU"
+}
+
+// ─── Parser ───────────────────────────────────────────────────────────────────
+
+function unfoldLines(raw: string): string[] {
+  // RFC 5545 line folding: continuation lines start with space or tab
+  return raw
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\n[ \t]/g, '')   // unfold
+    .split('\n');
+}
+
+function parseValue(line: string): { name: string; params: string; value: string } {
+  const colon = line.indexOf(':');
+  if (colon === -1) return { name: '', params: '', value: '' };
+  const nameAndParams = line.slice(0, colon);
+  const value         = line.slice(colon + 1);
+  const semi          = nameAndParams.indexOf(';');
+  if (semi === -1) return { name: nameAndParams.toUpperCase(), params: '', value };
+  return {
+    name:   nameAndParams.slice(0, semi).toUpperCase(),
+    params: nameAndParams.slice(semi + 1),
+    value,
+  };
+}
+
+function icalDateToISO(raw: string): { date: string; time: string } {
+  // Handles: 20260401, 20260401T090000, 20260401T090000Z
+  const clean = raw.replace('Z', '').replace(/[T]/g, '');
+  const date  = `${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+  const hasTime = raw.includes('T');
+  if (!hasTime) return { date, time: '' };
+  const timePart = clean.slice(8); // HHMMSS
+  const time = `${timePart.slice(0, 2)}:${timePart.slice(2, 4)}`;
+  return { date, time };
+}
+
+function rruleToHuman(rrule: string): string {
+  // Very simple — just make it readable enough for the recurrence_rule text field
+  const parts = Object.fromEntries(
+    rrule.split(';').map((p) => {
+      const [k, v] = p.split('=');
+      return [k, v];
+    })
+  );
+  const freq = parts['FREQ']?.toLowerCase() ?? '';
+  const byday = parts['BYDAY'];
+  if (byday) {
+    const dayMap: Record<string, string> = {
+      MO: 'Mon', TU: 'Tue', WE: 'Wed', TH: 'Thu',
+      FR: 'Fri', SA: 'Sat', SU: 'Sun',
+    };
+    const days = byday.split(',').map((d) => dayMap[d] ?? d).join('/');
+    return `Every ${days}`;
   }
-  const [h, m] = timeStr.split(':');
-  const datePart = dateStr.replace(/-/g, '');
-  const timePart = `${h.padStart(2, '0')}${m.padStart(2, '0')}00`;
-  return `${datePart}T${timePart}`;
+  if (freq === 'daily')   return 'Daily';
+  if (freq === 'weekly')  return 'Weekly';
+  if (freq === 'monthly') return 'Monthly';
+  return rrule;
 }
 
-function escapeIcal(str: string): string {
-  return str.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+export interface IcalImportEvent extends Partial<EventFormData> {
+  _raw?: ParsedVEvent;
 }
 
-export interface IcalEventInput {
-  title: string;
-  description?: string | null;
-  location?: string | null;
-  event_date?: string | null;
-  start_time?: string | null;
-  end_time?: string | null;
-  url?: string | null;
-}
+export function parseIcalText(text: string): IcalImportEvent[] {
+  const lines   = unfoldLines(text);
+  const events: IcalImportEvent[] = [];
+  let current: Partial<ParsedVEvent> | null = null;
 
-export function buildIcalString(event: IcalEventInput): string {
-  const uid = `${Date.now()}-${Math.random().toString(36).slice(2)}@hawaiiwellness.net`;
-  const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed === 'BEGIN:VEVENT') {
+      current = {};
+      continue;
+    }
+    if (trimmed === 'END:VEVENT' && current) {
+      if (current.summary) {
+        const start   = current.dtstart ? icalDateToISO(current.dtstart) : { date: '', time: '' };
+        const end     = current.dtend   ? icalDateToISO(current.dtend)   : { date: '', time: '' };
+        const isRecurring = !!current.rrule;
 
-  const dtstart = event.event_date
-    ? icalDate(event.event_date, event.start_time ?? null)
-    : null;
-  const dtend = event.event_date && event.end_time
-    ? icalDate(event.event_date, event.end_time)
-    : dtstart;
+        events.push({
+          title:           current.summary ?? '',
+          description:     current.description ?? '',
+          event_date:      start.date,
+          start_time:      start.time,
+          end_time:        end.time,
+          location:        current.location ?? '',
+          registration_url: current.url ?? '',
+          price_mode:      'contact',
+          price_fixed:     '',
+          price_min:       '',
+          price_max:       '',
+          max_attendees:   '',
+          is_recurring:    isRecurring,
+          recurrence_rule: isRecurring ? rruleToHuman(current.rrule ?? '') : '',
+          status:          'published',
+          _raw:            current as ParsedVEvent,
+        });
+      }
+      current = null;
+      continue;
+    }
 
-  const lines: string[] = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Hawaiʻi Wellness//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${now}`,
-  ];
+    if (!current) continue;
 
-  if (dtstart) {
-    const isAllDay = !event.start_time;
-    if (isAllDay) {
-      lines.push(`DTSTART;VALUE=DATE:${dtstart}`);
-      lines.push(`DTEND;VALUE=DATE:${dtend}`);
-    } else {
-      lines.push(`DTSTART:${dtstart}`);
-      if (dtend) lines.push(`DTEND:${dtend}`);
+    const { name, value } = parseValue(trimmed);
+    switch (name) {
+      case 'SUMMARY':     current.summary     = value; break;
+      case 'DESCRIPTION': current.description = value.replace(/\\n/g, '\n').replace(/\\,/g, ','); break;
+      case 'DTSTART':     current.dtstart     = value; break;
+      case 'DTEND':       current.dtend       = value; break;
+      case 'LOCATION':    current.location    = value; break;
+      case 'URL':         current.url         = value; break;
+      case 'RRULE':       current.rrule       = value; break;
     }
   }
 
-  lines.push(`SUMMARY:${escapeIcal(event.title)}`);
-
-  if (event.description) {
-    lines.push(`DESCRIPTION:${escapeIcal(event.description)}`);
-  }
-  if (event.location) {
-    lines.push(`LOCATION:${escapeIcal(event.location)}`);
-  }
-  if (event.url) {
-    lines.push(`URL:${event.url}`);
-  }
-
-  lines.push('END:VEVENT', 'END:VCALENDAR');
-  return lines.join('\r\n');
+  return events;
 }
 
-/** Triggers a .ics file download in the browser. */
-export function downloadIcal(event: IcalEventInput): void {
-  const ics = buildIcalString(event);
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `${event.title.replace(/\s+/g, '-').toLowerCase()}.ics`;
-  a.click();
-  URL.revokeObjectURL(url);
+/** Fetch an iCal URL and return parsed events. Requires the URL to be CORS-accessible. */
+export async function fetchAndParseIcal(url: string): Promise<IcalImportEvent[]> {
+  // Google Calendar iCal URLs need the basic/ical variant
+  // e.g. https://calendar.google.com/calendar/ical/xxx/public/basic.ics
+  const res = await fetch(url, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`Failed to fetch calendar: ${res.status} ${res.statusText}`);
+  const text = await res.text();
+  return parseIcalText(text);
 }
 
-/** Build a Google Calendar "add event" URL. */
-export function googleCalendarUrl(event: IcalEventInput): string {
-  const base = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
-  const params = new URLSearchParams();
-  params.set('text', event.title);
-
-  if (event.event_date) {
-    const start = icalDate(event.event_date, event.start_time ?? null);
-    const end   = event.end_time
-      ? icalDate(event.event_date, event.end_time)
-      : start;
-    params.set('dates', `${start}/${end}`);
-  }
-  if (event.description) params.set('details', event.description);
-  if (event.location)    params.set('location', event.location);
-  if (event.url)         params.set('sprop', `website:${event.url}`);
-
-  return `${base}&${params.toString()}`;
+/** Parse an uploaded .ics File object. */
+export function parseIcalFile(file: File): Promise<IcalImportEvent[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = (e) => resolve(parseIcalText(e.target?.result as string ?? ''));
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
 }

@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CalendarDays, Plus, Trash2, Pencil, ChevronDown, ChevronUp,
-  Repeat, DollarSign, MapPin, ExternalLink, Sparkles,
+  Repeat, DollarSign, MapPin, ExternalLink, Sparkles, Upload,
+  Link as LinkIcon, CheckCircle2, X,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -26,6 +27,7 @@ import {
   type CenterEventRow,
   type EventFormData,
 } from "@/hooks/useCenterEvents";
+import { fetchAndParseIcal, parseIcalFile, type IcalImportEvent } from "@/lib/ical";
 import type { CenterRow } from "@/types/database";
 
 // ─── Amenities ────────────────────────────────────────────────────────────────
@@ -463,9 +465,259 @@ function EventCard({ event, centerId }: { event: CenterEventRow; centerId: strin
 
 // ─── Events panel ─────────────────────────────────────────────────────────────
 
+// ─── iCal Import Panel ────────────────────────────────────────────────────────
+
+function IcalImportPanel({
+  centerId,
+  onClose,
+}: {
+  centerId: string;
+  onClose: () => void;
+}) {
+  const [mode, setMode]         = useState<'url' | 'file'>('url');
+  const [url, setUrl]           = useState('');
+  const [loading, setLoading]   = useState(false);
+  const [preview, setPreview]   = useState<IcalImportEvent[] | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const addMutation = useAddCenterEvent(centerId);
+
+  const handleFetchUrl = async () => {
+    if (!url.trim()) { toast.error('Paste your iCal URL first.'); return; }
+    setLoading(true);
+    try {
+      const events = await fetchAndParseIcal(url.trim());
+      if (events.length === 0) {
+        toast.error('No events found in that calendar. Make sure the calendar is public.');
+        return;
+      }
+      setPreview(events);
+      setSelected(new Set(events.map((_, i) => i)));
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : 'Could not fetch calendar. Make sure it is a public iCal URL.',
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLoading(true);
+    try {
+      const events = await parseIcalFile(file);
+      if (events.length === 0) {
+        toast.error('No events found in that file.');
+        return;
+      }
+      setPreview(events);
+      setSelected(new Set(events.map((_, i) => i)));
+    } catch {
+      toast.error('Could not parse the .ics file.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleSelect = (i: number) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+
+  const handleImport = async () => {
+    if (!preview || selected.size === 0) return;
+    let ok = 0;
+    let fail = 0;
+    for (const i of selected) {
+      const ev = preview[i];
+      try {
+        await addMutation.mutateAsync({
+          title:           ev.title ?? '',
+          description:     ev.description ?? '',
+          event_date:      ev.event_date ?? '',
+          start_time:      ev.start_time ?? '',
+          end_time:        ev.end_time   ?? '',
+          price_mode:      ev.price_mode ?? 'contact',
+          price_fixed:     ev.price_fixed  ?? '',
+          price_min:       ev.price_min    ?? '',
+          price_max:       ev.price_max    ?? '',
+          location:        ev.location        ?? '',
+          registration_url: ev.registration_url ?? '',
+          max_attendees:   ev.max_attendees   ?? '',
+          is_recurring:    ev.is_recurring    ?? false,
+          recurrence_rule: ev.recurrence_rule ?? '',
+          status:          'published',
+        });
+        ok++;
+      } catch {
+        fail++;
+      }
+    }
+    toast.success(
+      fail === 0
+        ? `${ok} event${ok !== 1 ? 's' : ''} imported.`
+        : `${ok} imported, ${fail} failed.`,
+    );
+    onClose();
+  };
+
+  // ── Step 1: source picker ────────────────────────────────────────────────
+  if (!preview) {
+    return (
+      <Card className="border-primary/20 bg-muted/30">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Upload className="h-4 w-4" /> Import from Calendar
+          </CardTitle>
+          <CardDescription>
+            Import your existing schedule from Google Calendar, Apple Calendar, or any .ics file.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Tab toggle */}
+          <div className="flex rounded-lg border overflow-hidden w-fit">
+            <button
+              onClick={() => setMode('url')}
+              className={`px-4 py-1.5 text-sm font-medium flex items-center gap-1.5 ${mode === 'url' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+            >
+              <LinkIcon className="h-3.5 w-3.5" /> iCal URL
+            </button>
+            <button
+              onClick={() => setMode('file')}
+              className={`px-4 py-1.5 text-sm font-medium flex items-center gap-1.5 ${mode === 'file' ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'}`}
+            >
+              <Upload className="h-3.5 w-3.5" /> Upload .ics
+            </button>
+          </div>
+
+          {mode === 'url' ? (
+            <div className="space-y-2">
+              <Label>iCal URL</Label>
+              <Input
+                placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                In Google Calendar: ⋮ next to your calendar → Settings → "Secret address in iCal format"
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label>Upload .ics file</Label>
+              <input
+                type="file"
+                accept=".ics,text/calendar"
+                className="block text-sm file:mr-3 file:rounded file:border file:border-border file:bg-background file:px-3 file:py-1 file:text-xs file:font-medium"
+                onChange={handleFile}
+              />
+              <p className="text-xs text-muted-foreground">
+                Export from Google Calendar: Settings → your calendar → Export. From Apple Calendar: File → Export.
+              </p>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={onClose}>Cancel</Button>
+            {mode === 'url' && (
+              <Button size="sm" onClick={handleFetchUrl} disabled={loading}>
+                {loading ? 'Fetching…' : 'Preview Events'}
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // ── Step 2: preview & select ─────────────────────────────────────────────
+  return (
+    <Card className="border-primary/20 bg-muted/30">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base">
+            {preview.length} event{preview.length !== 1 ? 's' : ''} found — select to import
+          </CardTitle>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <button
+            className="hover:text-foreground"
+            onClick={() => setSelected(new Set(preview.map((_, i) => i)))}
+          >
+            Select all
+          </button>
+          <span>·</span>
+          <button className="hover:text-foreground" onClick={() => setSelected(new Set())}>
+            Deselect all
+          </button>
+          <span className="ml-auto font-medium text-foreground">
+            {selected.size} selected
+          </span>
+        </div>
+
+        <div className="max-h-72 overflow-y-auto space-y-1.5 pr-1">
+          {preview.map((ev, i) => (
+            <label
+              key={i}
+              className={`flex cursor-pointer items-start gap-3 rounded-lg border p-2.5 transition-colors ${
+                selected.has(i) ? 'border-primary/50 bg-primary/5' : 'hover:bg-muted/50'
+              }`}
+            >
+              <input
+                type="checkbox"
+                className="mt-0.5 h-3.5 w-3.5 accent-primary shrink-0"
+                checked={selected.has(i)}
+                onChange={() => toggleSelect(i)}
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{ev.title}</p>
+                <p className="text-xs text-muted-foreground">
+                  {ev.is_recurring
+                    ? ev.recurrence_rule || 'Recurring'
+                    : [ev.event_date, ev.start_time].filter(Boolean).join(' · ')}
+                  {ev.location && ` · ${ev.location}`}
+                </p>
+              </div>
+              {selected.has(i) && (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+              )}
+            </label>
+          ))}
+        </div>
+
+        <div className="flex justify-end gap-2 pt-1">
+          <Button variant="outline" size="sm" onClick={() => setPreview(null)}>Back</Button>
+          <Button
+            size="sm"
+            onClick={handleImport}
+            disabled={selected.size === 0 || addMutation.isPending}
+          >
+            {addMutation.isPending
+              ? 'Importing…'
+              : `Import ${selected.size} Event${selected.size !== 1 ? 's' : ''}`}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Events Panel ─────────────────────────────────────────────────────────────
+
 function EventsPanel({ centerId }: { centerId: string }) {
   const { data: events = [], isLoading } = useCenterEvents(centerId);
   const [adding, setAdding]     = useState(false);
+  const [importing, setImporting] = useState(false);
   const [expanded, setExpanded] = useState(true);
 
   return (
@@ -479,20 +731,38 @@ function EventsPanel({ centerId }: { centerId: string }) {
           Events ({events.length})
           {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
         </button>
-        {!adding && expanded && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 gap-1 text-xs"
-            onClick={() => setAdding(true)}
-          >
-            <Plus className="h-3.5 w-3.5" /> Add Event
-          </Button>
+        {!adding && !importing && expanded && (
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 text-xs text-muted-foreground"
+              onClick={() => setImporting(true)}
+              title="Import from Google Calendar or .ics file"
+            >
+              <Upload className="h-3.5 w-3.5" /> Import
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 gap-1 text-xs"
+              onClick={() => setAdding(true)}
+            >
+              <Plus className="h-3.5 w-3.5" /> Add Event
+            </Button>
+          </div>
         )}
       </div>
 
       {expanded && (
         <div className="space-y-2">
+          {importing && (
+            <IcalImportPanel
+              centerId={centerId}
+              onClose={() => setImporting(false)}
+            />
+          )}
+
           {isLoading && (
             <>
               <Skeleton className="h-14 w-full rounded-lg" />
@@ -504,9 +774,9 @@ function EventsPanel({ centerId }: { centerId: string }) {
             <EventCard key={ev.id} event={ev} centerId={centerId} />
           ))}
 
-          {!isLoading && events.length === 0 && !adding && (
+          {!isLoading && events.length === 0 && !adding && !importing && (
             <p className="rounded-lg border border-dashed p-3 text-center text-sm text-muted-foreground">
-              No events yet. Add your first class, workshop, or retreat.
+              No events yet. Add manually or import from your calendar.
             </p>
           )}
 

@@ -17,7 +17,7 @@ import {
 import {
   MapPin, Phone, Mail, Globe, ExternalLink,
   Quote, Flag, Instagram, Facebook, Linkedin, Link2, Check, Clock,
-  Star, Users, CalendarDays, Download, Repeat,
+  Star, Users, CalendarDays, Repeat,
 } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
 import { usePageMeta } from "@/hooks/usePageMeta";
@@ -25,7 +25,6 @@ import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
 import type { CenterLocationRow } from "@/types/database";
 import type { CenterEventRow } from "@/hooks/useCenterEvents";
-import { downloadIcal, googleCalendarUrl } from "@/lib/ical";
 
 // ── Island labels ──────────────────────────────────────────────────────────────
 const ISLAND_LABELS: Record<string, string> = {
@@ -71,21 +70,12 @@ function eventPriceLabel(ev: CenterEventRow): string {
   return '';
 }
 
-// ── Public event card with iCal ────────────────────────────────────────────────
-function PublicEventCard({ event: ev, centerName }: { event: CenterEventRow; centerName: string }) {
-  const dateLabel  = ev.is_recurring
+// ── Public event card ──────────────────────────────────────────────────────────
+function PublicEventCard({ event: ev }: { event: CenterEventRow }) {
+  const dateLabel = ev.is_recurring
     ? (ev.recurrence_rule || 'Recurring')
     : formatEventDate(ev.event_date, ev.start_time);
-  const price      = eventPriceLabel(ev);
-  const gcalUrl    = ev.event_date ? googleCalendarUrl({
-    title:       ev.title,
-    description: ev.description ?? undefined,
-    location:    ev.location    ?? centerName,
-    event_date:  ev.event_date,
-    start_time:  ev.start_time  ?? undefined,
-    end_time:    ev.end_time    ?? undefined,
-    url:         ev.registration_url ?? undefined,
-  }) : null;
+  const price = eventPriceLabel(ev);
 
   return (
     <Card className="overflow-hidden">
@@ -110,7 +100,11 @@ function PublicEventCard({ event: ev, centerName }: { event: CenterEventRow; cen
             )}
             <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               {price && <span className="font-medium text-foreground">{price}</span>}
-              {ev.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{ev.location}</span>}
+              {ev.location && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />{ev.location}
+                </span>
+              )}
               {ev.max_attendees && (
                 <span>
                   {ev.attendees_booked}/{ev.max_attendees} spots
@@ -122,46 +116,13 @@ function PublicEventCard({ event: ev, centerName }: { event: CenterEventRow; cen
             </div>
           </div>
 
-          {/* CTAs */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
-            {ev.registration_url && (
-              <Button size="sm" asChild>
-                <a href={ev.registration_url} target="_blank" rel="noopener noreferrer">
-                  Register <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
-                </a>
-              </Button>
-            )}
-            {!ev.is_recurring && ev.event_date && (
-              <div className="flex gap-1">
-                {gcalUrl && (
-                  <a
-                    href={gcalUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted flex items-center gap-1"
-                    title="Add to Google Calendar"
-                  >
-                    <CalendarDays className="h-3 w-3" /> GCal
-                  </a>
-                )}
-                <button
-                  className="rounded border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted flex items-center gap-1"
-                  title="Download .ics"
-                  onClick={() => downloadIcal({
-                    title:       ev.title,
-                    description: ev.description ?? undefined,
-                    location:    ev.location    ?? centerName,
-                    event_date:  ev.event_date,
-                    start_time:  ev.start_time  ?? undefined,
-                    end_time:    ev.end_time    ?? undefined,
-                    url:         ev.registration_url ?? undefined,
-                  })}
-                >
-                  <Download className="h-3 w-3" /> .ics
-                </button>
-              </div>
-            )}
-          </div>
+          {ev.registration_url && (
+            <Button size="sm" asChild className="shrink-0">
+              <a href={ev.registration_url} target="_blank" rel="noopener noreferrer">
+                Register <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+              </a>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -538,7 +499,7 @@ export default function CenterDetail() {
               </h2>
               <div className="space-y-3">
                 {events.map((ev) => (
-                  <PublicEventCard key={ev.id} event={ev} centerName={c.name} />
+                  <PublicEventCard key={ev.id} event={ev} />
                 ))}
               </div>
             </div>
