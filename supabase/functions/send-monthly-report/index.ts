@@ -35,6 +35,13 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
+  // Auth: require REPORT_API_KEY header
+  const apiKey = req.headers.get('x-api-key');
+  const expectedKey = Deno.env.get('REPORT_API_KEY');
+  if (!expectedKey || apiKey !== expectedKey) {
+    return json({ error: 'Unauthorized' }, 401);
+  }
+
   try {
     const resendKey = Deno.env.get('RESEND_API_KEY');
     if (!resendKey) {

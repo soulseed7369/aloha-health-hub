@@ -84,12 +84,21 @@ export function RichTextEditor({ content, onChange, placeholder = 'Write your ar
 
   const handleAddLink = () => {
     if (!editor) return;
-    const url = window.prompt('URL:');
-    if (!url) return;
-    if (editor.state.selection.empty) {
-      editor.chain().focus().insertContent(`<a href="${url}">${url}</a>`).run();
-    } else {
-      editor.chain().focus().extendMarkToLink({ href: url }).run();
+    const rawUrl = window.prompt('URL:');
+    if (!rawUrl) return;
+
+    // Validate URL - only allow http/https protocols
+    try {
+      const parsed = new URL(rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`);
+      if (!['http:', 'https:'].includes(parsed.protocol)) return;
+
+      if (editor.state.selection.empty) {
+        editor.chain().focus().insertContent(`<a href="${parsed.href}">${parsed.href}</a>`).run();
+      } else {
+        editor.chain().focus().extendMarkToLink({ href: parsed.href }).run();
+      }
+    } catch {
+      // Invalid URL, ignore
     }
   };
 

@@ -303,6 +303,9 @@ export default function CenterDetail() {
     : 'Wellness Center Profile';
   usePageMeta(c ? c.name : 'Wellness Center', metaDesc);
 
+  const isClaimed = !!c?.ownerId;
+  const isTiered = c && (c.tier === 'premium' || c.tier === 'featured');
+
   // Tab visibility logic
   const showLocationsTab = locations.length > 1;
   const showEventsTab = isTiered && events.length > 0;
@@ -341,9 +344,6 @@ export default function CenterDetail() {
         ],
       }
     : null;
-
-  const isClaimed = !!c?.ownerId;
-  const isTiered = c && (c.tier === 'premium' || c.tier === 'featured');
 
   // ── Service catalog schema — only for featured tier ──────────────────
   const serviceCatalogSchema = c && c.tier === 'featured' && c.modalities.length > 0 ? {
@@ -456,7 +456,7 @@ export default function CenterDetail() {
       <section className="relative mt-4">
         <div className="h-48 overflow-hidden md:h-64">
           <img
-            src={c.photos[0] || PLACEHOLDER_COVER}
+            src={c.photos?.[0] || PLACEHOLDER_COVER}
             alt={`${c.name} cover`}
             className="h-full w-full object-cover"
             loading="eager"
@@ -635,7 +635,7 @@ export default function CenterDetail() {
               )}
 
               {/* Photo gallery */}
-              {isTiered && c.photos.length > 1 && (
+              {isTiered && c.photos && c.photos.length > 1 && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">

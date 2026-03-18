@@ -28,7 +28,9 @@ export function useCreateCheckoutSession() {
         throw new Error('You must be logged in to upgrade. Please sign in again.');
       }
 
-      console.log('[checkout] token refreshed, expires_at:', session.expires_at);
+      if (import.meta.env.DEV) {
+        console.log('[checkout] token refreshed, expires_at:', session.expires_at);
+      }
 
       // Use supabase.functions.invoke — the official SDK method that correctly
       // handles apikey, Authorization, session refresh, and response parsing.

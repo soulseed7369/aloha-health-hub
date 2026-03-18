@@ -32,6 +32,16 @@ export function useSubmitFlag() {
   return useMutation({
     mutationFn: async (payload: SubmitFlagPayload) => {
       if (!supabase) throw new Error('Supabase not configured');
+
+      // Input validation
+      const VALID_REASONS = ['closed', 'inaccurate', 'duplicate', 'spam', 'inappropriate'];
+      if (!VALID_REASONS.includes(payload.reason)) {
+        throw new Error('Invalid reason');
+      }
+      if (payload.details && payload.details.length > 1000) {
+        throw new Error('Details must be under 1000 characters');
+      }
+
       const { error } = await supabase.from('listing_flags').insert(payload);
       if (error) throw error;
     },

@@ -38,7 +38,13 @@ export default function Auth() {
     if (pending && validPlans.includes(pending) && pending !== 'free') {
       navigate('/dashboard/billing');
     } else if (claimId) {
-      navigate(`/claim/${claimId}`);
+      // Validate claimId is a valid UUID before using it
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      if (UUID_RE.test(claimId)) {
+        navigate(`/claim/${claimId}`);
+      } else {
+        navigate('/dashboard');
+      }
     } else if (redirectTo && typeof redirectTo === 'string' && redirectTo.startsWith('/')) {
       // Ensure redirectTo is a relative path to prevent open redirect
       navigate(redirectTo);
