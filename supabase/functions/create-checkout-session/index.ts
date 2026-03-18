@@ -107,9 +107,16 @@ Deno.serve(async (req) => {
       return json({ error: `Invalid priceId: ${priceId}` }, 400);
     }
 
-    // ── Promo ──────────────────────────────────────────────────────────────
-    const PROMO_ACTIVE = Deno.env.get('PROMO_ACTIVE') === 'true';
-    const PROMO_COUPON_ID = 'o1QERmQL';
+    // ── Kamaʻāina Rate coupons (per-price, with max_redemptions set in Stripe) ──
+    // Stripe auto-rejects the coupon once max redemptions are hit,
+    // so checkout falls through to full price gracefully.
+    const KAMAAINA_COUPONS: Record<string, string> = {
+      'price_1T7lnYAmznBlrx8sZkolChSm': 'BBcPxrKU',  // Practitioner Premium — first 10
+      'price_1T7loEAmznBlrx8s5j92qxX8': 'UeVQl6gU',  // Practitioner Featured — first 5
+      'price_1TCA70AmznBlrx8sSVyl2HtA': 'VePaXQxy',  // Center Premium — first 5
+      'price_1TCA7KAmznBlrx8s2IOtOThI': 'nxaOxE61',  // Center Featured — first 5
+    };
+    const kamaalainaCoupon = KAMAAINA_COUPONS[priceId] ?? null;
 
     // ── Look up or create Stripe customer ──────────────────────────────────
     const { data: profile } = await supabaseAdmin
@@ -131,19 +138,42 @@ Deno.serve(async (req) => {
     }
 
     // ── Create Stripe Checkout session ─────────────────────────────────────
-    const session = await stripe.checkout.sessions.create({
+    const checkoutParams = {
       customer: customerId,
-      mode: 'subscription',
-      payment_method_types: ['card'],
+      mode: 'subscription' as const,
+      payment_method_types: ['card' as const],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: successUrl,
       cancel_url: cancelUrl,
       metadata: { user_id: userId },
       subscription_data: { metadata: { user_id: userId } },
-      ...(PROMO_ACTIVE
-        ? { discounts: [{ coupon: PROMO_COUPON_ID }] }
-        : { allow_promotion_codes: true }),
-    });
+    };
+
+    let session;
+    if (kamaalainaCoupon) {
+      try {
+        // Try with Kamaʻāina Rate coupon
+        session = await stripe.checkout.sessions.create({
+          ...checkoutParams,
+          discounts: [{ coupon: kamaalainaCoupon }],
+        });
+      } catch (couponErr: unknown) {
+        // Coupon maxed out or invalid — fall back to full price with manual promo codes
+        console.log('Kamaʻāina coupon unavailable, falling back to full price', {
+          coupon: kamaalainaCoupon,
+          error: couponErr instanceof Error ? couponErr.message : String(couponErr),
+        });
+        session = await stripe.checkout.sessions.create({
+          ...checkoutParams,
+          allow_promotion_codes: true,
+        });
+      }
+    } else {
+      session = await stripe.checkout.sessions.create({
+        ...checkoutParams,
+        allow_promotion_codes: true,
+      });
+    }
 
     return json({ url: session.url });
 

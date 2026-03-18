@@ -93,11 +93,11 @@ type PricingMode = "practitioner" | "center";
 
 const PRICING = {
   practitioner: {
-    premium:  { price: 49,  kamaaina: 39,  spots: 20, priceId: STRIPE_PRICES.PREMIUM_MONTHLY },
+    premium:  { price: 49,  kamaaina: 39,  spots: 10, priceId: STRIPE_PRICES.PREMIUM_MONTHLY },
     featured: { price: 129, kamaaina: 99,  spots: 5,  priceId: STRIPE_PRICES.FEATURED_MONTHLY },
   },
   center: {
-    premium:  { price: 79,  kamaaina: 59,  spots: 10, priceId: STRIPE_PRICES.CENTER_PREMIUM_MONTHLY },
+    premium:  { price: 79,  kamaaina: 59,  spots: 5,  priceId: STRIPE_PRICES.CENTER_PREMIUM_MONTHLY },
     featured: { price: 199, kamaaina: 149, spots: 5,  priceId: STRIPE_PRICES.CENTER_FEATURED_MONTHLY },
   },
 } as const;
