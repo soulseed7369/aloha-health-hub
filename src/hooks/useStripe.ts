@@ -22,33 +22,34 @@ export function useCreateCheckoutSession() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('You must be logged in to upgrade');
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout-session`,
+      // Use supabase.functions.invoke — the official SDK method that correctly
+      // handles apikey, Authorization, session refresh, and response parsing.
+      const { data, error } = await supabase.functions.invoke(
+        'create-checkout-session',
         {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({
+          body: {
             priceId,
             successUrl: successUrl ?? `${window.location.origin}/dashboard/billing?success=1`,
             cancelUrl:  cancelUrl  ?? `${window.location.origin}/dashboard/billing`,
-          }),
+          },
         },
       );
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to create checkout session');
+      if (error) {
+        // FunctionsHttpError has a .context Response — extract the real message
+        let message = error.message;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const body = await (error as any).context?.json?.();
+          if (body?.error) message = body.error;
+        } catch { /* ignore parse errors */ }
+        throw new Error(message || 'Failed to create checkout session');
       }
 
-      const { url } = await res.json();
-      return url as string;
+      if (!data?.url) throw new Error('No checkout URL returned');
+      return data.url as string;
     },
     onSuccess: (url) => {
-      // Redirect to Stripe Checkout
       window.location.href = url;
     },
   });
