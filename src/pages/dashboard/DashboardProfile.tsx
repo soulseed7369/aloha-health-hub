@@ -358,31 +358,66 @@ export default function DashboardProfile() {
         <CardHeader>
           <CardTitle className="text-lg">About</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <Textarea
             placeholder="Tell potential clients about your practice, philosophy, and experience..."
             className="min-h-[140px]"
             value={form.bio}
+            maxLength={isPremiumOrFeatured ? undefined : 250}
             onChange={e => setForm(p => ({ ...p, bio: e.target.value }))}
           />
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-muted-foreground">
+              {isPremiumOrFeatured ? 'Unlimited' : `${form.bio.length}/250 characters`}
+            </p>
+            {!isPremiumOrFeatured && (
+              <p className="text-xs text-amber-600">
+                Upgrade to Premium for unlimited bio
+              </p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {/* What to Expect */}
-      <Card>
+      {/* What to Expect — Premium / Featured only */}
+      <Card className={isPremiumOrFeatured ? "border-primary/30 bg-terracotta-light/30" : "border-border bg-muted/40"}>
         <CardHeader>
-          <CardTitle className="text-lg">What to Expect</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {isPremiumOrFeatured
+              ? <ExternalLink className="h-4 w-4 text-primary" />
+              : <Lock className="h-4 w-4 text-muted-foreground" />}
+            What to Expect
+            {!isPremiumOrFeatured && (
+              <span className="ml-auto flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <Crown className="h-3 w-3" /> Premium
+              </span>
+            )}
+          </CardTitle>
           <CardDescription>
             Help clients understand what a session with you looks like — format, duration, what to bring, how to prepare.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Textarea
-            placeholder="e.g. Sessions are 60–90 minutes. We begin with a brief intake conversation, followed by hands-on bodywork..."
-            className="min-h-[120px]"
-            value={form.what_to_expect}
-            onChange={e => setForm(p => ({ ...p, what_to_expect: e.target.value }))}
-          />
+          {isPremiumOrFeatured ? (
+            <Textarea
+              placeholder="e.g. Sessions are 60–90 minutes. We begin with a brief intake conversation, followed by hands-on bodywork..."
+              className="min-h-[120px]"
+              value={form.what_to_expect}
+              onChange={e => setForm(p => ({ ...p, what_to_expect: e.target.value }))}
+            />
+          ) : (
+            <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-center">
+              <p className="mb-3 text-sm text-muted-foreground">
+                Upgrade to Premium to tell clients what to expect during a session with you.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/list-your-practice">
+                  <Crown className="mr-1.5 h-3.5 w-3.5 text-primary" />
+                  Upgrade to Premium
+                </Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -402,6 +437,42 @@ export default function DashboardProfile() {
               onChange={e => setForm(p => ({ ...p, website_url: e.target.value }))}
             />
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Social Links — Premium / Featured only */}
+      <Card className={isPremiumOrFeatured ? "border-primary/30 bg-terracotta-light/30" : "border-border bg-muted/40"}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {isPremiumOrFeatured
+              ? <ExternalLink className="h-4 w-4 text-primary" />
+              : <Lock className="h-4 w-4 text-muted-foreground" />}
+            Social Media Links
+            {!isPremiumOrFeatured && (
+              <span className="ml-auto flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <Crown className="h-3 w-3" /> Premium
+              </span>
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isPremiumOrFeatured ? (
+            <p className="text-sm text-muted-foreground">
+              Social media links feature coming soon. Your social profiles will be displayed on your public profile.
+            </p>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-center">
+              <p className="mb-3 text-sm text-muted-foreground">
+                Social media links are available on Premium and Featured plans. Add your Instagram, Facebook, and other profiles to help clients connect with you.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/list-your-practice">
+                  <Crown className="mr-1.5 h-3.5 w-3.5 text-primary" />
+                  Upgrade to Premium
+                </Link>
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 

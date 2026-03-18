@@ -324,9 +324,9 @@ const ProfileDetail = () => {
   const showOfferingsTab = isTiered && (offerings?.length ?? 0) > 0;
   // Hide testimonials tab when neither the DB testimonials nor the legacy array have data.
   // newTestimonials is undefined while loading; fall back to p.testimonials to avoid flickering the tab away on load.
-  const showTestimonialsTab = newTestimonials != null
+  const showTestimonialsTab = isTiered && (newTestimonials != null
     ? newTestimonials.length > 0 || p.testimonials.length > 0
-    : p.testimonials.length > 0;
+    : p.testimonials.length > 0);
 
   // ── Structured data ──────────────────────────────────────────────────────
   const profileUrl = `${SITE_URL}/profile/${p.id}`;
@@ -590,7 +590,10 @@ const ProfileDetail = () => {
               {p.about && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">About</h2>
-                  <p className="leading-relaxed text-muted-foreground">{p.about}</p>
+                  <p className="leading-relaxed text-muted-foreground">
+                    {isTiered ? p.about : p.about.slice(0, 250)}
+                    {!isTiered && p.about.length > 250 && '…'}
+                  </p>
                 </div>
               )}
 
@@ -694,7 +697,7 @@ const ProfileDetail = () => {
                 </div>
               )}
 
-              {p.whatToExpect && (
+              {isTiered && p.whatToExpect && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">What to Expect</h2>
                   <p className="leading-relaxed text-muted-foreground">{p.whatToExpect}</p>
@@ -702,11 +705,11 @@ const ProfileDetail = () => {
               )}
 
               {/* Working Hours */}
-              {hasHours && workingHours && (
+              {isTiered && hasHours && workingHours && (
                 <WorkingHours hours={workingHours} />
               )}
 
-              {p.gallery.length > 0 && (
+              {isTiered && p.gallery.length > 0 && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -1057,7 +1060,7 @@ const ProfileDetail = () => {
                 })()}
 
                 {/* Social links */}
-                {p.socialLinks && Object.values(p.socialLinks).some(Boolean) && (
+                {isTiered && p.socialLinks && Object.values(p.socialLinks).some(Boolean) && (
                   <div className="flex flex-wrap gap-3 pt-1 border-t border-border/50">
                     {p.socialLinks.instagram && (
                       <a href={p.socialLinks.instagram} target="_blank" rel="noopener noreferrer"

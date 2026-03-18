@@ -296,8 +296,8 @@ export default function CenterDetail() {
 
   // Tab visibility logic
   const showLocationsTab = locations.length > 1;
-  const showEventsTab = events.length > 0;
-  const showTestimonialsTab = c?.testimonials && c.testimonials.length > 0;
+  const showEventsTab = isTiered && events.length > 0;
+  const showTestimonialsTab = isTiered && c?.testimonials && c.testimonials.length > 0;
 
   const centerUrl = `${SITE_URL}/center/${id}`;
 
@@ -334,6 +334,7 @@ export default function CenterDetail() {
     : null;
 
   const isClaimed = !!c?.ownerId;
+  const isTiered = c && (c.tier === 'premium' || c.tier === 'featured');
 
   // Primary location (for sidebar contact info override when multiple locations)
   const primaryLocation = locations.find((l) => l.is_primary) ?? locations[0] ?? null;
@@ -529,7 +530,10 @@ export default function CenterDetail() {
               {c.about && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">About</h2>
-                  <p className="leading-relaxed text-muted-foreground">{c.about}</p>
+                  <p className="leading-relaxed text-muted-foreground">
+                    {isTiered ? c.about : c.about.slice(0, 250)}
+                    {!isTiered && c.about.length > 250 && '…'}
+                  </p>
                 </div>
               )}
 
@@ -549,7 +553,7 @@ export default function CenterDetail() {
               )}
 
               {/* Hours — single location, or center root hours when no location records exist */}
-              {locations.length <= 1 && hasHours && hoursSource && (
+              {isTiered && locations.length <= 1 && hasHours && hoursSource && (
                 <div>
                   <h2 className="mb-3 flex items-center gap-2 font-display text-xl font-bold">
                     <Clock className="h-5 w-5 text-primary" /> Hours
@@ -559,7 +563,7 @@ export default function CenterDetail() {
               )}
 
               {/* Amenities */}
-              {c.amenities.length > 0 && (
+              {isTiered && c.amenities.length > 0 && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">Amenities</h2>
                   <div className="flex flex-wrap gap-2">
@@ -573,7 +577,7 @@ export default function CenterDetail() {
               )}
 
               {/* Photo gallery */}
-              {c.photos.length > 1 && (
+              {isTiered && c.photos.length > 1 && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -690,7 +694,7 @@ export default function CenterDetail() {
                 </div>
 
                 {/* Social links */}
-                {c.socialLinks && Object.values(c.socialLinks).some(Boolean) && (
+                {isTiered && c.socialLinks && Object.values(c.socialLinks).some(Boolean) && (
                   <div className="flex flex-wrap gap-3 border-t border-border/50 pt-1">
                     {c.socialLinks.instagram && (
                       <a href={c.socialLinks.instagram} target="_blank" rel="noopener noreferrer"

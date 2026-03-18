@@ -13,54 +13,64 @@ import { supabase } from "@/lib/supabase";
 
 const FREE_FEATURES = [
   "Basic directory listing",
-  "Name, bio, location & modalities",
-  "Contact information",
-  "Website link",
-  "Photo upload",
+  "Name, location & modalities",
+  "Contact information & website",
+  "Photo upload (1 profile photo)",
+  "About section (250 characters)",
 ];
 
 const PRAC_PREMIUM_FEATURES = [
-  "Everything in Free",
-  "Offerings, Classes & Testimonials",
+  "Everything in Free, plus:",
+  "Unlimited bio & 'What to Expect' section",
   "Social media links on your profile",
-  "Booking, messaging & discovery call CTAs",
+  "Client testimonials display",
+  "Photo gallery (up to 5 photos)",
   "Working hours display",
+  "Offerings, classes & events",
+  "Booking, messaging & discovery call CTAs",
   "Priority listing placement",
 ];
 
 const PRAC_FEATURED_FEATURES = [
-  "Everything in Premium",
+  "Everything in Premium, plus:",
+  "Photo gallery (up to 10 photos)",
+  "Booking calendar embed",
   '"Featured Practitioner" badge',
   "Homepage spotlight rotation",
-  "Top placement on island search pages",
-  "Maximum visibility — limited to 5 per island",
+  "Top placement in search results",
+  "Limited featured spots per island",
 ];
 
 const CENTER_FREE_FEATURES = [
   "Basic center listing",
   "Center type, location & modalities",
   "Contact information & website",
-  "Photo upload",
-  "Multiple locations support",
+  "Photo upload (1 profile photo)",
+  "Description (250 characters)",
+  "Single location only",
 ];
 
 const CENTER_PREMIUM_FEATURES = [
-  "Everything in Free",
-  "Full photo gallery (up to 5 photos)",
+  "Everything in Free, plus:",
+  "Unlimited description",
+  "Photo gallery (up to 5 photos)",
   "Events & classes calendar",
-  "Staff / practitioner roster",
   "Client testimonials",
   "Social media links",
   "Working hours per location",
+  "Amenities display",
+  "Up to 3 locations",
   "Priority listing placement",
 ];
 
 const CENTER_FEATURED_FEATURES = [
-  "Everything in Premium",
+  "Everything in Premium, plus:",
+  "Photo gallery (up to 10 photos)",
+  "Unlimited locations",
   '"Featured Center" badge',
   "Homepage spotlight rotation",
-  "Top placement on island search pages",
-  "Maximum visibility — limited to 5 per island",
+  "Top placement in search results",
+  "Limited featured spots per island",
 ];
 
 // ─── Pricing data ─────────────────────────────────────────────────────────────

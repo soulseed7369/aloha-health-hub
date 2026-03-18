@@ -17,6 +17,8 @@ import {
   ChevronDown,
   ChevronUp,
   Pencil,
+  Lock,
+  Crown,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -336,12 +338,14 @@ function LocationCard({
 
 // ─── LocationsPanel ───────────────────────────────────────────────────────────
 
-function LocationsPanel({ centerId }: { centerId: string }) {
+function LocationsPanel({ centerId, tier = 'free' }: { centerId: string; tier?: 'free' | 'premium' | 'featured' }) {
   const { data: locations = [], isLoading } = useCenterLocations(centerId);
   const [adding, setAdding]       = useState(false);
   const [expanded, setExpanded]   = useState(true);
 
   const isFirst = locations.length === 0 && !adding;
+  const isFree = tier === 'free';
+  const canAddLocation = !isFree || locations.length === 0;
 
   return (
     <div className="space-y-3 pt-2">
@@ -360,6 +364,8 @@ function LocationsPanel({ centerId }: { centerId: string }) {
             size="sm"
             className="h-7 gap-1 text-xs"
             onClick={() => setAdding(true)}
+            disabled={!canAddLocation}
+            title={!canAddLocation ? `Free tier limited to 1 location` : ''}
           >
             <Plus className="h-3.5 w-3.5" />
             {locations.length === 0 ? "Add Primary Location" : "Add Location"}
@@ -535,7 +541,7 @@ export default function DashboardCenters() {
                 {/* Expanded: Locations + Events + Amenities */}
                 {expandedId === center.id && (
                   <div className="mt-4 border-t pt-3">
-                    <LocationsPanel centerId={center.id} />
+                    <LocationsPanel centerId={center.id} tier={center.tier ?? 'free'} />
                     <CenterEventsAndAmenities center={center} />
                   </div>
                 )}
@@ -647,8 +653,17 @@ export default function DashboardCenters() {
                   placeholder="Describe your center's specialties and atmosphere…"
                   className="min-h-[100px]"
                   value={form.description}
+                  maxLength={250}
                   onChange={(e) => handleChange("description", e.target.value)}
                 />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {form.description.length}/250 characters
+                  </p>
+                  <p className="text-xs text-amber-600">
+                    Upgrade to Premium for unlimited description
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>
