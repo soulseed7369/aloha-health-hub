@@ -114,7 +114,7 @@ export default function DashboardBilling() {
                   )}
                 </div>
                 <p className="mt-1">
-                  <span className="text-2xl font-bold text-foreground">$39</span>
+                  <span className="text-2xl font-bold text-foreground">{PLAN_OPTIONS[0].price.split(' ')[0]}</span>
                   <span className="text-sm text-muted-foreground"> / month</span>
                 </p>
               </div>
@@ -160,7 +160,7 @@ export default function DashboardBilling() {
                   )}
                 </div>
                 <p className="mt-1">
-                  <span className="text-2xl font-bold text-foreground">$129</span>
+                  <span className="text-2xl font-bold text-foreground">{PLAN_OPTIONS[1].price.split(' ')[0]}</span>
                   <span className="text-sm text-muted-foreground"> / month</span>
                 </p>
               </div>
