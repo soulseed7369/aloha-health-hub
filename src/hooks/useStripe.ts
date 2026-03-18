@@ -37,13 +37,20 @@ export function useCreateCheckoutSession() {
 
       if (error) {
         // FunctionsHttpError has a .context Response — extract the real message
-        let message = error.message;
+        let message = error.message || 'Failed to create checkout session';
         try {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const body = await (error as any).context?.json?.();
-          if (body?.error) message = body.error;
-        } catch { /* ignore parse errors */ }
-        throw new Error(message || 'Failed to create checkout session');
+          const context = (error as any).context;
+          if (context && typeof context.json === 'function') {
+            const body = await context.json();
+            if (body?.error) {
+              message = body.error;
+            }
+          }
+        } catch (parseErr) {
+          console.warn('Failed to parse error body:', parseErr);
+        }
+        throw new Error(message);
       }
 
       if (!data?.url) throw new Error('No checkout URL returned');

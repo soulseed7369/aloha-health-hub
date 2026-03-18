@@ -32,17 +32,26 @@ Deno.serve(async (req) => {
   try {
     // ── Guard env vars up front so missing secrets surface as clean errors ──
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
-    if (!stripeKey) return json({ error: 'STRIPE_SECRET_KEY secret is not set in Supabase' }, 500);
+    if (!stripeKey) {
+      console.error('STRIPE_SECRET_KEY is missing from Supabase secrets');
+      return json({ error: 'Stripe configuration error: STRIPE_SECRET_KEY not set' }, 500);
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+    if (!supabaseUrl || !supabaseServiceRole || !supabaseAnonKey) {
+      console.error('Missing Supabase configuration', { supabaseUrl: !!supabaseUrl, supabaseServiceRole: !!supabaseServiceRole, supabaseAnonKey: !!supabaseAnonKey });
+      return json({ error: 'Supabase configuration error' }, 500);
+    }
 
     const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    );
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
 
     // ── Auth: per-request client with user JWT (official Supabase pattern) ──
     const authHeader = req.headers.get('Authorization');
@@ -51,13 +60,14 @@ Deno.serve(async (req) => {
     }
 
     const supabaseUser = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      supabaseUrl,
+      supabaseAnonKey,
       { global: { headers: { Authorization: authHeader } } },
     );
 
     const { data: { user }, error: authErr } = await supabaseUser.auth.getUser();
     if (authErr || !user) {
+      console.error('Auth error', { authErr: authErr?.message, hasUser: !!user });
       return json({ error: authErr?.message ?? 'Unauthorized' }, 401);
     }
 
@@ -115,8 +125,9 @@ Deno.serve(async (req) => {
 
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('create-checkout-session error:', message);
-    return json({ error: message }, 500);
+    const stack = err instanceof Error ? err.stack : '';
+    console.error('create-checkout-session error:', { message, stack });
+    return json({ error: message || 'Internal server error' }, 500);
   }
 });
 
