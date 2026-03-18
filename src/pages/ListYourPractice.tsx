@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Star, Crown, Loader2, ArrowRight, User, Building2 } from "lucide-react";
+import { CheckCircle, Star, Crown, Loader2, ArrowRight, User, Building2, Globe, Sparkles, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useCreateCheckoutSession } from "@/hooks/useStripe";
-import { STRIPE_PRICES, VALID_PRICE_IDS, PROMO_ACTIVE } from "@/lib/stripe";
+import { STRIPE_PRICES, VALID_PRICE_IDS } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 
 // ─── Feature lists ────────────────────────────────────────────────────────────
@@ -93,14 +93,64 @@ type PricingMode = "practitioner" | "center";
 
 const PRICING = {
   practitioner: {
-    premium: { price: 49, priceId: STRIPE_PRICES.PREMIUM_MONTHLY },
-    featured: { price: 129, priceId: STRIPE_PRICES.FEATURED_MONTHLY },
+    premium:  { price: 49,  kamaaina: 39,  spots: 20, priceId: STRIPE_PRICES.PREMIUM_MONTHLY },
+    featured: { price: 129, kamaaina: 99,  spots: 5,  priceId: STRIPE_PRICES.FEATURED_MONTHLY },
   },
   center: {
-    premium: { price: 79, priceId: STRIPE_PRICES.CENTER_PREMIUM_MONTHLY },
-    featured: { price: 199, priceId: STRIPE_PRICES.CENTER_FEATURED_MONTHLY },
+    premium:  { price: 79,  kamaaina: 59,  spots: 10, priceId: STRIPE_PRICES.CENTER_PREMIUM_MONTHLY },
+    featured: { price: 199, kamaaina: 149, spots: 5,  priceId: STRIPE_PRICES.CENTER_FEATURED_MONTHLY },
   },
 } as const;
+
+// ─── Website bundles ──────────────────────────────────────────────────────────
+
+const WEBSITE_BUNDLES = [
+  {
+    name: "Essentials",
+    price: 597,
+    kamaaina: 497,
+    features: [
+      "3–4 page site (Home, About, Services, Contact)",
+      "Mobile-responsive design",
+      "Contact form",
+      "Linked to your Hawaiʻi Wellness directory profile",
+      "Includes 6 months Premium subscription ($294 value)",
+    ],
+    mailto: "mailto:aloha@hawaiiwellness.net?subject=Website%20Bundle%20—%20Essentials",
+    popular: false,
+  },
+  {
+    name: "Standard",
+    price: 997,
+    kamaaina: 897,
+    features: [
+      "5-page site",
+      "Booking integration (Calendly / Acuity embed)",
+      "Google Business Profile setup",
+      "Basic SEO optimization (meta tags, local schema, Google indexing)",
+      "2 rounds of revisions",
+      "Includes 12 months Premium subscription ($588 value)",
+    ],
+    mailto: "mailto:aloha@hawaiiwellness.net?subject=Website%20Bundle%20—%20Standard",
+    popular: true,
+  },
+  {
+    name: "Pro",
+    price: 1497,
+    kamaaina: 1397,
+    features: [
+      "Everything in Standard, plus:",
+      "Blog page",
+      "Advanced SEO (keyword research, internal linking, image optimization, sitemap)",
+      "AI search optimization (FAQ schema, service schema, LocalBusiness structured data)",
+      "Social media header graphics",
+      "3 rounds of revisions",
+      "Includes 12 months Premium subscription ($588 value)",
+    ],
+    mailto: "mailto:aloha@hawaiiwellness.net?subject=Website%20Bundle%20—%20Pro",
+    popular: false,
+  },
+];
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -146,25 +196,33 @@ export default function ListYourPractice() {
   return (
     <main className="container py-12 md:py-16">
       {/* Header */}
-      <div className="mx-auto max-w-4xl text-center mb-10">
+      <div className="mx-auto max-w-4xl text-center mb-6">
         <h1 className="font-display text-3xl font-bold md:text-4xl mb-3">
           List Your {isPrac ? "Practice" : "Center"}
         </h1>
         <p className="text-muted-foreground text-lg">
-          Join Hawaiʻi Wellness — the islands' premier wellness directory.
+          Join Hawaiʻi Wellness — the islands&apos; premier wellness directory.
           <br className="hidden md:block" />
           Choose the plan that fits where you are.
         </p>
-        {PROMO_ACTIVE && (
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-200 px-5 py-2.5 text-sm text-emerald-800">
-            <span className="text-base">🎉</span>
-            <span>
-              <strong>Launch offer:</strong> Use code{" "}
-              <span className="font-mono font-bold tracking-wider bg-emerald-100 px-1.5 py-0.5 rounded">ALOHA20</span>{" "}
-              at checkout for 20% off your first 12 months.
-            </span>
+      </div>
+
+      {/* Kama'aina Rate banner */}
+      <div className="mx-auto max-w-3xl mb-10">
+        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Sparkles className="h-5 w-5 text-amber-500" />
+            <h2 className="font-display text-xl font-bold text-amber-900">Kamaʻāina Rate</h2>
+            <Sparkles className="h-5 w-5 text-amber-500" />
           </div>
-        )}
+          <p className="text-sm text-amber-800 max-w-lg mx-auto">
+            Our earliest supporters get special pricing — for life.
+            Lock in your rate before spots fill up.
+          </p>
+          <p className="text-xs text-amber-600 mt-2">
+            Your Kamaʻāina Rate is locked in for life — your price never goes up as long as your subscription stays active.
+          </p>
+        </div>
       </div>
 
       {/* Toggle */}
@@ -195,7 +253,7 @@ export default function ListYourPractice() {
         </div>
       </div>
 
-      {/* Pricing cards */}
+      {/* ════════════════════ Pricing cards ════════════════════ */}
       <div className="mx-auto max-w-5xl grid gap-6 md:grid-cols-3">
 
         {/* ── Free ── */}
@@ -236,11 +294,19 @@ export default function ListYourPractice() {
                   Popular
                 </span>
               </div>
-              <div className="flex items-baseline gap-1">
-                <span className="font-display text-4xl font-bold">${prices.premium.price}</span>
+              {/* Kama'aina pricing */}
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-4xl font-bold">${prices.premium.kamaaina}</span>
                 <span className="text-muted-foreground text-sm">/ month</span>
+                <span className="text-muted-foreground text-lg line-through">${prices.premium.price}</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">
+              <div className="mt-2">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  <Sparkles className="h-3 w-3" />
+                  Kamaʻāina Rate — first {prices.premium.spots} subscribers
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
                 {isPrac ? "Grow your practice online." : "Showcase your full center."}
               </p>
             </div>
@@ -277,11 +343,19 @@ export default function ListYourPractice() {
           <CardContent className="flex flex-col flex-1 p-6 pt-7 gap-5">
             <div>
               <p className="text-sm font-medium text-amber-600 uppercase tracking-wider mb-1">Featured</p>
-              <div className="flex items-baseline gap-1">
-                <span className="font-display text-4xl font-bold">${prices.featured.price}</span>
+              {/* Kama'aina pricing */}
+              <div className="flex items-baseline gap-2">
+                <span className="font-display text-4xl font-bold">${prices.featured.kamaaina}</span>
                 <span className="text-muted-foreground text-sm">/ month</span>
+                <span className="text-muted-foreground text-lg line-through">${prices.featured.price}</span>
               </div>
-              <p className="text-sm text-muted-foreground mt-1">Stand out across the islands.</p>
+              <div className="mt-2">
+                <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  <Sparkles className="h-3 w-3" />
+                  Kamaʻāina Rate — first {prices.featured.spots} subscribers
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">Stand out across the islands.</p>
             </div>
 
             <ul className="space-y-2.5 flex-1">
@@ -294,7 +368,7 @@ export default function ListYourPractice() {
             </ul>
 
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2 text-center">
-              Only 5 featured spots available per island
+              Only {prices.featured.spots} featured spots available per island
             </p>
 
             <Button
@@ -311,12 +385,95 @@ export default function ListYourPractice() {
         </Card>
       </div>
 
-      {/* Footer note */}
-      <p className="text-center text-sm text-muted-foreground mt-10">
+      {/* Subscription footer note */}
+      <p className="text-center text-sm text-muted-foreground mt-8 mb-4">
         All plans include a free listing. Paid plans are billed monthly and can be cancelled anytime.
         <br className="hidden md:block" />
         Payments are processed securely by Stripe.
       </p>
+
+      {/* ════════════════════ Website Bundles ════════════════════ */}
+      <div className="mx-auto max-w-5xl mt-16 pt-16 border-t border-border">
+        <div className="text-center mb-10">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Globe className="h-6 w-6 text-primary" />
+            <h2 className="font-display text-2xl font-bold md:text-3xl">Done-for-You Websites</h2>
+          </div>
+          <p className="text-muted-foreground text-lg max-w-xl mx-auto">
+            A professional website + your directory listing, built by the team that knows Hawaiʻi wellness.
+          </p>
+          <div className="mt-4">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+              <Sparkles className="h-3 w-3" />
+              Kamaʻāina Rate — first 10 websites
+            </span>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-3">
+          {WEBSITE_BUNDLES.map((bundle) => (
+            <Card
+              key={bundle.name}
+              className={`flex flex-col ${bundle.popular ? "ring-2 ring-primary relative" : ""}`}
+            >
+              {bundle.popular && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                  <span className="bg-primary text-primary-foreground text-xs font-semibold px-3 py-1 rounded-full">
+                    Most Popular
+                  </span>
+                </div>
+              )}
+              <CardContent className={`flex flex-col flex-1 p-6 gap-5 ${bundle.popular ? "pt-7" : ""}`}>
+                <div>
+                  <p className={`text-sm font-medium uppercase tracking-wider mb-1 ${bundle.popular ? "text-primary" : "text-muted-foreground"}`}>
+                    {bundle.name}
+                  </p>
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-display text-4xl font-bold">${bundle.kamaaina.toLocaleString()}</span>
+                    <span className="text-muted-foreground text-lg line-through">${bundle.price.toLocaleString()}</span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                      <Sparkles className="h-3 w-3" />
+                      Kamaʻāina Rate
+                    </span>
+                  </div>
+                </div>
+
+                <ul className="space-y-2.5 flex-1">
+                  {bundle.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className={`h-4 w-4 shrink-0 mt-0.5 ${bundle.popular ? "text-primary" : "text-sage"}`} />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  className={`w-full mt-auto gap-2 ${bundle.popular ? "" : ""}`}
+                  variant={bundle.popular ? "default" : "outline"}
+                  asChild
+                >
+                  <a href={bundle.mailto}>
+                    <Mail className="h-4 w-4" />
+                    Get Started
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Website bundles footer notes */}
+        <div className="mt-8 space-y-1.5 text-center">
+          <p className="text-xs text-muted-foreground">
+            After the included subscription period, your Premium subscription continues at $49/mo (or your Kamaʻāina Rate if applicable). Cancel anytime.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Need changes after your included revisions? Additional major revisions are $149 each.
+          </p>
+        </div>
+      </div>
     </main>
   );
 }
