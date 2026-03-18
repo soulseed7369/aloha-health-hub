@@ -48,10 +48,20 @@ Deno.serve(async (req) => {
     return json({ error: 'Missing required fields' }, 400);
   }
 
-  // Validate priceId format (should start with 'price_')
-  if (typeof priceId !== 'string' || !priceId.startsWith('price_')) {
-    return json({ error: 'Invalid price ID format' }, 400);
+  // Validate priceId is one of the known price IDs (strict whitelist)
+  const VALID_PRICE_IDS = [
+    'price_1T7lnYAmznBlrx8sZkolChSm', // Practitioner Premium $49/mo
+    'price_1T7loEAmznBlrx8s5j92qxX8', // Practitioner Featured $129/mo
+    'price_1TCA70AmznBlrx8sSVyl2HtA', // Center Premium $79/mo
+    'price_1TCA7KAmznBlrx8s2IOtOThI', // Center Featured $199/mo
+  ];
+  if (typeof priceId !== 'string' || !VALID_PRICE_IDS.includes(priceId)) {
+    return json({ error: 'Invalid price ID' }, 400);
   }
+
+  // Active launch promo — ALOHA20 (20% off for 12 months)
+  const PROMO_ACTIVE = Deno.env.get('PROMO_ACTIVE') === 'true';
+  const PROMO_COUPON_ID = 'o1QERmQL';
 
   // Validate URLs are absolute and from same origin
   try {
@@ -97,6 +107,8 @@ Deno.serve(async (req) => {
     subscription_data: {
       metadata: { user_id: user.id },
     },
+    // Apply ALOHA20 launch promo automatically when active
+    ...(PROMO_ACTIVE ? { discounts: [{ coupon: PROMO_COUPON_ID }] } : { allow_promotion_codes: true }),
   });
 
   return json({ url: session.url });

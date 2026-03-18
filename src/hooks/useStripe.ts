@@ -4,7 +4,7 @@
  */
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { STRIPE_PRICES } from '@/lib/stripe';
+import { STRIPE_PRICES, VALID_PRICE_IDS, PROMO_ACTIVE } from '@/lib/stripe';
 
 // ── Create checkout session ───────────────────────────────────────────────────
 
@@ -88,17 +88,19 @@ export function useMyBillingProfile() {
 
 // ── Upgrade plan helpers ──────────────────────────────────────────────────────
 
-export const PLAN_OPTIONS = [
+// Practitioner plan options (used in DashboardBilling for practitioner accounts)
+export const PRACTITIONER_PLAN_OPTIONS = [
   {
     id: 'premium' as const,
     name: 'Premium',
-    price: '$39 / month',
+    price: '$49 / month',
     priceId: STRIPE_PRICES.PREMIUM_MONTHLY,
     features: [
       'All Free features',
-      'Post retreat & immersion offerings',
+      'Offerings, Classes & Testimonials',
+      'Social media links on your profile',
+      'Booking & messaging CTAs',
       'Priority listing placement',
-      'Contact form on your profile',
     ],
   },
   {
@@ -115,3 +117,38 @@ export const PLAN_OPTIONS = [
     ],
   },
 ] as const;
+
+// Center plan options (used in DashboardBilling for center accounts)
+export const CENTER_PLAN_OPTIONS = [
+  {
+    id: 'premium' as const,
+    name: 'Premium',
+    price: '$79 / month',
+    priceId: STRIPE_PRICES.CENTER_PREMIUM_MONTHLY,
+    features: [
+      'All Free features',
+      'Photo gallery (up to 10 photos)',
+      'Staff / practitioner roster',
+      'Events calendar & class schedule',
+      'Amenities list & working hours',
+    ],
+  },
+  {
+    id: 'featured' as const,
+    name: 'Featured',
+    price: '$199 / month',
+    priceId: STRIPE_PRICES.CENTER_FEATURED_MONTHLY,
+    features: [
+      'All Premium features',
+      'Verified Center badge',
+      'Homepage rotation spotlight',
+      'Island search top placement',
+      'Limited to 5 per island',
+    ],
+  },
+] as const;
+
+// Legacy alias — default to practitioner plans
+export const PLAN_OPTIONS = PRACTITIONER_PLAN_OPTIONS;
+
+export { VALID_PRICE_IDS, PROMO_ACTIVE };

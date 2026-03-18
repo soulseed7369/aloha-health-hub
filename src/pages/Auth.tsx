@@ -31,7 +31,7 @@ export default function Auth() {
     if (!user) return;
     const pending = localStorage.getItem('pendingPlan');
     // Validate pendingPlan is one of the expected values to prevent abuse
-    const validPlans = ['free', 'prod_U5xikoe835v7T6', 'prod_U5xj8icg13fOcT'];
+    const validPlans = ['free', 'price_1T7lnYAmznBlrx8sZkolChSm', 'price_1T7loEAmznBlrx8s5j92qxX8', 'price_1TCA70AmznBlrx8sSVyl2HtA', 'price_1TCA7KAmznBlrx8s2IOtOThI'];
     if (pending && validPlans.includes(pending) && pending !== 'free') {
       navigate('/dashboard/billing');
     } else if (claimId) {

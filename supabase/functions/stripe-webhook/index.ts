@@ -32,10 +32,14 @@ const supabase = createClient(
 );
 
 // Price → tier mapping — keep in sync with src/lib/stripe.ts
-// NOTE: Replace prod_ IDs with actual price_ IDs from Stripe Dashboard
+// Covers both practitioner and center price IDs (same tier names, different prices).
 const PRICE_TIER_MAP: Record<string, 'premium' | 'featured'> = {
-  'prod_U5xikoe835v7T6':  'premium',
-  'prod_U5xj8icg13fOcT': 'featured',
+  // Practitioners
+  'price_1T7lnYAmznBlrx8sZkolChSm': 'premium',   // $49/mo
+  'price_1T7loEAmznBlrx8s5j92qxX8': 'featured',  // $129/mo
+  // Wellness Centers
+  'price_1TCA70AmznBlrx8sSVyl2HtA': 'premium',   // $79/mo
+  'price_1TCA7KAmznBlrx8s2IOtOThI': 'featured',  // $199/mo
 };
 
 Deno.serve(async (req) => {

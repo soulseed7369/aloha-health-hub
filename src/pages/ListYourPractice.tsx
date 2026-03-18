@@ -5,7 +5,7 @@ import { CheckCircle, Star, Crown, Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useCreateCheckoutSession } from "@/hooks/useStripe";
-import { STRIPE_PRICES } from "@/lib/stripe";
+import { STRIPE_PRICES, VALID_PRICE_IDS, PROMO_ACTIVE } from "@/lib/stripe";
 import { supabase } from "@/lib/supabase";
 
 const FREE_FEATURES = [
@@ -18,12 +18,11 @@ const FREE_FEATURES = [
 
 const PREMIUM_FEATURES = [
   "Everything in Free",
-  "Post retreats & immersion offerings",
+  "Offerings, Classes & Testimonials",
   "Social media links on your profile",
+  "Booking, messaging & discovery call CTAs",
   "Working hours display",
-  "Testimonials section",
   "Priority listing placement",
-  "Contact form on your profile",
 ];
 
 const FEATURED_FEATURES = [
@@ -45,9 +44,8 @@ export default function ListYourPractice() {
 
   async function handlePaidPlan(priceId: string) {
     if (!supabase) return;
-    // Validate priceId is one of the expected values
-    const validPrices = [STRIPE_PRICES.PREMIUM_MONTHLY, STRIPE_PRICES.FEATURED_MONTHLY];
-    if (!validPrices.includes(priceId as any)) {
+    // Validate priceId is one of the known price IDs
+    if (!VALID_PRICE_IDS.includes(priceId)) {
       toast.error('Invalid plan selected');
       return;
     }
@@ -134,9 +132,19 @@ export default function ListYourPractice() {
                 <span className="text-xs bg-primary/10 text-primary font-medium px-2 py-0.5 rounded-full">Popular</span>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="font-display text-4xl font-bold">$39</span>
+                {PROMO_ACTIVE ? (
+                  <>
+                    <span className="font-display text-4xl font-bold">$39.20</span>
+                    <span className="text-muted-foreground text-sm line-through ml-1">$49</span>
+                  </>
+                ) : (
+                  <span className="font-display text-4xl font-bold">$49</span>
+                )}
                 <span className="text-muted-foreground text-sm">/ month</span>
               </div>
+              {PROMO_ACTIVE && (
+                <p className="text-xs text-emerald-700 font-medium mt-1">🎉 20% off locked in for 12 months</p>
+              )}
               <p className="text-sm text-muted-foreground mt-1">Grow your practice online.</p>
             </div>
 
@@ -175,9 +183,19 @@ export default function ListYourPractice() {
                 <p className="text-sm font-medium text-amber-600 uppercase tracking-wider">Featured</p>
               </div>
               <div className="flex items-baseline gap-1">
-                <span className="font-display text-4xl font-bold">$129</span>
+                {PROMO_ACTIVE ? (
+                  <>
+                    <span className="font-display text-4xl font-bold">$103.20</span>
+                    <span className="text-muted-foreground text-sm line-through ml-1">$129</span>
+                  </>
+                ) : (
+                  <span className="font-display text-4xl font-bold">$129</span>
+                )}
                 <span className="text-muted-foreground text-sm">/ month</span>
               </div>
+              {PROMO_ACTIVE && (
+                <p className="text-xs text-emerald-700 font-medium mt-1">🎉 20% off locked in for 12 months</p>
+              )}
               <p className="text-sm text-muted-foreground mt-1">Stand out across the islands.</p>
             </div>
 
