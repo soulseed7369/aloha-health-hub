@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { isAdmin } from '@/lib/admin';
 import { Leaf, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import type { AccountType } from '@/hooks/useAccountType';
 
 /**
  * Handles the Supabase PKCE magic-link / email-confirm callback.
@@ -32,11 +33,28 @@ export default function AuthCallback() {
 
     supabase.auth
       .exchangeCodeForSession(code)
-      .then(({ data, error: exchangeError }) => {
+      .then(async ({ data, error: exchangeError }) => {
         if (exchangeError) {
           setError(exchangeError.message);
           return;
         }
+
+        const userId = data.session?.user?.id;
+
+        // Save pending account type if it exists
+        const pendingAccountType = localStorage.getItem('pendingAccountType') as AccountType | null;
+        if (userId && pendingAccountType) {
+          try {
+            await supabase
+              .from('user_profiles')
+              .update({ account_type: pendingAccountType })
+              .eq('id', userId);
+            localStorage.removeItem('pendingAccountType');
+          } catch (err) {
+            console.error('Failed to set account type:', err);
+          }
+        }
+
         // Admin users go straight to the admin panel
         if (isAdmin(data.session?.user?.email)) {
           navigate('/admin', { replace: true });

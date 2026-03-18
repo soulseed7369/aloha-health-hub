@@ -4,14 +4,25 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAdmin } from "@/lib/admin";
+import { useAccountType } from "@/hooks/useAccountType";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const sidebarLinks = [
+// Links for practitioners
+const practitionerLinks = [
   { label: "Dashboard Home",          to: "/dashboard",              icon: Home },
   { label: "My Practitioner Profile", to: "/dashboard/profile",      icon: User },
-  { label: "My Centers & Spas",       to: "/dashboard/centers",      icon: Building },
   { label: "Offerings & Events",      to: "/dashboard/offerings",    icon: Sparkles },
   { label: "Classes",                 to: "/dashboard/classes",      icon: CalendarDays },
   { label: "Testimonials",            to: "/dashboard/testimonials", icon: Quote },
+  { label: "Billing & Subscription",  to: "/dashboard/billing",      icon: CreditCard },
+  { label: "Account Settings",        to: "/dashboard/settings",     icon: Settings },
+];
+
+// Links for centers
+const centerLinks = [
+  { label: "Dashboard Home",          to: "/dashboard",              icon: Home },
+  { label: "My Centers & Spas",       to: "/dashboard/centers",      icon: Building },
   { label: "Billing & Subscription",  to: "/dashboard/billing",      icon: CreditCard },
   { label: "Account Settings",        to: "/dashboard/settings",     icon: Settings },
 ];
@@ -21,6 +32,7 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
 
   const handleSignOut = async () => {
     await signOut();
@@ -29,6 +41,9 @@ export function DashboardLayout() {
 
   // Display name: email local part or fallback
   const displayName = user?.email ? user.email.split("@")[0] : "Provider";
+
+  // Determine which sidebar links to show — while loading, show all to avoid flash
+  const sidebarLinks = !accountTypeLoading && accountType === 'center' ? centerLinks : practitionerLinks;
 
   return (
     <div className="flex min-h-screen bg-muted/40">
@@ -56,12 +71,25 @@ export function DashboardLayout() {
               className="h-8 w-auto"
             />
           </Link>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="rounded-md p-1 text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {accountTypeLoading ? (
+              <Skeleton className="h-5 w-16" />
+            ) : accountType === 'center' ? (
+              <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-200">
+                Center
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                Practitioner
+              </Badge>
+            )}
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="rounded-md p-1 text-sidebar-foreground hover:bg-sidebar-accent lg:hidden"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* Nav links */}

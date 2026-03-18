@@ -3,16 +3,30 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { User, Building, Calendar, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock, ShieldCheck } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
 import { useMyBillingProfile, useCreateCheckoutSession } from "@/hooks/useStripe";
+import { useAccountType } from "@/hooks/useAccountType";
 import { getEarlyBirdStatus } from "@/lib/websitePackages";
 
 export default function DashboardHome() {
+  const navigate = useNavigate();
   const { data: practitioner, isLoading: practLoading } = useMyPractitioner();
   const { data: billing } = useMyBillingProfile();
+  const { data: accountType } = useAccountType();
   const checkout = useCreateCheckoutSession();
+
+  // Route based on account type on first load
+  useEffect(() => {
+    if (accountType && !practLoading) {
+      if (accountType === 'center') {
+        navigate('/dashboard/centers', { replace: true });
+      } else if (accountType === 'practitioner') {
+        // Stay on this page for practitioners
+      }
+    }
+  }, [accountType, practLoading, navigate]);
 
   // Resume any pending plan intent stored before auth redirect — run once on mount only
   useEffect(() => {

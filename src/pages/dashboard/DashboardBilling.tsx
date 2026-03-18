@@ -7,8 +7,9 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CreditCard, CheckCircle, Star, Crown, Loader2, PartyPopper } from "lucide-react";
 import { toast } from "sonner";
-import { useMyBillingProfile, useCreateCheckoutSession, PLAN_OPTIONS } from "@/hooks/useStripe";
+import { useMyBillingProfile, useCreateCheckoutSession, PRACTITIONER_PLAN_OPTIONS, CENTER_PLAN_OPTIONS } from "@/hooks/useStripe";
 import { STRIPE_PRICES } from "@/lib/stripe";
+import { useAccountType } from "@/hooks/useAccountType";
 
 const TIER_META = {
   free:     { label: "Free",     color: "bg-gray-100 text-gray-700",       icon: null },
@@ -21,7 +22,13 @@ export default function DashboardBilling() {
   const successParam = searchParams.get("success");
 
   const { data: billing, isLoading } = useMyBillingProfile();
+  const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
   const checkout = useCreateCheckoutSession();
+
+  // Select the appropriate plan options based on account type
+  const planOptions = accountType === 'center' ? CENTER_PLAN_OPTIONS : PRACTITIONER_PLAN_OPTIONS;
+  const premiumPriceId = accountType === 'center' ? STRIPE_PRICES.CENTER_PREMIUM_MONTHLY : STRIPE_PRICES.PREMIUM_MONTHLY;
+  const featuredPriceId = accountType === 'center' ? STRIPE_PRICES.CENTER_FEATURED_MONTHLY : STRIPE_PRICES.FEATURED_MONTHLY;
 
   // Show success toast on redirect back from Stripe
   useEffect(() => {
@@ -114,12 +121,18 @@ export default function DashboardBilling() {
                   )}
                 </div>
                 <p className="mt-1">
-                  <span className="text-2xl font-bold text-foreground">{PLAN_OPTIONS[0].price.split(' ')[0]}</span>
-                  <span className="text-sm text-muted-foreground"> / month</span>
+                  {accountTypeLoading ? (
+                    <Skeleton className="h-8 w-24" />
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-foreground">{planOptions[0].price.split(' ')[0]}</span>
+                      <span className="text-sm text-muted-foreground"> / month</span>
+                    </>
+                  )}
                 </p>
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground flex-1">
-                {PLAN_OPTIONS[0].features.map((f) => (
+                {planOptions[0].features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
                     <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sage" />
                     {f}
@@ -129,8 +142,8 @@ export default function DashboardBilling() {
               {currentTier === "free" ? (
                 <Button
                   className="mt-auto w-full"
-                  onClick={() => handleUpgrade(STRIPE_PRICES.PREMIUM_MONTHLY)}
-                  disabled={checkout.isPending}
+                  onClick={() => handleUpgrade(premiumPriceId)}
+                  disabled={checkout.isPending || accountTypeLoading}
                 >
                   {checkout.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Upgrade to Premium
@@ -160,13 +173,19 @@ export default function DashboardBilling() {
                   )}
                 </div>
                 <p className="mt-1">
-                  <span className="text-2xl font-bold text-foreground">{PLAN_OPTIONS[1].price.split(' ')[0]}</span>
-                  <span className="text-sm text-muted-foreground"> / month</span>
+                  {accountTypeLoading ? (
+                    <Skeleton className="h-8 w-24" />
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-foreground">{planOptions[1].price.split(' ')[0]}</span>
+                      <span className="text-sm text-muted-foreground"> / month</span>
+                    </>
+                  )}
                 </p>
               </div>
 
               <ul className="space-y-2 text-sm text-muted-foreground flex-1">
-                {PLAN_OPTIONS[1].features.map((f) => (
+                {planOptions[1].features.map((f) => (
                   <li key={f} className="flex items-start gap-2">
                     <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
                     {f}
@@ -181,8 +200,8 @@ export default function DashboardBilling() {
               {currentTier !== "featured" ? (
                 <Button
                   className="mt-auto w-full bg-amber-500 hover:bg-amber-600 text-white"
-                  onClick={() => handleUpgrade(STRIPE_PRICES.FEATURED_MONTHLY)}
-                  disabled={checkout.isPending}
+                  onClick={() => handleUpgrade(featuredPriceId)}
+                  disabled={checkout.isPending || accountTypeLoading}
                 >
                   {checkout.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                   Upgrade to Featured

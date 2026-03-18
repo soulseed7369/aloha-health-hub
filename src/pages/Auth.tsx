@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Leaf, AlertCircle, Mail, Lock } from 'lucide-react';
+import { Leaf, AlertCircle, Mail, Lock, User, Building2 } from 'lucide-react';
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from '@/contexts/AuthContext';
+import { useSetAccountType } from '@/hooks/useAccountType';
 
 export default function Auth() {
   usePageMeta("Sign In", "Sign in to manage your Hawa'i Wellness practitioner or center listing.");
@@ -17,6 +18,7 @@ export default function Auth() {
   const [searchParams] = useSearchParams();
   const claimId = searchParams.get('claim');
   const redirectTo = searchParams.get('redirect');
+  const setAccountType = useSetAccountType();
 
   const [mode, setMode] = useState<'magic' | 'password'>('magic');
   const [isSignUp, setIsSignUp] = useState(false);
@@ -25,6 +27,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [magicSent, setMagicSent] = useState(false);
+  const [selectedAccountType, setSelectedAccountType] = useState<'practitioner' | 'center'>('practitioner');
 
   // If already logged in, redirect appropriately
   useEffect(() => {
@@ -50,6 +53,8 @@ export default function Auth() {
     setError('');
     setLoading(true);
     try {
+      // Store account type before auth, will be picked up in callback
+      localStorage.setItem('pendingAccountType', selectedAccountType);
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -73,6 +78,8 @@ export default function Auth() {
     setLoading(true);
     try {
       if (isSignUp) {
+        // Store account type before signup
+        localStorage.setItem('pendingAccountType', selectedAccountType);
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -83,6 +90,12 @@ export default function Auth() {
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;
+        // For password sign-in (existing user), save account type immediately
+        if (user) {
+          setAccountType.mutate(selectedAccountType, {
+            onError: (err) => console.error('Failed to set account type:', err),
+          });
+        }
         // navigation handled by useEffect above
       }
     } catch (err: unknown) {
@@ -154,6 +167,38 @@ export default function Auth() {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* Account type selector — shown during signup/magic link */}
+          {(mode === 'magic' || isSignUp) && (
+            <div className="space-y-3 pb-2 border-b border-border">
+              <Label className="text-sm font-medium text-foreground">I'm a:</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedAccountType('practitioner')}
+                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all ${
+                    selectedAccountType === 'practitioner'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border bg-secondary/30 hover:border-primary/50'
+                  }`}
+                >
+                  <User className="h-5 w-5" />
+                  <span className="text-xs font-medium text-center">Practitioner</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAccountType('center')}
+                  className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-all ${
+                    selectedAccountType === 'center'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border bg-secondary/30 hover:border-primary/50'
+                  }`}
+                >
+                  <Building2 className="h-5 w-5" />
+                  <span className="text-xs font-medium text-center">Center/Spa</span>
+                </button>
+              </div>
+            </div>
+          )}
           {!hasSupabase && (
             <Alert className="mb-2">
               <AlertCircle className="h-4 w-4" />

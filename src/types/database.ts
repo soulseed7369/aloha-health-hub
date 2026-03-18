@@ -290,11 +290,33 @@ export type CenterLocationInsert = Omit<CenterLocationRow, 'id' | 'created_at' |
 export type RetreatInsert = Omit<RetreatRow, 'id' | 'created_at' | 'updated_at'>;
 export type ArticleInsert = Omit<ArticleRow, 'id' | 'created_at' | 'updated_at'>;
 
+// ─── User profiles (billing tier + subscription + account type) ─────────────
+
+export interface UserProfileRow {
+  id: string;
+  tier: 'free' | 'premium' | 'featured';
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: string | null;    // 'active' | 'past_due' | 'canceled' | 'trialing'
+  subscription_period_end: string | null; // ISO timestamp when period ends
+  stripe_price_id: string | null;
+  account_type: 'practitioner' | 'center';
+  created_at: string;
+  updated_at: string;
+}
+
+export type UserProfileInsert = Omit<UserProfileRow, 'id' | 'created_at' | 'updated_at'>;
+
 // ─── Supabase Database generic type (used by createClient<Database>) ─────────
 
 export interface Database {
   public: {
     Tables: {
+      user_profiles: {
+        Row: UserProfileRow;
+        Insert: UserProfileInsert;
+        Update: Partial<UserProfileInsert>;
+      };
       practitioners: {
         Row: PractitionerRow;
         Insert: PractitionerInsert;

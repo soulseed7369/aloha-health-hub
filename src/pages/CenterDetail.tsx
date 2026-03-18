@@ -1,5 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
+
+type CenterTabType = 'about' | 'locations' | 'events' | 'testimonials';
 import { useCenter, usePublicCenterLocations } from "@/hooks/useCenter";
 import { usePublicCenterEvents } from "@/hooks/useCenterEvents";
 import { Badge } from "@/components/ui/badge";
@@ -285,11 +287,17 @@ export default function CenterDetail() {
   const { data: c, isLoading }         = useCenter(id);
   const { data: locations = [] }       = usePublicCenterLocations(id);
   const { data: events = [] }          = usePublicCenterEvents(id);
+  const [activeTab, setActiveTab] = useState<CenterTabType>('about');
 
   const metaDesc = c
     ? `${c.name} — ${c.centerTypeLabel} in Hawaiʻi. View services, hours, and contact info.`
     : 'Wellness Center Profile';
   usePageMeta(c ? c.name : 'Wellness Center', metaDesc);
+
+  // Tab visibility logic
+  const showLocationsTab = locations.length > 1;
+  const showEventsTab = events.length > 0;
+  const showTestimonialsTab = c?.testimonials && c.testimonials.length > 0;
 
   const centerUrl = `${SITE_URL}/center/${id}`;
 
@@ -436,63 +444,160 @@ export default function CenterDetail() {
         </div>
       </section>
 
+      {/* Tab Bar */}
+      <section className="border-b border-border bg-background sticky top-16 z-30">
+        <div className="container overflow-x-auto">
+          <div className="flex gap-0 min-w-max">
+            {/* About tab */}
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'about'
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              About
+              {activeTab === 'about' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" />
+              )}
+            </button>
+
+            {/* Locations tab */}
+            {showLocationsTab && (
+              <button
+                onClick={() => setActiveTab('locations')}
+                className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'locations'
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Locations
+                {activeTab === 'locations' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" />
+                )}
+              </button>
+            )}
+
+            {/* Events tab */}
+            {showEventsTab && (
+              <button
+                onClick={() => setActiveTab('events')}
+                className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'events'
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Events
+                {activeTab === 'events' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" />
+                )}
+              </button>
+            )}
+
+            {/* Testimonials tab */}
+            {showTestimonialsTab && (
+              <button
+                onClick={() => setActiveTab('testimonials')}
+                className={`relative px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+                  activeTab === 'testimonials'
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Testimonials
+                {activeTab === 'testimonials' && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-600" />
+                )}
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Content */}
       <section className="container grid gap-8 py-8 lg:grid-cols-3">
         {/* Left — main content */}
         <div className="space-y-8 lg:col-span-2">
 
-          {/* About */}
-          {c.about && (
-            <div>
-              <h2 className="mb-3 font-display text-xl font-bold">About</h2>
-              <p className="leading-relaxed text-muted-foreground">{c.about}</p>
-            </div>
+          {/* ABOUT TAB */}
+          {activeTab === 'about' && (
+            <>
+              {c.about && (
+                <div>
+                  <h2 className="mb-3 font-display text-xl font-bold">About</h2>
+                  <p className="leading-relaxed text-muted-foreground">{c.about}</p>
+                </div>
+              )}
+
+              {/* Services */}
+              {c.modalities.length > 0 && (
+                <div>
+                  <h2 className="mb-3 font-display text-xl font-bold">Services &amp; Modalities</h2>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {c.modalities.map((m) => (
+                      <li key={m} className="flex items-center gap-2 text-sm">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary" />
+                        {m}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Hours — single location, or center root hours when no location records exist */}
+              {locations.length <= 1 && hasHours && hoursSource && (
+                <div>
+                  <h2 className="mb-3 flex items-center gap-2 font-display text-xl font-bold">
+                    <Clock className="h-5 w-5 text-primary" /> Hours
+                  </h2>
+                  <WorkingHoursTable hours={hoursSource as Record<string, { open: string; close: string } | null>} />
+                </div>
+              )}
+
+              {/* Amenities */}
+              {c.amenities.length > 0 && (
+                <div>
+                  <h2 className="mb-3 font-display text-xl font-bold">Amenities</h2>
+                  <div className="flex flex-wrap gap-2">
+                    {c.amenities.map((a) => (
+                      <Badge key={a} variant="secondary" className="text-sm px-3 py-1">
+                        {AMENITY_LABELS[a] ?? a}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Photo gallery */}
+              {c.photos.length > 1 && (
+                <div>
+                  <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+                    {c.photos.slice(1).map((img, i) => (
+                      <img
+                        key={i}
+                        src={img}
+                        alt={`${c.name} photo ${i + 2}`}
+                        className="aspect-[4/3] rounded-lg object-cover"
+                        loading="lazy"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
-          {/* Services */}
-          {c.modalities.length > 0 && (
-            <div>
-              <h2 className="mb-3 font-display text-xl font-bold">Services &amp; Modalities</h2>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {c.modalities.map((m) => (
-                  <li key={m} className="flex items-center gap-2 text-sm">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    {m}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* LOCATIONS TAB */}
+          {activeTab === 'locations' && showLocationsTab && (
+            <LocationsSection locations={locations} />
           )}
 
-          {/* Locations (multi-location centers) */}
-          <LocationsSection locations={locations} />
-
-          {/* Hours — single location, or center root hours when no location records exist */}
-          {locations.length <= 1 && hasHours && hoursSource && (
-            <div>
-              <h2 className="mb-3 flex items-center gap-2 font-display text-xl font-bold">
-                <Clock className="h-5 w-5 text-primary" /> Hours
-              </h2>
-              <WorkingHoursTable hours={hoursSource as Record<string, { open: string; close: string } | null>} />
-            </div>
-          )}
-
-          {/* Amenities */}
-          {c.amenities.length > 0 && (
-            <div>
-              <h2 className="mb-3 font-display text-xl font-bold">Amenities</h2>
-              <div className="flex flex-wrap gap-2">
-                {c.amenities.map((a) => (
-                  <Badge key={a} variant="secondary" className="text-sm px-3 py-1">
-                    {AMENITY_LABELS[a] ?? a}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Upcoming events */}
-          {events.length > 0 && (
+          {/* EVENTS TAB */}
+          {activeTab === 'events' && showEventsTab && (
             <div>
               <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold">
                 <CalendarDays className="h-5 w-5 text-primary" /> Upcoming Events
@@ -505,26 +610,8 @@ export default function CenterDetail() {
             </div>
           )}
 
-          {/* Photo gallery */}
-          {c.photos.length > 1 && (
-            <div>
-              <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                {c.photos.slice(1).map((img, i) => (
-                  <img
-                    key={i}
-                    src={img}
-                    alt={`${c.name} photo ${i + 2}`}
-                    className="aspect-[4/3] rounded-lg object-cover"
-                    loading="lazy"
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Testimonials */}
-          {c.testimonials.length > 0 && (
+          {/* TESTIMONIALS TAB */}
+          {activeTab === 'testimonials' && showTestimonialsTab && (
             <div>
               <h2 className="mb-4 font-display text-xl font-bold">What Clients Say</h2>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -547,7 +634,8 @@ export default function CenterDetail() {
           )}
         </div>
 
-        {/* Right sidebar */}
+        {/* Right sidebar — only show on About tab */}
+        {activeTab === 'about' && (
         <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
           <Card>
             <CardContent className="p-0">
@@ -677,6 +765,7 @@ export default function CenterDetail() {
             </Button>
           </div>
         </div>
+        )}
       </section>
     </main>
   );
