@@ -89,6 +89,8 @@ export interface Center {
   distanceMiles?: number;
   /** Raw center_type value from DB — used for directory filtering */
   centerType?: string;
+  /** Whether the center has at least one verified contact channel (email or phone) */
+  verified?: boolean;
 }
 
 export interface RetreatEvent {

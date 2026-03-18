@@ -49,6 +49,7 @@ const DashboardOfferings    = lazy(() => import("./pages/dashboard/DashboardOffe
 const DashboardClasses      = lazy(() => import("./pages/dashboard/DashboardClasses"));
 const DashboardTestimonials = lazy(() => import("./pages/dashboard/DashboardTestimonials"));
 const DashboardBilling      = lazy(() => import("./pages/dashboard/DashboardBilling"));
+const DashboardAnalytics    = lazy(() => import("./pages/dashboard/DashboardAnalytics"));
 const DashboardSettings     = lazy(() => import("./pages/dashboard/DashboardSettings"));
 
 // ── Shared page-level loading fallback ───────────────────────────────────────
@@ -124,6 +125,7 @@ const App = () => (
                   <Route path="offerings"   element={<DashboardOfferings />} />
                   <Route path="classes"     element={<DashboardClasses />} />
                   <Route path="testimonials" element={<DashboardTestimonials />} />
+                  <Route path="analytics"   element={<DashboardAnalytics />} />
                   <Route path="billing"     element={<DashboardBilling />} />
                   <Route path="settings" element={<DashboardSettings />} />
                 </Route>

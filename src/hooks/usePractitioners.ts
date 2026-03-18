@@ -34,7 +34,10 @@ export function usePractitioners(island = 'big_island') {
 /**
  * Returns up to 3 practitioners on the same island with overlapping modalities,
  * excluding the current profile. Sorted by modality overlap count (most similar first),
- * then by tier.
+ * with featured listings prioritized as tiebreakers.
+ *
+ * Featured tier practitioners sort first among results with the same modality overlap,
+ * followed by premium, then free tier.
  */
 export function useSimilarPractitioners(
   island: string | null | undefined,
@@ -63,7 +66,9 @@ export function useSimilarPractitioners(
       const modalitySet = new Set(modalities);
 
       // Only include practitioners with at least 1 shared modality.
-      // Sort by overlap count descending, break ties by tier (featured > premium > free).
+      // Primary sort: overlap count descending (most similar first).
+      // Secondary sort: tier rank descending (featured > premium > free).
+      // This ensures featured listings appear first among practitioners with equal modality overlap.
       const TIER_RANK: Record<string, number> = { featured: 3, premium: 2, free: 1 };
       const scored = all
         .map(p => ({

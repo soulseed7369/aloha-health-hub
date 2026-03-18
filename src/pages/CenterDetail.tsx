@@ -4,6 +4,8 @@ import { useState } from "react";
 type CenterTabType = 'about' | 'locations' | 'events' | 'testimonials';
 import { useCenter, usePublicCenterLocations } from "@/hooks/useCenter";
 import { usePublicCenterEvents } from "@/hooks/useCenterEvents";
+import { useTrackView, useTrackClick } from "@/hooks/useTrackEvent";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -238,12 +240,12 @@ function LocationsSection({ locations }: { locations: CenterLocationRow[] }) {
                 </div>
                 <div className="space-y-1.5 text-sm text-muted-foreground">
                   {loc.phone && (
-                    <a href={`tel:${loc.phone}`} className="flex items-center gap-2 hover:text-foreground">
+                    <a href={`tel:${loc.phone}`} onClick={() => trackClick('phone')} className="flex items-center gap-2 hover:text-foreground">
                       <Phone className="h-3.5 w-3.5" /> {loc.phone}
                     </a>
                   )}
                   {loc.email && (
-                    <a href={`mailto:${loc.email}`} className="flex items-center gap-2 hover:text-foreground">
+                    <a href={`mailto:${loc.email}`} onClick={() => trackClick('email')} className="flex items-center gap-2 hover:text-foreground">
                       <Mail className="h-3.5 w-3.5" /> {loc.email}
                     </a>
                   )}
@@ -288,6 +290,9 @@ export default function CenterDetail() {
   const { data: locations = [] }       = usePublicCenterLocations(id);
   const { data: events = [] }          = usePublicCenterEvents(id);
   const [activeTab, setActiveTab] = useState<CenterTabType>('about');
+
+  useTrackView(id, 'center');
+  const trackClick = useTrackClick(id, 'center');
 
   const metaDesc = c
     ? `${c.name} — ${c.centerTypeLabel} in Hawaiʻi. View services, hours, and contact info.`
@@ -335,6 +340,42 @@ export default function CenterDetail() {
 
   const isClaimed = !!c?.ownerId;
   const isTiered = c && (c.tier === 'premium' || c.tier === 'featured');
+
+  // ── Service catalog schema — only for featured tier ──────────────────
+  const serviceCatalogSchema = c && c.tier === 'featured' && c.modalities.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'HealthAndBeautyBusiness',
+    name: c.name,
+    url: centerUrl,
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Wellness Services',
+      itemListElement: c.modalities.map((m, i) => ({
+        '@type': 'OfferCatalog',
+        position: i + 1,
+        itemOffered: {
+          '@type': 'Service',
+          name: m,
+          provider: { '@type': 'Organization', name: c.name },
+          areaServed: { '@type': 'State', name: 'Hawaii' },
+        },
+      })),
+    },
+  } : null;
+
+  // ── FAQ schema — only for featured tier with description ──────────────
+  const faqSchema = c && c.tier === 'featured' && c.about ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [{
+      '@type': 'Question',
+      name: `What services are offered at ${c.name}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: c.about,
+      },
+    }],
+  } : null;
 
   // Primary location (for sidebar contact info override when multiple locations)
   const primaryLocation = locations.find((l) => l.is_primary) ?? locations[0] ?? null;
@@ -385,6 +426,8 @@ export default function CenterDetail() {
     <main>
       {localBusinessSchema && <JsonLd id="center-localbusiness" data={localBusinessSchema} />}
       {breadcrumbSchema    && <JsonLd id="center-breadcrumb"    data={breadcrumbSchema} />}
+      {serviceCatalogSchema && <JsonLd id="center-services" data={serviceCatalogSchema} />}
+      {faqSchema && <JsonLd id="center-faq" data={faqSchema} />}
 
       {/* Breadcrumb */}
       <div className="container pt-4">
@@ -424,7 +467,12 @@ export default function CenterDetail() {
               className="-mt-16 h-32 w-32 rounded-xl border-4 border-background object-cover shadow-lg"
             />
             <div className="flex-1">
-              <h1 className="font-display text-2xl font-bold md:text-3xl">{c.name}</h1>
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="font-display text-2xl font-bold md:text-3xl">{c.name}</h1>
+                {c.verified && c.tier === 'featured' && (
+                  <VerifiedBadge size="sm" />
+                )}
+              </div>
               <p className="mt-0.5 text-base font-medium text-muted-foreground">{c.centerTypeLabel}</p>
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 {c.location && (
@@ -674,19 +722,19 @@ export default function CenterDetail() {
 
                 <div className="space-y-2 text-sm text-muted-foreground">
                   {contactPhone && (
-                    <a href={`tel:${contactPhone}`}
+                    <a href={`tel:${contactPhone}`} onClick={() => trackClick('phone')}
                       className="flex items-center gap-2 hover:text-foreground">
                       <Phone className="h-4 w-4" /> {contactPhone}
                     </a>
                   )}
                   {contactEmail && (
-                    <a href={`mailto:${contactEmail}`}
+                    <a href={`mailto:${contactEmail}`} onClick={() => trackClick('email')}
                       className="flex items-center gap-2 hover:text-foreground">
                       <Mail className="h-4 w-4" /> {contactEmail}
                     </a>
                   )}
                   {c.website && (
-                    <a href={c.website} target="_blank" rel="noopener noreferrer"
+                    <a href={c.website} onClick={() => trackClick('website')} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 hover:text-foreground">
                       <Globe className="h-4 w-4" /> Website
                     </a>
@@ -732,7 +780,7 @@ export default function CenterDetail() {
           {/* Book CTA */}
           {c.externalBookingUrl && (
             <Button className="w-full gap-2" size="lg" asChild>
-              <a href={c.externalBookingUrl} target="_blank" rel="noopener noreferrer">
+              <a href={c.externalBookingUrl} onClick={() => trackClick('booking')} target="_blank" rel="noopener noreferrer">
                 Book / Visit Website
                 <ExternalLink className="h-4 w-4" />
               </a>

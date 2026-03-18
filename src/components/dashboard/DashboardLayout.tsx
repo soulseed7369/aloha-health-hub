@@ -1,10 +1,11 @@
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Home, User, Building, CalendarDays, Sparkles, Quote, CreditCard, Settings, LogOut, Menu, X, ShieldCheck } from "lucide-react";
+import { Home, User, Building, CalendarDays, Sparkles, Quote, CreditCard, Settings, LogOut, Menu, X, ShieldCheck, BarChart3 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { isAdmin } from "@/lib/admin";
 import { useAccountType } from "@/hooks/useAccountType";
+import { useMyBillingProfile } from "@/hooks/useStripe";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -33,6 +34,7 @@ export function DashboardLayout() {
   const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
+  const { data: billing, isLoading: billingLoading } = useMyBillingProfile();
 
   const handleSignOut = async () => {
     await signOut();
@@ -42,9 +44,23 @@ export function DashboardLayout() {
   // Display name: email local part or fallback
   const displayName = user?.email ? user.email.split("@")[0] : "Provider";
 
-  // Determine which sidebar links to show
-  // Don't show links while loading to avoid flash of wrong type
-  const sidebarLinks = accountTypeLoading ? [] : (accountType === 'center' ? centerLinks : practitionerLinks);
+  // Build sidebar links dynamically, showing analytics only for premium+ tiers
+  const baseLinks = accountTypeLoading ? [] : (accountType === 'center' ? centerLinks : practitionerLinks);
+  const isPremiumOrHigher = billing?.tier === 'premium' || billing?.tier === 'featured';
+
+  let sidebarLinks = baseLinks;
+  if (isPremiumOrHigher && !accountTypeLoading && !billingLoading) {
+    // Insert analytics link before billing
+    sidebarLinks = baseLinks.flatMap(link => {
+      if (link.to === '/dashboard/billing') {
+        return [
+          { label: "Analytics", to: "/dashboard/analytics", icon: BarChart3 },
+          link,
+        ];
+      }
+      return link;
+    });
+  }
 
   return (
     <div className="flex min-h-screen bg-muted/40">

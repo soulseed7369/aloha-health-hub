@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MapPin, Building2 } from "lucide-react";
 import type { Center } from "@/data/mockData";
 import { Link } from "react-router-dom";
@@ -60,7 +61,7 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
     const extraCount = displayModalities.length - visibleModalities.length;
     return (
       <Link to={`/center/${center.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
-        <Card className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(center.tier)}`}>
+        <Card className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(center.tier)} ${center.tier === 'featured' ? 'border-l-4 border-l-amber-400' : ''}`}>
           <div className="flex gap-4 p-4">
             {/* Image / fallback */}
             {hasImage ? (
@@ -80,9 +81,14 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
                 <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors">
                   {center.name}
                 </h3>
-                {center.tier && center.tier !== "free" && (
-                  <TierBadge tier={center.tier} className="flex-shrink-0" />
-                )}
+                <div className="flex flex-shrink-0 items-center gap-1">
+                  {center.verified && center.tier === "featured" && (
+                    <VerifiedBadge size="sm" />
+                  )}
+                  {center.tier && center.tier !== "free" && (
+                    <TierBadge tier={center.tier} />
+                  )}
+                </div>
               </div>
               <div className="mb-1.5 flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
@@ -104,6 +110,10 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
                   <Badge key={s} variant="secondary" className="text-xs font-normal" role="listitem">{s}</Badge>
                 ))}
               </div>
+              {/* Description excerpt for featured tier */}
+              {center.tier === 'featured' && center.description && (
+                <p className="text-xs text-muted-foreground line-clamp-2 mt-1.5">{center.description}</p>
+              )}
             </div>
           </div>
         </Card>
@@ -118,7 +128,7 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
 
   return (
     <Link to={`/center/${center.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
-      <Card className={`relative flex h-80 flex-col overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${tierCardClasses(center.tier)}`}>
+      <Card className={`relative flex h-80 flex-col overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${tierCardClasses(center.tier)} ${center.tier === 'featured' ? 'border-l-4 border-l-amber-400' : ''}`}>
         {/* Tier badge — top-right */}
         {center.tier && center.tier !== "free" && (
           <div className="absolute right-3 top-3 z-10">
@@ -145,6 +155,11 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
           <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
             {center.name}
           </h3>
+          {center.verified && center.tier === "featured" && (
+            <div className="flex justify-center mt-1">
+              <VerifiedBadge size="sm" />
+            </div>
+          )}
           {subtitle && (
             <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
           )}

@@ -5,7 +5,9 @@ import { useSimilarPractitioners } from "@/hooks/usePractitioners";
 import { usePractitionerOfferings } from "@/hooks/usePractitionerOfferings";
 import { usePractitionerClasses } from "@/hooks/usePractitionerClasses";
 import { usePractitionerTestimonials } from "@/hooks/usePractitionerTestimonials";
+import { useTrackView, useTrackClick } from "@/hooks/useTrackEvent";
 import { ProviderCard } from "@/components/ProviderCard";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -247,6 +249,9 @@ const ProfileDetail = () => {
   const [reportReason, setReportReason] = useState<string>('');
   const [reportDetails, setReportDetails] = useState<string>('');
 
+  useTrackView(id, 'practitioner');
+  const trackClick = useTrackClick(id, 'practitioner');
+
   const submitFlag = useSubmitFlag();
   const { toast } = useToast();
 
@@ -406,11 +411,49 @@ const ProfileDetail = () => {
   const workingHours = (p as any).workingHours as Record<string, { open: string; close: string } | null> | undefined;
   const hasHours = workingHours && Object.values(workingHours).some(Boolean);
 
+  // ── FAQ schema — only for featured tier with "whatToExpect" content ─────
+  const faqSchema = p.tier === 'featured' && p.whatToExpect ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [{
+      '@type': 'Question',
+      name: `What to expect from a session with ${p.name}?`,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: p.whatToExpect,
+      },
+    }],
+  } : null;
+
+  // ── Enhanced service catalog schema — only for featured tier ──────────
+  const serviceCatalogSchema = p.tier === 'featured' && p.services.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'HealthAndBeautyBusiness',
+    name: p.name,
+    url: profileUrl,
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Wellness Services',
+      itemListElement: p.services.map((s, i) => ({
+        '@type': 'OfferCatalog',
+        position: i + 1,
+        itemOffered: {
+          '@type': 'Service',
+          name: s,
+          provider: { '@type': 'Person', name: p.name },
+          areaServed: { '@type': 'State', name: 'Hawaii' },
+        },
+      })),
+    },
+  } : null;
+
   return (
     <main>
       <JsonLd id="profile-localbusiness" data={localBusinessSchema} />
       <JsonLd id="profile-breadcrumb" data={breadcrumbSchema} />
       {reviewSchema && <JsonLd id="profile-reviews" data={reviewSchema} />}
+      {faqSchema && <JsonLd id="profile-faq" data={faqSchema} />}
+      {serviceCatalogSchema && <JsonLd id="profile-services" data={serviceCatalogSchema} />}
 
       {/* Breadcrumb nav */}
       <div className="container pt-4">
@@ -474,10 +517,8 @@ const ProfileDetail = () => {
 
                 {/* Status + top modalities */}
                 <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                  {p.verified && (
-                    <Badge className="gap-1 bg-sage text-white">
-                      <CheckCircle className="h-3 w-3" /> Verified
-                    </Badge>
+                  {p.verified && p.tier === 'featured' && (
+                    <VerifiedBadge />
                   )}
                   {p.acceptingClients && (
                     <Badge className="gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -607,7 +648,7 @@ const ProfileDetail = () => {
                         className="gap-2 bg-teal-600 text-white hover:bg-teal-700"
                         asChild
                       >
-                        <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
+                        <a href={p.externalBookingUrl} onClick={() => trackClick('booking')} target="_blank" rel="noopener noreferrer">
                           {p.bookingLabel}
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -619,7 +660,7 @@ const ProfileDetail = () => {
                         className="gap-2 bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100"
                         asChild
                       >
-                        <a href={p.discoveryCallUrl} target="_blank" rel="noopener noreferrer">
+                        <a href={p.discoveryCallUrl} onClick={() => trackClick('discovery_call')} target="_blank" rel="noopener noreferrer">
                           Discovery Call
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -1025,17 +1066,17 @@ const ProfileDetail = () => {
                 {p.address && <p className="text-sm font-medium">{p.address}</p>}
                 <div className="space-y-2 text-sm">
                   {p.phone && p.showPhone && (
-                    <a href={`tel:${p.phone}`} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors">
+                    <a href={`tel:${p.phone}`} onClick={() => trackClick('phone')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors">
                       <Phone className="h-4 w-4 flex-shrink-0" /> {p.phone}
                     </a>
                   )}
                   {p.email && p.showEmail && (
-                    <a href={`mailto:${p.email}`} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0">
+                    <a href={`mailto:${p.email}`} onClick={() => trackClick('email')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0">
                       <Mail className="h-4 w-4 flex-shrink-0" /> <span className="truncate">{p.email}</span>
                     </a>
                   )}
                   {p.website && (
-                    <a href={p.website} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0" target="_blank" rel="noopener noreferrer">
+                    <a href={p.website} onClick={() => trackClick('website')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0" target="_blank" rel="noopener noreferrer">
                       <Globe className="h-4 w-4 flex-shrink-0" />
                       <span className="truncate">{p.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
                     </a>
@@ -1173,7 +1214,7 @@ const ProfileDetail = () => {
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 p-3 backdrop-blur-sm lg:hidden">
         {p.externalBookingUrl ? (
           <Button className="w-full gap-2" size="lg" asChild>
-            <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
+            <a href={p.externalBookingUrl} onClick={() => trackClick('booking')} target="_blank" rel="noopener noreferrer">
               {p.bookingLabel || 'Book Appointment'}
               <ExternalLink className="h-4 w-4" />
             </a>

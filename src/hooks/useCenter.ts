@@ -33,6 +33,7 @@ export interface CenterProfile {
   tier: string;
   ownerId: string | null;
   sessionType: string | null;
+  verified: boolean;
   testimonials: Array<{ author: string; text: string; date: string }>;
   workingHours: CenterRow['working_hours'] | null;
   socialLinks: {
@@ -71,6 +72,7 @@ function rowToProfile(row: CenterRow): CenterProfile {
     tier: row.tier,
     ownerId: row.owner_id,
     sessionType: row.session_type ?? null,
+    verified: !!(row.email_verified_at || row.phone_verified_at),
     testimonials: row.testimonials ?? [],
     workingHours: row.working_hours ?? null,
     socialLinks: row.social_links ?? null,

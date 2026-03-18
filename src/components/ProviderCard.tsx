@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { MapPin, ExternalLink, CheckCircle } from "lucide-react";
 
 // ── Island badge (compact, for use in cards) ─────────────────────────────────
@@ -125,7 +126,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
     const extraCount = displayModalities.length - visibleModalities.length;
     return (
       <Link to={`/profile/${provider.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg">
-        <Card className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(provider.tier)}`}>
+        <Card className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(provider.tier)} ${provider.tier === 'featured' ? 'border-l-4 border-l-amber-400' : ''}`}>
           <div className="flex gap-4 p-4">
             {/* Avatar — 72px for stronger human presence */}
             {hasImage ? (
@@ -144,9 +145,8 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   {/* Personal name always primary — never replaced by business name */}
-                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight flex items-center gap-1">
+                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight">
                     {provider.name}
-                    {provider.verified && <CheckCircle className="h-3.5 w-3.5 text-sage flex-shrink-0" />}
                   </h3>
                   {/* Business name always a muted subtitle */}
                   {provider.businessName && (
@@ -154,6 +154,9 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   )}
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1">
+                  {provider.verified && provider.tier === "featured" && (
+                    <VerifiedBadge size="sm" />
+                  )}
                   {isRecentlyUpdated(provider.updatedAt) && (
                     <span className="inline-flex items-center rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200">
                       ✦ Updated
@@ -187,6 +190,10 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                     <Badge variant="outline" className="text-xs font-normal">+{extraCount} more</Badge>
                   )}
                 </div>
+              )}
+              {/* Bio excerpt for featured tier */}
+              {provider.tier === 'featured' && provider.bio && (
+                <p className="text-xs text-muted-foreground line-clamp-2 mb-1.5">{provider.bio}</p>
               )}
               {/* Match explanation labels */}
               {(provider.matchedConcerns?.length || provider.matchedApproaches?.length) ? (
@@ -241,7 +248,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
 
   return (
     <Link to={`/profile/${provider.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
-      <Card className={`relative flex h-80 flex-col overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${tierCardClasses(provider.tier)}`}>
+      <Card className={`relative flex h-80 flex-col overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${tierCardClasses(provider.tier)} ${provider.tier === 'featured' ? 'border-l-4 border-l-amber-400' : ''}`}>
         {/* Tier badge — top-right */}
         {provider.tier && provider.tier !== "free" && (
           <div className="absolute right-3 top-3 z-10">
@@ -269,6 +276,11 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
           <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
             {provider.name}
           </h3>
+          {provider.verified && provider.tier === "featured" && (
+            <div className="flex justify-center mt-1">
+              <VerifiedBadge size="sm" />
+            </div>
+          )}
           {/* Business name always a separate muted subtitle — never replaces personal name */}
           {provider.businessName && (
             <p className="truncate text-xs text-muted-foreground">{provider.businessName}</p>
