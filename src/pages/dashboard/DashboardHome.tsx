@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Building, Calendar, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock, ShieldCheck } from "lucide-react";
+import { User, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
@@ -95,7 +95,7 @@ export default function DashboardHome() {
     {
       id: 'plan',
       label: 'Choose a plan',
-      description: 'Free gets you listed. Premium & Featured unlock retreats and more visibility.',
+      description: 'Free gets you listed. Premium & Featured unlock testimonials, analytics, and more.',
       done: hasPaidPlan,
       to: '/dashboard/billing',
     },
@@ -111,24 +111,6 @@ export default function DashboardHome() {
       color: "bg-terracotta-light text-terracotta",
       badge: !hasProfile ? "Start here" : null,
     },
-    {
-      title: "Centers & Spas",
-      icon: Building,
-      description: "Manage listings for physical clinics, spas, or shared wellness spaces.",
-      button: "Manage Centers",
-      to: "/dashboard/centers",
-      color: "bg-secondary text-secondary-foreground",
-      badge: null,
-    },
-    {
-      title: "Retreats & Events",
-      icon: Calendar,
-      description: "Publish upcoming time-bound retreats or workshops.",
-      button: "Manage Retreats",
-      to: "/dashboard/retreats",
-      color: "bg-ocean-light text-ocean",
-      badge: !hasPaidPlan ? "Premium+" : null,
-    },
   ];
 
   return (
@@ -138,7 +120,7 @@ export default function DashboardHome() {
           Welcome to your Provider Dashboard
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Manage your listings, retreats, and account settings.
+          Manage your listing, billing, and account settings.
         </p>
       </div>
 
@@ -236,7 +218,7 @@ export default function DashboardHome() {
                 <Star className="h-4 w-4" /> Unlock Premium features
               </p>
               <p className="text-xs text-amber-700 mt-0.5">
-                Post retreats, add social links, and get priority placement for $39/mo.
+                Add social links, testimonials, working hours, and get priority placement for $49/mo.
               </p>
             </div>
             <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-600 text-white flex-shrink-0">
@@ -273,7 +255,7 @@ export default function DashboardHome() {
       )}
 
       {/* Main action cards */}
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-1 max-w-md">
         {actions.map((a) => (
           <Card key={a.title} className="group relative overflow-hidden transition-shadow hover:shadow-md">
             <CardContent className="flex flex-col items-start gap-4 p-6">
