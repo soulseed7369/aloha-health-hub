@@ -33,6 +33,7 @@ import {
   type LocationFormData,
 } from "@/hooks/useMyCenters";
 import type { CenterRow, CenterLocationRow } from "@/types/database";
+import { CenterEventsAndAmenities } from "./DashboardCenterEvents";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -531,10 +532,11 @@ export default function DashboardCenters() {
                   </div>
                 </div>
 
-                {/* Expanded: Locations panel */}
+                {/* Expanded: Locations + Events + Amenities */}
                 {expandedId === center.id && (
                   <div className="mt-4 border-t pt-3">
                     <LocationsPanel centerId={center.id} />
+                    <CenterEventsAndAmenities center={center} />
                   </div>
                 )}
               </CardContent>

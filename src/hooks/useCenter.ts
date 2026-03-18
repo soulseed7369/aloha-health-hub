@@ -19,6 +19,7 @@ export interface CenterProfile {
   photos: string[];
   about: string | null;
   modalities: string[];
+  amenities: string[];
   address: string | null;
   city: string | null;
   island: string;
@@ -56,6 +57,7 @@ function rowToProfile(row: CenterRow): CenterProfile {
     photos: row.photos ?? [],
     about: row.description ?? null,
     modalities: row.modalities ?? [],
+    amenities: row.amenities ?? [],
     address: row.address,
     city: row.city,
     island: row.island,

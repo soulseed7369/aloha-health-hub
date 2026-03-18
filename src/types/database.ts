@@ -178,6 +178,7 @@ export interface CenterRow {
   avatar_url: string | null;
   photos: string[];
   modalities: string[];
+  amenities: string[];             // Sprint 2 — added by 20260317000002_centers_sprint1.sql
   status: 'draft' | 'pending_review' | 'published' | 'archived';
   tier: 'free' | 'premium' | 'featured';
   email_verified_at: string | null;

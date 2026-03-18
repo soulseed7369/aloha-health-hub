@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { useCenter, usePublicCenterLocations } from "@/hooks/useCenter";
+import { usePublicCenterEvents } from "@/hooks/useCenterEvents";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,13 +17,15 @@ import {
 import {
   MapPin, Phone, Mail, Globe, ExternalLink,
   Quote, Flag, Instagram, Facebook, Linkedin, Link2, Check, Clock,
-  Star, Users,
+  Star, Users, CalendarDays, Download, Repeat,
 } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
 import type { CenterLocationRow } from "@/types/database";
+import type { CenterEventRow } from "@/hooks/useCenterEvents";
+import { downloadIcal, googleCalendarUrl } from "@/lib/ical";
 
 // ── Island labels ──────────────────────────────────────────────────────────────
 const ISLAND_LABELS: Record<string, string> = {
@@ -31,6 +34,139 @@ const ISLAND_LABELS: Record<string, string> = {
   oahu:       'Oʻahu',
   kauai:      'Kauaʻi',
 };
+
+// ── Amenity labels ─────────────────────────────────────────────────────────────
+const AMENITY_LABELS: Record<string, string> = {
+  parking:        'Parking',
+  wifi:           'WiFi',
+  changing_rooms: 'Changing Rooms',
+  showers:        'Showers',
+  wheelchair:     'Wheelchair Accessible',
+  private_rooms:  'Private Rooms',
+  group_space:    'Group Space',
+  outdoor_area:   'Outdoor Area',
+  sauna:          'Sauna / Steam Room',
+  pool:           'Pool / Hot Tub',
+  cafe:           'Juice Bar / Café',
+  retail:         'Retail / Shop',
+};
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function formatEventDate(dateStr: string | null, timeStr: string | null): string {
+  if (!dateStr) return '';
+  const d = new Date(`${dateStr}T00:00:00`);
+  const date = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  if (!timeStr) return date;
+  const [h, m] = timeStr.split(':');
+  const t = new Date(); t.setHours(parseInt(h, 10), parseInt(m, 10));
+  return `${date} · ${t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+}
+
+function eventPriceLabel(ev: CenterEventRow): string {
+  if (ev.price_mode === 'free')    return 'Free';
+  if (ev.price_mode === 'contact') return 'Contact for price';
+  if (ev.price_mode === 'fixed' && ev.price_fixed != null) return `$${ev.price_fixed}`;
+  if ((ev.price_mode === 'range' || ev.price_mode === 'sliding') && ev.price_min != null && ev.price_max != null)
+    return `$${ev.price_min}–$${ev.price_max}`;
+  return '';
+}
+
+// ── Public event card with iCal ────────────────────────────────────────────────
+function PublicEventCard({ event: ev, centerName }: { event: CenterEventRow; centerName: string }) {
+  const dateLabel  = ev.is_recurring
+    ? (ev.recurrence_rule || 'Recurring')
+    : formatEventDate(ev.event_date, ev.start_time);
+  const price      = eventPriceLabel(ev);
+  const gcalUrl    = ev.event_date ? googleCalendarUrl({
+    title:       ev.title,
+    description: ev.description ?? undefined,
+    location:    ev.location    ?? centerName,
+    event_date:  ev.event_date,
+    start_time:  ev.start_time  ?? undefined,
+    end_time:    ev.end_time    ?? undefined,
+    url:         ev.registration_url ?? undefined,
+  }) : null;
+
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-1">
+              <p className="font-semibold">{ev.title}</p>
+              {ev.is_recurring && (
+                <Badge variant="secondary" className="text-xs gap-1">
+                  <Repeat className="h-3 w-3" /> Recurring
+                </Badge>
+              )}
+            </div>
+            {dateLabel && (
+              <p className="text-sm text-muted-foreground flex items-center gap-1">
+                <CalendarDays className="h-3.5 w-3.5" /> {dateLabel}
+              </p>
+            )}
+            {ev.description && (
+              <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">{ev.description}</p>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              {price && <span className="font-medium text-foreground">{price}</span>}
+              {ev.location && <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{ev.location}</span>}
+              {ev.max_attendees && (
+                <span>
+                  {ev.attendees_booked}/{ev.max_attendees} spots
+                  {ev.attendees_booked >= ev.max_attendees && (
+                    <span className="ml-1 text-destructive font-medium">· Full</span>
+                  )}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* CTAs */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            {ev.registration_url && (
+              <Button size="sm" asChild>
+                <a href={ev.registration_url} target="_blank" rel="noopener noreferrer">
+                  Register <ExternalLink className="h-3.5 w-3.5 ml-1.5" />
+                </a>
+              </Button>
+            )}
+            {!ev.is_recurring && ev.event_date && (
+              <div className="flex gap-1">
+                {gcalUrl && (
+                  <a
+                    href={gcalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted flex items-center gap-1"
+                    title="Add to Google Calendar"
+                  >
+                    <CalendarDays className="h-3 w-3" /> GCal
+                  </a>
+                )}
+                <button
+                  className="rounded border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted flex items-center gap-1"
+                  title="Download .ics"
+                  onClick={() => downloadIcal({
+                    title:       ev.title,
+                    description: ev.description ?? undefined,
+                    location:    ev.location    ?? centerName,
+                    event_date:  ev.event_date,
+                    start_time:  ev.start_time  ?? undefined,
+                    end_time:    ev.end_time    ?? undefined,
+                    url:         ev.registration_url ?? undefined,
+                  })}
+                >
+                  <Download className="h-3 w-3" /> .ics
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 // ── Share button ───────────────────────────────────────────────────────────────
 function ShareButton({ name }: { name: string }) {
@@ -187,6 +323,7 @@ export default function CenterDetail() {
   const { id } = useParams<{ id: string }>();
   const { data: c, isLoading }         = useCenter(id);
   const { data: locations = [] }       = usePublicCenterLocations(id);
+  const { data: events = [] }          = usePublicCenterEvents(id);
 
   const metaDesc = c
     ? `${c.name} — ${c.centerTypeLabel} in Hawaiʻi. View services, hours, and contact info.`
@@ -376,6 +513,34 @@ export default function CenterDetail() {
                 <Clock className="h-5 w-5 text-primary" /> Hours
               </h2>
               <WorkingHoursTable hours={hoursSource as Record<string, { open: string; close: string } | null>} />
+            </div>
+          )}
+
+          {/* Amenities */}
+          {c.amenities.length > 0 && (
+            <div>
+              <h2 className="mb-3 font-display text-xl font-bold">Amenities</h2>
+              <div className="flex flex-wrap gap-2">
+                {c.amenities.map((a) => (
+                  <Badge key={a} variant="secondary" className="text-sm px-3 py-1">
+                    {AMENITY_LABELS[a] ?? a}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming events */}
+          {events.length > 0 && (
+            <div>
+              <h2 className="mb-4 flex items-center gap-2 font-display text-xl font-bold">
+                <CalendarDays className="h-5 w-5 text-primary" /> Upcoming Events
+              </h2>
+              <div className="space-y-3">
+                {events.map((ev) => (
+                  <PublicEventCard key={ev.id} event={ev} centerName={c.name} />
+                ))}
+              </div>
             </div>
           )}
 
