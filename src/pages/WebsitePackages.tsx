@@ -77,8 +77,7 @@ const FAQ = [
   },
 ];
 
-const DISCOVERY_MAILTO =
-  "mailto:aloha@hawaiiwellness.net?subject=Website%20Discovery%20Call&body=Hi%2C%20I%27m%20interested%20in%20learning%20more%20about%20your%20website%20packages%20for%20my%20wellness%20practice.";
+const DISCOVERY_CALL_URL = "https://calendar.app.google/KYSWe4dXtc4rMTt1A";
 
 export default function WebsitePackages() {
   usePageMeta(
@@ -107,7 +106,7 @@ export default function WebsitePackages() {
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button size="lg" className="gap-2 text-base px-8" asChild>
-              <a href={DISCOVERY_MAILTO}>
+              <a href={DISCOVERY_CALL_URL} target="_blank" rel="noopener noreferrer">
                 <Mail className="h-5 w-5" />
                 Book a Free Discovery Call
               </a>
@@ -447,7 +446,7 @@ export default function WebsitePackages() {
           </p>
           <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button size="lg" className="gap-2 bg-white text-primary hover:bg-white/90 text-base px-8" asChild>
-              <a href={DISCOVERY_MAILTO}>
+              <a href={DISCOVERY_CALL_URL} target="_blank" rel="noopener noreferrer">
                 <Mail className="h-5 w-5" />
                 Book a Discovery Call
               </a>
