@@ -88,43 +88,49 @@ Deno.serve(async (req) => {
     return json({ error: 'Invalid URLs provided' }, 400, origin);
   }
 
-  // Look up or create Stripe customer
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('stripe_customer_id')
-    .eq('id', user.id)
-    .single();
-
-  let customerId = profile?.stripe_customer_id;
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email,
-      metadata: { supabase_user_id: user.id },
-    });
-    customerId = customer.id;
-    await supabase
+  try {
+    // Look up or create Stripe customer
+    const { data: profile } = await supabase
       .from('user_profiles')
-      .update({ stripe_customer_id: customerId })
-      .eq('id', user.id);
-  }
+      .select('stripe_customer_id')
+      .eq('id', user.id)
+      .single();
 
-  // Create checkout session
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    payment_method_types: ['card'],
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: successUrl,
-    cancel_url: cancelUrl,
-    metadata: { user_id: user.id },
-    subscription_data: {
+    let customerId = profile?.stripe_customer_id;
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { supabase_user_id: user.id },
+      });
+      customerId = customer.id;
+      await supabase
+        .from('user_profiles')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id);
+    }
+
+    // Create checkout session
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      mode: 'subscription',
+      payment_method_types: ['card'],
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: { user_id: user.id },
-    },
-    // Apply ALOHA20 launch promo automatically when active
-    ...(PROMO_ACTIVE ? { discounts: [{ coupon: PROMO_COUPON_ID }] } : { allow_promotion_codes: true }),
-  });
+      subscription_data: {
+        metadata: { user_id: user.id },
+      },
+      // Apply ALOHA20 launch promo automatically when active
+      ...(PROMO_ACTIVE ? { discounts: [{ coupon: PROMO_COUPON_ID }] } : { allow_promotion_codes: true }),
+    });
 
-  return json({ url: session.url }, 200, origin);
+    return json({ url: session.url }, 200, origin);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Stripe error';
+    console.error('Checkout session error:', message);
+    return json({ error: message }, 500, origin);
+  }
 });
 
 function json(body: unknown, status = 200, origin: string | null = null) {
