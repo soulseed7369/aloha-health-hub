@@ -39,10 +39,9 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseServiceRole = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
 
-    if (!supabaseUrl || !supabaseServiceRole || !supabaseAnonKey) {
-      console.error('Missing Supabase configuration', { supabaseUrl: !!supabaseUrl, supabaseServiceRole: !!supabaseServiceRole, supabaseAnonKey: !!supabaseAnonKey });
+    if (!supabaseUrl || !supabaseServiceRole) {
+      console.error('Missing Supabase configuration', { supabaseUrl: !!supabaseUrl, supabaseServiceRole: !!supabaseServiceRole });
       return json({ error: 'Supabase configuration error' }, 500);
     }
 
@@ -53,19 +52,14 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
 
-    // ── Auth: per-request client with user JWT (official Supabase pattern) ──
+    // ── Auth: verify JWT via admin client (service role can verify any JWT) ──
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return json({ error: 'Missing Authorization header' }, 401);
     }
 
-    const supabaseUser = createClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      { global: { headers: { Authorization: authHeader } } },
-    );
-
-    const { data: { user }, error: authErr } = await supabaseUser.auth.getUser();
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
     if (authErr || !user) {
       console.error('Auth error', { authErr: authErr?.message, hasUser: !!user });
       return json({ error: authErr?.message ?? 'Unauthorized' }, 401);
