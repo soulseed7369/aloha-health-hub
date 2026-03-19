@@ -58,39 +58,42 @@ export function useSavePractitioner() {
     mutationFn: async (formData: PractitionerFormData) => {
       if (!supabase || !user) throw new Error('Not authenticated');
 
-      const payload: Partial<PractitionerInsert> = {
+      // Core fields that exist in the base practitioners table (always safe to write)
+      const payload: Record<string, unknown> = {
         owner_id: user.id,
         name: formData.name.trim(),
         island: formData.island || 'big_island',
         modalities: formData.modalities.filter(Boolean),
         bio: formData.bio.trim() || null,
-        what_to_expect: formData.what_to_expect.trim() || null,
         city: formData.city.trim() || null,
         address: formData.address.trim() || null,
         phone: formData.phone.trim() || null,
         email: formData.email.trim() || null,
         website_url: formData.website_url.trim() || null,
         external_booking_url: formData.external_booking_url.trim() || null,
-        booking_label: formData.booking_label.trim() || null,
         accepts_new_clients: formData.accepts_new_clients,
-        response_time: formData.response_time.trim() || null,
         ...(formData.avatar_url !== undefined && { avatar_url: formData.avatar_url }),
-        show_phone: formData.show_phone,
-        show_email: formData.show_email,
-        booking_enabled: formData.booking_enabled,
-        messaging_enabled: formData.messaging_enabled,
-        discovery_call_enabled: formData.discovery_call_enabled,
-        discovery_call_url: formData.discovery_call_url.trim() || null,
-        status: 'draft',
+        // Extended fields (added by later migrations — safe if columns exist)
+        what_to_expect: formData.what_to_expect?.trim() || null,
+        booking_label: formData.booking_label?.trim() || null,
+        response_time: formData.response_time?.trim() || null,
+        show_phone: formData.show_phone ?? true,
+        show_email: formData.show_email ?? true,
+        booking_enabled: formData.booking_enabled ?? true,
+        messaging_enabled: formData.messaging_enabled ?? true,
+        discovery_call_enabled: formData.discovery_call_enabled ?? false,
+        discovery_call_url: formData.discovery_call_url?.trim() || null,
       };
 
       const { data: existing } = await supabase
         .from('practitioners')
-        .select('id')
+        .select('id, status')
         .eq('owner_id', user.id)
         .maybeSingle();
 
       if (existing) {
+        // DON'T overwrite status or tier on existing listings — those are
+        // managed by admin/Stripe, not the provider's profile form
         const { error } = await supabase
           .from('practitioners')
           .update(payload)
@@ -98,9 +101,10 @@ export function useSavePractitioner() {
           .eq('owner_id', user.id);
         if (error) throw error;
       } else {
+        // Only set status: 'draft' for brand-new listings
         const { error } = await supabase
           .from('practitioners')
-          .insert(payload as PractitionerInsert);
+          .insert({ ...payload, status: 'draft' } as PractitionerInsert);
         if (error) throw error;
       }
     },
