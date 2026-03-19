@@ -818,3 +818,33 @@ export const useRecordCorrection = () => {
     },
   });
 };
+
+// ─── Admin linking: manually link unclaimed listing to user account ────────
+
+export const useAdminLinkListing = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      listingId,
+      listingType,
+      userId,
+    }: {
+      listingId: string;
+      listingType: 'practitioner' | 'center';
+      userId: string;
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase.rpc('admin_link_listing', {
+        p_listing_id: listingId,
+        p_listing_type: listingType,
+        p_user_id: userId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-practitioners'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-centers'] });
+      queryClient.invalidateQueries({ queryKey: ['my-billing-profile'] });
+    },
+  });
+};
