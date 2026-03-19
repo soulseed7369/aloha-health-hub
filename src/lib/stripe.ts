@@ -11,8 +11,8 @@
 
 export const STRIPE_PRICES = {
   // ── Practitioners ────────────────────────────────────────────────────────
-  /** Practitioner Premium: $49 / month */
-  PREMIUM_MONTHLY:         'price_1T7lnYAmznBlrx8sZkolChSm',
+  /** Practitioner Premium: $39 / month */
+  PREMIUM_MONTHLY:         'price_1TCo3PAmznBlrx8spOgZD1VC',
   /** Practitioner Featured: $129 / month */
   FEATURED_MONTHLY:        'price_1T7loEAmznBlrx8s5j92qxX8',
 

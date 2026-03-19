@@ -1,4 +1,4 @@
-# Aloha Health Hub
+# Hawaiʻi Wellness
 
 A lead-generation wellness directory for Hawaiʻi — practitioners, spas & wellness centers, retreats, and articles. Starting with the Big Island; schema supports Maui, Kauaʻi, and Oʻahu.
 

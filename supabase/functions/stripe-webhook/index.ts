@@ -35,7 +35,7 @@ const supabase = createClient(
 // Covers both practitioner and center price IDs (same tier names, different prices).
 const PRICE_TIER_MAP: Record<string, 'premium' | 'featured'> = {
   // Practitioners
-  'price_1T7lnYAmznBlrx8sZkolChSm': 'premium',   // $49/mo
+  'price_1TCo3PAmznBlrx8spOgZD1VC': 'premium',   // $39/mo
   'price_1T7loEAmznBlrx8s5j92qxX8': 'featured',  // $129/mo
   // Wellness Centers
   'price_1TCA70AmznBlrx8sSVyl2HtA': 'premium',   // $79/mo

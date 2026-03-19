@@ -66,7 +66,7 @@ export default function AuthCallback() {
         }
         // Check for a pending plan or other post-login redirect
         const pending = localStorage.getItem('pendingPlan');
-        const validPlans = ['free', 'price_1T7lnYAmznBlrx8sZkolChSm', 'price_1T7loEAmznBlrx8s5j92qxX8', 'price_1TCA70AmznBlrx8sSVyl2HtA', 'price_1TCA7KAmznBlrx8s2IOtOThI'];
+        const validPlans = ['free', 'price_1TCo3PAmznBlrx8spOgZD1VC', 'price_1T7loEAmznBlrx8s5j92qxX8', 'price_1TCA70AmznBlrx8sSVyl2HtA', 'price_1TCA7KAmznBlrx8s2IOtOThI'];
         if (pending && validPlans.includes(pending) && pending !== 'free') {
           navigate('/dashboard/billing', { replace: true });
         } else {
