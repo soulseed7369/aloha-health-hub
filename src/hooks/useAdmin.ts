@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import type { PractitionerRow, CenterRow, ArticleRow } from '@/types/database';
+import type { PractitionerRow, CenterRow, ArticleRow, PractitionerTestimonialRow, OfferingRow, OfferingInsert, ClassRow, ClassInsert } from '@/types/database';
 
 const IMAGE_BUCKET = 'practitioner-images'; // the Supabase storage bucket for all listing images
 
@@ -740,42 +740,44 @@ export const useSetListingTier = () => {
     }) => {
       if (!supabase) throw new Error('Supabase not configured');
 
-      const table = listingType === 'practitioner' ? 'practitioners' : 'centers';
-
-      // Update the listing tier
-      const { error: updateError } = await supabase
-        .from(table)
-        .update({ tier })
-        .eq('id', listingId);
-      if (updateError) throw updateError;
-
-      // Also sync tier to user_profiles so the provider's dashboard reflects the change
       if (ownerId) {
-        await supabase
-          .from('user_profiles')
-          .upsert({ id: ownerId, tier, updated_at: new Date().toISOString() }, { onConflict: 'id' });
-      }
+        // Use unified RPC when listing has an owner
+        // This single call manages: user_profiles tier, all listings tier, and featured_slots
+        const { error } = await supabase.rpc('set_user_tier', {
+          p_user_id: ownerId,
+          p_new_tier: tier,
+          p_old_tier: previousTier,
+        });
+        if (error) throw error;
+      } else {
+        // Orphan listing (no owner) — update listing tier directly
+        const table = listingType === 'practitioner' ? 'practitioners' : 'centers';
+        const { error } = await supabase
+          .from(table)
+          .update({ tier })
+          .eq('id', listingId);
+        if (error) throw error;
 
-      // If promoting to featured → create featured_slot
-      if (tier === 'featured') {
-        const { error: slotError } = await supabase
-          .from('featured_slots')
-          .upsert({
-            listing_id: listingId,
-            listing_type: listingType,
-            island,
-            owner_id: ownerId,
-          }, { onConflict: 'listing_id' });
-        if (slotError) throw slotError;
-      }
+        // Handle featured slots for orphan listings
+        if (tier === 'featured') {
+          const { error: slotError } = await supabase
+            .from('featured_slots')
+            .upsert({
+              listing_id: listingId,
+              listing_type: listingType,
+              island,
+              owner_id: ownerId,
+            }, { onConflict: 'listing_id' });
+          if (slotError) throw slotError;
+        }
 
-      // If demoting from featured → remove featured_slot
-      if (previousTier === 'featured' && tier !== 'featured') {
-        const { error: deleteError } = await supabase
-          .from('featured_slots')
-          .delete()
-          .eq('listing_id', listingId);
-        if (deleteError) throw deleteError;
+        if (previousTier === 'featured' && tier !== 'featured') {
+          const { error: deleteError } = await supabase
+            .from('featured_slots')
+            .delete()
+            .eq('listing_id', listingId);
+          if (deleteError) throw deleteError;
+        }
       }
     },
     onSuccess: () => {
@@ -845,6 +847,319 @@ export const useAdminLinkListing = () => {
       queryClient.invalidateQueries({ queryKey: ['admin-practitioners'] });
       queryClient.invalidateQueries({ queryKey: ['admin-centers'] });
       queryClient.invalidateQueries({ queryKey: ['my-billing-profile'] });
+    },
+  });
+};
+
+// ─── Admin testimonial management (practitioner_testimonials table) ───────────
+
+export const useAdminTestimonials = (practitionerId: string | null) => {
+  return useQuery<PractitionerTestimonialRow[]>({
+    queryKey: ['admin-testimonials', practitionerId],
+    enabled: !!practitionerId && !!supabase,
+    queryFn: async () => {
+      if (!supabase || !practitionerId) return [];
+      const { data, error } = await supabase
+        .from('practitioner_testimonials')
+        .select('*')
+        .eq('practitioner_id', practitionerId)
+        .order('sort_order', { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+};
+
+export const useAdminAddTestimonial = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (testimonial: {
+      practitioner_id: string;
+      author: string;
+      text: string;
+      author_location?: string;
+      testimonial_date?: string;
+      status?: 'draft' | 'published';
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('practitioner_testimonials')
+        .insert({
+          ...testimonial,
+          status: testimonial.status ?? 'published',
+          sort_order: 0,
+        });
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-testimonials', vars.practitioner_id] });
+    },
+  });
+};
+
+export const useAdminUpdateTestimonial = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, practitioner_id, ...updates }: {
+      id: string;
+      practitioner_id: string;
+      author?: string;
+      text?: string;
+      author_location?: string;
+      testimonial_date?: string;
+      status?: 'draft' | 'published';
+      sort_order?: number;
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('practitioner_testimonials')
+        .update(updates)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-testimonials', vars.practitioner_id] });
+    },
+  });
+};
+
+export const useAdminDeleteTestimonial = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, practitioner_id }: { id: string; practitioner_id: string }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('practitioner_testimonials')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-testimonials', vars.practitioner_id] });
+    },
+  });
+};
+
+// ─── Admin offerings management ─────────────────────────────────────────────
+
+export const useAdminOfferings = (practitionerId: string | null) => {
+  return useQuery<OfferingRow[]>({
+    queryKey: ['admin-offerings', practitionerId],
+    enabled: !!practitionerId && !!supabase,
+    queryFn: async () => {
+      if (!supabase || !practitionerId) return [];
+      const { data, error } = await supabase
+        .from('offerings')
+        .select('*')
+        .eq('practitioner_id', practitionerId)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+};
+
+export const useAdminAddOffering = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (offering: {
+      practitioner_id: string;
+      title: string;
+      description?: string;
+      offering_type: 'retreat' | 'workshop' | 'immersion' | 'mentorship' | 'ceremony' | 'event';
+      price_mode: 'fixed' | 'range' | 'sliding' | 'contact' | 'free';
+      price_fixed?: number;
+      price_min?: number;
+      price_max?: number;
+      image_url?: string;
+      start_date?: string;
+      end_date?: string;
+      location?: string;
+      registration_url?: string;
+      max_spots?: number;
+      status?: 'draft' | 'published';
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('offerings')
+        .insert({
+          ...offering,
+          status: offering.status ?? 'draft',
+          spots_booked: 0,
+          sort_order: 0,
+        });
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-offerings', vars.practitioner_id] });
+    },
+  });
+};
+
+export const useAdminUpdateOffering = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      practitioner_id,
+      ...updates
+    }: {
+      id: string;
+      practitioner_id: string;
+      title?: string;
+      description?: string | null;
+      offering_type?: 'retreat' | 'workshop' | 'immersion' | 'mentorship' | 'ceremony' | 'event';
+      price_mode?: 'fixed' | 'range' | 'sliding' | 'contact' | 'free';
+      price_fixed?: number | null;
+      price_min?: number | null;
+      price_max?: number | null;
+      image_url?: string | null;
+      start_date?: string | null;
+      end_date?: string | null;
+      location?: string | null;
+      registration_url?: string | null;
+      max_spots?: number | null;
+      status?: 'draft' | 'published';
+      sort_order?: number;
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('offerings')
+        .update(updates)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-offerings', vars.practitioner_id] });
+    },
+  });
+};
+
+export const useAdminDeleteOffering = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, practitioner_id }: { id: string; practitioner_id: string }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('offerings')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-offerings', vars.practitioner_id] });
+    },
+  });
+};
+
+// ─── Admin classes management ───────────────────────────────────────────────
+
+export const useAdminClasses = (practitionerId: string | null) => {
+  return useQuery<ClassRow[]>({
+    queryKey: ['admin-classes', practitionerId],
+    enabled: !!practitionerId && !!supabase,
+    queryFn: async () => {
+      if (!supabase || !practitionerId) return [];
+      const { data, error } = await supabase
+        .from('classes')
+        .select('*')
+        .eq('practitioner_id', practitionerId)
+        .order('sort_order', { ascending: true })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+};
+
+export const useAdminAddClass = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (classData: {
+      practitioner_id: string;
+      title: string;
+      description?: string;
+      price_mode: 'fixed' | 'range' | 'sliding' | 'contact' | 'free';
+      price_fixed?: number;
+      price_min?: number;
+      price_max?: number;
+      duration_minutes?: number;
+      day_of_week?: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
+      start_time?: string;
+      location?: string;
+      registration_url?: string;
+      max_spots?: number;
+      status?: 'draft' | 'published';
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('classes')
+        .insert({
+          ...classData,
+          status: classData.status ?? 'draft',
+          spots_booked: 0,
+          sort_order: 0,
+        });
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-classes', vars.practitioner_id] });
+    },
+  });
+};
+
+export const useAdminUpdateClass = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      practitioner_id,
+      ...updates
+    }: {
+      id: string;
+      practitioner_id: string;
+      title?: string;
+      description?: string | null;
+      price_mode?: 'fixed' | 'range' | 'sliding' | 'contact' | 'free';
+      price_fixed?: number | null;
+      price_min?: number | null;
+      price_max?: number | null;
+      duration_minutes?: number | null;
+      day_of_week?: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun' | null;
+      start_time?: string | null;
+      location?: string | null;
+      registration_url?: string | null;
+      max_spots?: number | null;
+      status?: 'draft' | 'published';
+      sort_order?: number;
+    }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('classes')
+        .update(updates)
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-classes', vars.practitioner_id] });
+    },
+  });
+};
+
+export const useAdminDeleteClass = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, practitioner_id }: { id: string; practitioner_id: string }) => {
+      if (!supabase) throw new Error('Supabase not configured');
+      const { error } = await supabase
+        .from('classes')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-classes', vars.practitioner_id] });
     },
   });
 };

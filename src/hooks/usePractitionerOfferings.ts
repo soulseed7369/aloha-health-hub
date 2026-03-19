@@ -2,6 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { OfferingRow } from '@/types/database';
 
+/**
+ * Fetch all offerings for a practitioner (public: published only).
+ * For provider dashboard (including drafts), use useMyOfferings instead.
+ */
 export function usePractitionerOfferings(practitionerId: string | null) {
   return useQuery<OfferingRow[]>({
     queryKey: ['practitioner-offerings', practitionerId],

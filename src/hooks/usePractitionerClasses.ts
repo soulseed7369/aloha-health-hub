@@ -2,6 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import type { ClassRow } from '@/types/database';
 
+/**
+ * Fetch all classes for a practitioner (public: published only).
+ * For provider dashboard (including drafts), use useMyClasses instead.
+ */
 export function usePractitionerClasses(practitionerId: string | null) {
   return useQuery<ClassRow[]>({
     queryKey: ['practitioner-classes', practitionerId],

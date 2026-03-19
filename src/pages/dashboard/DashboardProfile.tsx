@@ -79,6 +79,8 @@ const emptyForm: PractitionerFormData = {
   messaging_enabled: true,
   discovery_call_enabled: false,
   discovery_call_url: '',
+  social_links: {},
+  working_hours: {},
 };
 
 export default function DashboardProfile() {
@@ -118,6 +120,8 @@ export default function DashboardProfile() {
         messaging_enabled: (practitioner as any).messaging_enabled ?? true,
         discovery_call_enabled: (practitioner as any).discovery_call_enabled ?? false,
         discovery_call_url: (practitioner as any).discovery_call_url ?? '',
+        social_links: (practitioner as any).social_links ?? {},
+        working_hours: (practitioner as any).working_hours ?? {},
       });
       setAvatarUrl(practitioner.avatar_url ?? null);
     }
@@ -511,13 +515,156 @@ export default function DashboardProfile() {
         </CardHeader>
         <CardContent>
           {isPremiumOrFeatured ? (
-            <p className="text-sm text-muted-foreground">
-              Social media links feature coming soon. Your social profiles will be displayed on your public profile.
-            </p>
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Instagram</Label>
+                <Input
+                  placeholder="https://instagram.com/yourusername"
+                  value={form.social_links?.instagram ?? ''}
+                  onChange={e => setForm(p => ({ ...p, social_links: { ...p.social_links, instagram: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Facebook</Label>
+                <Input
+                  placeholder="https://facebook.com/yourpage"
+                  value={form.social_links?.facebook ?? ''}
+                  onChange={e => setForm(p => ({ ...p, social_links: { ...p.social_links, facebook: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>LinkedIn</Label>
+                <Input
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  value={form.social_links?.linkedin ?? ''}
+                  onChange={e => setForm(p => ({ ...p, social_links: { ...p.social_links, linkedin: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>X (Twitter)</Label>
+                <Input
+                  placeholder="https://x.com/yourusername"
+                  value={form.social_links?.x ?? ''}
+                  onChange={e => setForm(p => ({ ...p, social_links: { ...p.social_links, x: e.target.value } }))}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Substack</Label>
+                <Input
+                  placeholder="https://substack.com/@yourusername"
+                  value={form.social_links?.substack ?? ''}
+                  onChange={e => setForm(p => ({ ...p, social_links: { ...p.social_links, substack: e.target.value } }))}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Leave fields blank to hide them on your public profile.
+              </p>
+            </div>
           ) : (
             <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-center">
               <p className="mb-3 text-sm text-muted-foreground">
                 Social media links are available on Premium and Featured plans. Add your Instagram, Facebook, and other profiles to help clients connect with you.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link to="/list-your-practice">
+                  <Crown className="mr-1.5 h-3.5 w-3.5 text-primary" />
+                  Upgrade to Premium
+                </Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Working Hours — Premium / Featured only */}
+      <Card className={isPremiumOrFeatured ? "border-primary/30 bg-terracotta-light/30" : "border-border"}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {isPremiumOrFeatured
+              ? <ExternalLink className="h-4 w-4 text-primary" />
+              : <Lock className="h-4 w-4 text-muted-foreground" />}
+            Working Hours
+            {!isPremiumOrFeatured && (
+              <span className="ml-auto flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                <Crown className="h-3 w-3" /> Premium
+              </span>
+            )}
+          </CardTitle>
+          <CardDescription>
+            {isPremiumOrFeatured
+              ? "Set your availability by day. Clients will see this on your profile."
+              : "Display your working hours so clients know when you're available."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isPremiumOrFeatured ? (
+            <div className="space-y-3">
+              {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(day => {
+                const dayLabel: Record<string, string> = {
+                  mon: 'Monday',
+                  tue: 'Tuesday',
+                  wed: 'Wednesday',
+                  thu: 'Thursday',
+                  fri: 'Friday',
+                  sat: 'Saturday',
+                  sun: 'Sunday',
+                };
+                const hours = form.working_hours?.[day];
+                const isOpen = hours !== null && hours !== undefined;
+                return (
+                  <div key={day} className="flex items-center gap-3 pb-2 border-b border-border last:border-0">
+                    <Switch
+                      checked={isOpen}
+                      onCheckedChange={checked => {
+                        setForm(p => ({
+                          ...p,
+                          working_hours: {
+                            ...p.working_hours,
+                            [day]: checked ? { open: '09:00', close: '17:00' } : null,
+                          },
+                        }));
+                      }}
+                    />
+                    <span className="w-24 text-sm font-medium">{dayLabel[day]}</span>
+                    {isOpen ? (
+                      <>
+                        <Input
+                          type="time"
+                          className="w-32"
+                          value={hours.open ?? ''}
+                          onChange={e => setForm(p => ({
+                            ...p,
+                            working_hours: {
+                              ...p.working_hours,
+                              [day]: { ...p.working_hours?.[day]!, open: e.target.value },
+                            },
+                          }))}
+                        />
+                        <span className="text-sm text-muted-foreground">to</span>
+                        <Input
+                          type="time"
+                          className="w-32"
+                          value={hours.close ?? ''}
+                          onChange={e => setForm(p => ({
+                            ...p,
+                            working_hours: {
+                              ...p.working_hours,
+                              [day]: { ...p.working_hours?.[day]!, close: e.target.value },
+                            },
+                          }))}
+                        />
+                      </>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Closed</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4 text-center">
+              <p className="mb-3 text-sm text-muted-foreground">
+                Working hours are available on Premium and Featured plans. Display your availability to help clients schedule with you.
               </p>
               <Button asChild variant="outline" size="sm">
                 <Link to="/list-your-practice">

@@ -48,6 +48,9 @@ export type PractitionerFormData = {
   messaging_enabled: boolean;
   discovery_call_enabled: boolean;
   discovery_call_url: string;
+  // Social links and working hours (Premium/Featured)
+  social_links?: { instagram?: string; facebook?: string; linkedin?: string; x?: string; substack?: string } | null;
+  working_hours?: { [key: string]: { open: string; close: string } | null } | null;
 };
 
 export function useSavePractitioner() {
@@ -83,6 +86,9 @@ export function useSavePractitioner() {
         messaging_enabled: formData.messaging_enabled ?? true,
         discovery_call_enabled: formData.discovery_call_enabled ?? false,
         discovery_call_url: formData.discovery_call_url?.trim() || null,
+        // Social links and working hours (Premium/Featured)
+        ...(formData.social_links !== undefined && { social_links: formData.social_links }),
+        ...(formData.working_hours !== undefined && { working_hours: formData.working_hours }),
       };
 
       const { data: existing } = await supabase
