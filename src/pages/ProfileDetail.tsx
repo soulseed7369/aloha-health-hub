@@ -28,6 +28,7 @@ import {
 import { FlagListingButton } from "@/components/FlagListingButton";
 import { RequestInfoModal } from "@/components/RequestInfoModal";
 import { BookingEmbed } from "@/components/BookingEmbed";
+import { ContactReveal } from "@/components/ContactReveal";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
@@ -347,8 +348,6 @@ const ProfileDetail = () => {
     description: p.about ?? undefined,
     url: p.website ?? profileUrl,
     image: p.profileImage,
-    telephone: p.phone ?? undefined,
-    email: p.email ?? undefined,
     address: p.address
       ? {
           '@type': 'PostalAddress',
@@ -670,16 +669,12 @@ const ProfileDetail = () => {
                         </a>
                       </Button>
                     )}
-                    {!p.externalBookingUrl && (
-                      p.showEmail ? (
-                        <RequestInfoModal
-                          practitionerName={p.name}
-                          practitionerEmail={p.email}
-                          practitionerWebsite={p.website}
-                        />
-                      ) : (
-                        <p className="text-xs text-muted-foreground italic">Contact info hidden by provider</p>
-                      )
+                    {!p.externalBookingUrl && p.email && (
+                      <RequestInfoModal
+                        practitionerName={p.name}
+                        practitionerEmail={p.email}
+                        practitionerWebsite={p.website}
+                      />
                     )}
                   </div>
 
@@ -1041,18 +1036,14 @@ const ProfileDetail = () => {
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
-          ) : p.showEmail ? (
+          ) : p.email ? (
             <RequestInfoModal
               practitionerName={p.name}
               practitionerEmail={p.email}
               practitionerWebsite={p.website}
               fullWidth
             />
-          ) : (
-            <Button disabled className="w-full" size="lg">
-              Contact info hidden by provider
-            </Button>
-          )}
+          ) : null}
 
           <Card>
             <CardContent className="p-0">
@@ -1077,15 +1068,11 @@ const ProfileDetail = () => {
               <div className="space-y-3 p-4">
                 {p.address && <p className="text-sm font-medium">{p.address}</p>}
                 <div className="space-y-2 text-sm">
-                  {p.phone && p.showPhone && (
-                    <a href={`tel:${p.phone}`} onClick={() => trackClick('phone')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors">
-                      <Phone className="h-4 w-4 flex-shrink-0" /> {p.phone}
-                    </a>
+                  {p.phone && (
+                    <ContactReveal listingId={p.id} listingType="practitioner" type="phone" />
                   )}
-                  {p.email && p.showEmail && (
-                    <a href={`mailto:${p.email}`} onClick={() => trackClick('email')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0">
-                      <Mail className="h-4 w-4 flex-shrink-0" /> <span className="truncate">{p.email}</span>
-                    </a>
+                  {p.email && (
+                    <ContactReveal listingId={p.id} listingType="practitioner" type="email" />
                   )}
                   {p.website && (
                     <a href={p.website} onClick={() => trackClick('website')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0" target="_blank" rel="noopener noreferrer">
@@ -1231,18 +1218,14 @@ const ProfileDetail = () => {
               <ExternalLink className="h-4 w-4" />
             </a>
           </Button>
-        ) : p.showEmail ? (
+        ) : p.email ? (
           <RequestInfoModal
             practitionerName={p.name}
             practitionerEmail={p.email}
             practitionerWebsite={p.website}
             fullWidth
           />
-        ) : (
-          <Button disabled className="w-full" size="lg">
-            Contact info hidden by provider
-          </Button>
-        )}
+        ) : null}
       </div>
     </main>
   );

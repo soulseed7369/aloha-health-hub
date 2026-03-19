@@ -24,6 +24,7 @@ import {
   Star, Users, CalendarDays, Repeat,
 } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
+import { ContactReveal } from "@/components/ContactReveal";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
@@ -320,8 +321,6 @@ export default function CenterDetail() {
         name: c.name,
         description: c.about ?? undefined,
         url: centerUrl,
-        telephone: c.phone ?? undefined,
-        email: c.email ?? undefined,
         address: c.address
           ? { '@type': 'PostalAddress', streetAddress: c.address, addressRegion: 'HI', addressCountry: 'US' }
           : undefined,
@@ -731,17 +730,11 @@ export default function CenterDetail() {
                 )}
 
                 <div className="space-y-2 text-sm text-muted-foreground">
-                  {contactPhone && c.showPhone && (
-                    <a href={`tel:${contactPhone}`} onClick={() => trackClick('phone')}
-                      className="flex items-center gap-2 hover:text-foreground">
-                      <Phone className="h-4 w-4" /> {contactPhone}
-                    </a>
+                  {contactPhone && (
+                    <ContactReveal listingId={c.id} listingType="center" type="phone" />
                   )}
-                  {contactEmail && c.showEmail && (
-                    <a href={`mailto:${contactEmail}`} onClick={() => trackClick('email')}
-                      className="flex items-center gap-2 hover:text-foreground">
-                      <Mail className="h-4 w-4" /> {contactEmail}
-                    </a>
+                  {contactEmail && (
+                    <ContactReveal listingId={c.id} listingType="center" type="email" />
                   )}
                   {c.website && (
                     <a href={c.website} onClick={() => trackClick('website')} target="_blank" rel="noopener noreferrer"

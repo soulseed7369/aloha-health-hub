@@ -42,8 +42,6 @@ export type PractitionerFormData = {
   avatar_url?: string | null;
   response_time: string;  // '' | 'within_hours' | 'within_day' | 'within_2_3_days' | 'within_week'
   // Privacy & CTA toggles (Offerings & Events feature)
-  show_phone: boolean;
-  show_email: boolean;
   booking_enabled: boolean;
   messaging_enabled: boolean;
   discovery_call_enabled: boolean;
@@ -80,8 +78,6 @@ export function useSavePractitioner() {
         what_to_expect: formData.what_to_expect?.trim() || null,
         booking_label: formData.booking_label?.trim() || null,
         response_time: formData.response_time?.trim() || null,
-        show_phone: formData.show_phone ?? true,
-        show_email: formData.show_email ?? true,
         booking_enabled: formData.booking_enabled ?? true,
         messaging_enabled: formData.messaging_enabled ?? true,
         discovery_call_enabled: formData.discovery_call_enabled ?? false,

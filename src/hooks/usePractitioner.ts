@@ -43,8 +43,6 @@ export interface PractitionerProfile {
     x?: string;
     substack?: string;
   } | null;
-  showPhone: boolean;
-  showEmail: boolean;
   bookingEnabled: boolean;
   messagingEnabled: boolean;
   discoveryCallEnabled: boolean;
@@ -86,8 +84,6 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     responseTime: row.response_time ?? null,
     testimonials: row.testimonials ?? [],
     socialLinks: row.social_links ?? null,
-    showPhone: row.show_phone ?? true,
-    showEmail: row.show_email ?? true,
     bookingEnabled: row.booking_enabled ?? false,
     messagingEnabled: row.messaging_enabled ?? false,
     discoveryCallEnabled: row.discovery_call_enabled ?? false,
@@ -137,8 +133,6 @@ export function usePractitioner(id: string | undefined) {
           responseTime: null,
           testimonials: [],
           socialLinks: null,
-          showPhone: true,
-          showEmail: true,
           bookingEnabled: false,
           messagingEnabled: false,
           discoveryCallEnabled: false,

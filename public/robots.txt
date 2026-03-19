@@ -1,7 +1,25 @@
+# Hawaiʻi Wellness — hawaiiwellness.net
+
+# AI search crawlers — explicitly allowed
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# All other crawlers
 User-agent: *
 Allow: /
 Disallow: /dashboard
 Disallow: /admin
 Disallow: /auth
+Disallow: /api/contact/
 
+# Sitemaps
 Sitemap: https://hawaiiwellness.net/sitemap.xml
+Sitemap: https://hawaiiwellness.net/api/sitemap-practitioners.xml
+Sitemap: https://hawaiiwellness.net/api/sitemap-centers.xml
+Sitemap: https://hawaiiwellness.net/api/sitemap-articles.xml

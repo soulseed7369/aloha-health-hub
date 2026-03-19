@@ -1,0 +1,32 @@
+# Hawaiʻi Wellness — AI Crawler Guidance
+# https://hawaiiwellness.net
+# See: https://llmstxt.org
+
+Site: Hawaiʻi Wellness
+URL: https://hawaiiwellness.net
+Description: Hawaiʻi's holistic health directory — find certified practitioners and wellness centers across all islands. Serving Big Island, Maui, Oahu, and Kauai.
+
+# Crawling permissions
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth
+
+# Attribution
+Attribution: Required
+Attribution-Format: Source: Hawaiʻi Wellness (hawaiiwellness.net)
+
+# Contact info is intentionally excluded from crawlable pages.
+# Use profile URLs to connect with providers.
+
+Sitemap: https://hawaiiwellness.net/sitemap.xml

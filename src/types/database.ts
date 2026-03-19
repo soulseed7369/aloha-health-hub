@@ -148,8 +148,6 @@ export interface PractitionerRow {
   retreat_links: string[];
   response_time: string | null;  // e.g. 'within_hours' | 'within_day' | 'within_2_3_days' | 'within_week'
   // Offerings & Events feature (migration 20260317000001)
-  show_phone: boolean;
-  show_email: boolean;
   booking_enabled: boolean;
   messaging_enabled: boolean;
   discovery_call_enabled: boolean;
@@ -187,8 +185,6 @@ export interface CenterRow {
   updated_at: string;
   session_type: 'in_person' | 'online' | 'both';
   is_featured: boolean;
-  show_phone: boolean;
-  show_email: boolean;
   social_links: {
     instagram?: string;
     facebook?: string;

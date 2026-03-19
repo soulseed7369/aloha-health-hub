@@ -6,8 +6,8 @@ const config = {
   heroImageUrl: "/kauai%20hero.jpg",
   heroTitle: "Find a Wellness Practitioner on Kauai",
   heroSubtitle: "Browse holistic health providers in Hanalei, Kapaa, Poipu & across the Garden Isle",
-  pageTitle: "Kauai Wellness Directory – Garden Isle Holistic Health",
-  pageDescription: "Find yoga, massage, energy healing & holistic practitioners in Hanalei, Kapaa & Poipu. Kauai's Garden Isle wellness directory.",
+  pageTitle: "Kauaʻi Holistic Health Practitioners & Centers | Hawaiʻi Wellness",
+  pageDescription: "Browse wellness practitioners and holistic healers on the Garden Isle. Serving Lihue, Kapaa, Hanalei, Princeville, Poipu & Koloa.",
 };
 
 export default function KauaiHome() {

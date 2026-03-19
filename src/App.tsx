@@ -10,7 +10,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AdminProtectedRoute } from "@/components/AdminProtectedRoute";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
-import { JsonLd } from "@/components/JsonLd";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_EMAIL } from "@/lib/siteConfig";
@@ -60,31 +59,10 @@ function PageSpinner() {
   );
 }
 
-// ── Site-wide Organization schema (rendered once for all public pages) ────────
-const orgSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Organization',
-  name: SITE_NAME,
-  url: SITE_URL,
-  logo: `${SITE_URL}/favicon.svg`,
-  description: SITE_DESCRIPTION,
-  contactPoint: {
-    '@type': 'ContactPoint',
-    email: SITE_EMAIL,
-    contactType: 'customer support',
-  },
-  areaServed: {
-    '@type': 'State',
-    name: 'Hawaii',
-    sameAs: 'https://en.wikipedia.org/wiki/Hawaii',
-  },
-};
-
 // ── Layout wrapper for public pages (Header + Footer) ────────────────────────
 function PublicLayout() {
   return (
     <div className="flex min-h-screen flex-col">
-      <JsonLd id="org-schema" data={orgSchema} />
       <Header />
       <div className="flex flex-1 flex-col">
         <Outlet />

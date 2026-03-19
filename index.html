@@ -22,12 +22,60 @@
     <meta name="twitter:title" content="Hawaiʻi Wellness — Holistic Health Directory" />
     <meta name="twitter:description" content="Discover certified holistic health practitioners, wellness centers, and retreats across all islands of Hawaiʻi." />
 
+    <!-- OG Image -->
+    <meta property="og:image" content="https://hawaiiwellness.net/hawaii-wellness-logo-OG.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Hawaiʻi Wellness — Holistic Health Directory for all Hawaiian Islands" />
+    <meta name="twitter:image" content="https://hawaiiwellness.net/hawaii-wellness-logo-OG.png" />
+
     <!-- Geo targeting -->
     <meta name="geo.region" content="US-HI" />
     <meta name="geo.placename" content="Hawaii" />
 
+    <!-- Google Search Console verification -->
+    <meta name="google-site-verification" content="2MQ7PBtwIi4RNwRpz8Fk7Ojg7o10X0y2972heXnbuL0" />
+
     <!-- Favicon placeholder -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Organization schema (visible to ALL crawlers including AI bots) -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Hawaiʻi Wellness",
+  "url": "https://hawaiiwellness.net",
+  "logo": "https://hawaiiwellness.net/hawaii-wellness-logo.png",
+  "description": "Hawaiʻi's holistic health directory — find certified practitioners and wellness centers across all islands.",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": "aloha@hawaiiwellness.net",
+    "contactType": "customer support"
+  },
+  "areaServed": {
+    "@type": "State",
+    "name": "Hawaii",
+    "sameAs": "https://en.wikipedia.org/wiki/Hawaii"
+  }
+}
+    </script>
+
+    <!-- WebSite schema with sitelinks search box -->
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "url": "https://hawaiiwellness.net",
+  "name": "Hawaiʻi Wellness",
+  "description": "Hawaiʻi's holistic health directory",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": "https://hawaiiwellness.net/directory?query={search_term_string}",
+    "query-input": "required name=search_term_string"
+  }
+}
+    </script>
   </head>
   <body>
     <div id="root"></div>
