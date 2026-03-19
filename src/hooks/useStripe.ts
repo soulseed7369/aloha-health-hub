@@ -139,7 +139,7 @@ export const PRACTITIONER_PLAN_OPTIONS = [
   {
     id: 'premium' as const,
     name: 'Premium',
-    price: '$49 / month',
+    price: '$39 / month',
     priceId: STRIPE_PRICES.PREMIUM_MONTHLY,
     features: [
       'Unlimited bio & What to Expect',

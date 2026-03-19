@@ -95,7 +95,7 @@ type PricingMode = "practitioner" | "center";
 
 const PRICING = {
   practitioner: {
-    premium:  { price: 49,  kamaaina: 39,  spots: 10, priceId: STRIPE_PRICES.PREMIUM_MONTHLY },
+    premium:  { price: 49,  kamaaina: 29,  spots: 20, priceId: STRIPE_PRICES.PREMIUM_MONTHLY },
     featured: { price: 129, kamaaina: 99,  spots: 5,  priceId: STRIPE_PRICES.FEATURED_MONTHLY },
   },
   center: {
