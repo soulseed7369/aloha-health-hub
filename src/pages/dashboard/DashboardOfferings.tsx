@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Edit2, Upload, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
+import { useMyOfferings, useSaveOffering, useDeleteOffering, uploadOfferingImage } from "@/hooks/useMyOfferings";
 import type { PriceMode, OfferingRow } from "@/types/database";
 
 interface OfferingFormData {
@@ -66,15 +67,19 @@ const PRICE_MODES = [
 ];
 
 export default function DashboardOfferings() {
-  const { data: practitioner, isLoading } = useMyPractitioner();
-  const [offerings, setOfferings] = useState<OfferingRow[]>([]);
+  const { data: practitioner, isLoading: practitionerLoading } = useMyPractitioner();
+  const { data: offerings = [], isLoading: offeringsLoading } = useMyOfferings();
+  const saveMutation = useSaveOffering();
+  const deleteMutation = useDeleteOffering();
+
   const [showDialog, setShowDialog] = useState(false);
   const [form, setForm] = useState<OfferingFormData>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const isLoading = practitionerLoading || offeringsLoading;
 
   // Check if premium tier
   const isPremium = practitioner?.tier === 'premium' || practitioner?.tier === 'featured';
@@ -117,38 +122,30 @@ export default function DashboardOfferings() {
     }
 
     try {
-      // TODO: Call useSaveOffering hook
-      // For now, mock save
-      const newOffering: OfferingRow = {
-        id: editingId || Math.random().toString(),
+      const formData = {
+        id: editingId || undefined,
         practitioner_id: practitioner?.id || '',
         title: form.title,
         offering_type: form.offering_type,
-        description: form.description || null,
+        description: form.description,
         price_mode: form.price_mode,
-        price_fixed: form.price_mode === 'fixed' ? parseInt(form.price_fixed) || null : null,
-        price_min: form.price_mode === 'range' ? parseInt(form.price_min) || null : null,
-        price_max: form.price_mode === 'range' ? parseInt(form.price_max) || null : null,
-        image_url: imageUrl,
-        start_date: form.no_fixed_date ? null : form.start_date,
-        end_date: form.no_fixed_date ? null : form.end_date,
-        location: form.location || null,
-        registration_url: form.registration_url || null,
-        max_spots: form.max_spots ? parseInt(form.max_spots) : null,
+        price_fixed: form.price_fixed,
+        price_min: form.price_min,
+        price_max: form.price_max,
+        image_url: imageUrl || '',
+        start_date: form.no_fixed_date ? '' : form.start_date,
+        end_date: form.no_fixed_date ? '' : form.end_date,
+        location: form.location,
+        registration_url: form.registration_url,
+        max_spots: form.max_spots,
         spots_booked: 0,
         sort_order: 0,
         status: form.status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       };
 
-      if (editingId) {
-        setOfferings((prev) => prev.map((o) => (o.id === editingId ? newOffering : o)));
-        toast.success("Offering updated.");
-      } else {
-        setOfferings((prev) => [...prev, newOffering]);
-        toast.success("Offering created as draft.");
-      }
+      await saveMutation.mutateAsync(formData);
+      const message = editingId ? "Offering updated." : "Offering created.";
+      toast.success(message);
 
       setForm(emptyForm);
       setImageUrl(null);
@@ -160,22 +157,18 @@ export default function DashboardOfferings() {
     }
   };
 
-  const handleDelete = (offeringId: string, title: string) => {
+  const handleDelete = async (offeringId: string, title: string) => {
     const confirmDelete = window.confirm(
       `Are you sure you want to delete "${title}"? This cannot be undone.`
     );
     if (!confirmDelete) return;
 
-    setDeletingId(offeringId);
     try {
-      // TODO: Call useDeleteOffering hook
-      setOfferings((prev) => prev.filter((o) => o.id !== offeringId));
+      await deleteMutation.mutateAsync(offeringId);
       toast.success(`"${title}" has been removed.`);
     } catch (err) {
       toast.error("Failed to delete offering. Please try again.");
       if (import.meta.env.DEV) console.error(err);
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -207,15 +200,13 @@ export default function DashboardOfferings() {
 
     setUploading(true);
     try {
-      // TODO: Call uploadOfferingImage hook
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setImageUrl(ev.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      const url = await uploadOfferingImage(file);
+      setImageUrl(url);
       toast.success("Image uploaded.");
     } catch (err) {
-      toast.error("Failed to upload image.");
+      toast.error(
+        err instanceof Error ? err.message : "Failed to upload image."
+      );
       if (import.meta.env.DEV) console.error(err);
     } finally {
       setUploading(false);
@@ -326,7 +317,7 @@ export default function DashboardOfferings() {
                     variant="ghost"
                     size="icon"
                     className="text-destructive hover:text-destructive"
-                    disabled={deletingId === offering.id}
+                    disabled={deleteMutation.isPending}
                     onClick={() => handleDelete(offering.id, offering.title)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -604,11 +595,11 @@ export default function DashboardOfferings() {
 
             {/* Buttons */}
             <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" onClick={handleCloseDialog}>
+              <Button variant="outline" onClick={handleCloseDialog} disabled={saveMutation.isPending || uploading}>
                 Cancel
               </Button>
-              <Button onClick={handleSave} disabled={uploading}>
-                {editingId ? 'Update Offering' : 'Create Offering'}
+              <Button onClick={handleSave} disabled={saveMutation.isPending || uploading}>
+                {saveMutation.isPending ? 'Saving...' : (editingId ? 'Update Offering' : 'Create Offering')}
               </Button>
             </div>
           </div>

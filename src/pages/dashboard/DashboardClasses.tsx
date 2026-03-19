@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Trash2, Edit2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
+import { useMyClasses, useSaveClass, useDeleteClass } from "@/hooks/useMyClasses";
 import type { PriceMode, ClassRow } from "@/types/database";
 
 interface ClassFormData {
@@ -74,11 +75,12 @@ const PRICE_MODES = [
 
 export default function DashboardClasses() {
   const { data: practitioner, isLoading } = useMyPractitioner();
-  const [classes, setClasses] = useState<ClassRow[]>([]);
+  const { data: classes = [], isLoading: classesLoading } = useMyClasses();
+  const saveClass = useSaveClass();
+  const deleteClass = useDeleteClass();
   const [showDialog, setShowDialog] = useState(false);
   const [form, setForm] = useState<ClassFormData>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isPremium = practitioner?.tier === 'premium' || practitioner?.tier === 'featured';
 
@@ -114,38 +116,33 @@ export default function DashboardClasses() {
       }
     }
 
+    if (!practitioner?.id) {
+      toast.error("Practitioner not found.");
+      return;
+    }
+
     try {
-      // TODO: Call useSaveClass hook
-      const newClass: ClassRow = {
-        id: editingId || Math.random().toString(),
-        practitioner_id: practitioner?.id || '',
+      await saveClass.mutateAsync({
+        id: editingId || undefined,
+        practitioner_id: practitioner.id,
         title: form.title,
-        description: form.description || null,
+        description: form.description,
         price_mode: form.price_mode,
-        price_fixed: form.price_mode === 'fixed' ? parseInt(form.price_fixed) || null : null,
-        price_min: form.price_mode === 'range' ? parseInt(form.price_min) || null : null,
-        price_max: form.price_mode === 'range' ? parseInt(form.price_max) || null : null,
-        duration_minutes: parseInt(form.duration_minutes) || null,
-        day_of_week: form.day_of_week as any,
-        start_time: form.start_time + ':00',
-        location: form.location || null,
-        registration_url: form.registration_url || null,
-        max_spots: form.max_spots ? parseInt(form.max_spots) : null,
+        price_fixed: form.price_fixed,
+        price_min: form.price_min,
+        price_max: form.price_max,
+        duration_minutes: form.duration_minutes,
+        day_of_week: form.day_of_week,
+        start_time: form.start_time,
+        location: form.location,
+        registration_url: form.registration_url,
+        max_spots: form.max_spots,
         spots_booked: 0,
         sort_order: 0,
         status: form.status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      });
 
-      if (editingId) {
-        setClasses((prev) => prev.map((c) => (c.id === editingId ? newClass : c)));
-        toast.success("Class updated.");
-      } else {
-        setClasses((prev) => [...prev, newClass]);
-        toast.success("Class created as draft.");
-      }
-
+      toast.success(editingId ? "Class updated." : "Class created as draft.");
       setForm(emptyForm);
       setEditingId(null);
       setShowDialog(false);
@@ -155,22 +152,18 @@ export default function DashboardClasses() {
     }
   };
 
-  const handleDelete = (classId: string, title: string) => {
+  const handleDelete = async (classId: string, title: string) => {
     const confirmDelete = window.confirm(
       `Are you sure you want to delete "${title}"? This cannot be undone.`
     );
     if (!confirmDelete) return;
 
-    setDeletingId(classId);
     try {
-      // TODO: Call useDeleteClass hook
-      setClasses((prev) => prev.filter((c) => c.id !== classId));
+      await deleteClass.mutateAsync(classId);
       toast.success(`"${title}" has been removed.`);
     } catch (err) {
       toast.error("Failed to delete class. Please try again.");
       if (import.meta.env.DEV) console.error(err);
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -201,7 +194,7 @@ export default function DashboardClasses() {
     setEditingId(null);
   };
 
-  if (isLoading) {
+  if (isLoading || classesLoading) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -296,7 +289,7 @@ export default function DashboardClasses() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
-                      disabled={deletingId === classItem.id}
+                      disabled={deleteClass.isPending}
                       onClick={() => handleDelete(classItem.id, classItem.title)}
                     >
                       <Trash2 className="h-4 w-4" />

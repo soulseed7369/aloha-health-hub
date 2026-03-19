@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Plus, Trash2, Edit2 } from "lucide-react";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
-import type { PractitionerTestimonialRow } from "@/types/database";
+import { useMyTestimonials, useAddMyTestimonial, useUpdateMyTestimonial, useDeleteMyTestimonial } from "@/hooks/useMyTestimonials";
+import type { PractitionerTestimonialRow, PractitionerTestimonialInsert } from "@/types/database";
 
 interface TestimonialFormData {
   author: string;
@@ -31,12 +32,15 @@ const emptyForm: TestimonialFormData = {
 const MAX_CHARS = 500;
 
 export default function DashboardTestimonials() {
-  const { data: practitioner, isLoading } = useMyPractitioner();
-  const [testimonials, setTestimonials] = useState<PractitionerTestimonialRow[]>([]);
+  const { data: practitioner, isLoading: practitionerLoading } = useMyPractitioner();
+  const { data: testimonials = [], isLoading: testimonialsLoading } = useMyTestimonials(practitioner?.id ?? null);
+  const addTestimonial = useAddMyTestimonial();
+  const updateTestimonial = useUpdateMyTestimonial();
+  const deleteTestimonial = useDeleteMyTestimonial();
+
   const [showDialog, setShowDialog] = useState(false);
   const [form, setForm] = useState<TestimonialFormData>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const charCount = form.text.length;
   const isOverLimit = charCount > MAX_CHARS;
@@ -60,10 +64,13 @@ export default function DashboardTestimonials() {
     }
 
     try {
-      // TODO: Call useSaveTestimonial hook
-      const newTestimonial: PractitionerTestimonialRow = {
-        id: editingId || Math.random().toString(),
-        practitioner_id: practitioner?.id || '',
+      if (!practitioner) {
+        toast.error("Practitioner profile not found.");
+        return;
+      }
+
+      const payload: PractitionerTestimonialInsert = {
+        practitioner_id: practitioner.id,
         author: form.author,
         text: form.text,
         author_location: form.author_location || null,
@@ -72,15 +79,16 @@ export default function DashboardTestimonials() {
         linked_id: null,
         sort_order: 0,
         status: form.status,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
       };
 
       if (editingId) {
-        setTestimonials((prev) => prev.map((t) => (t.id === editingId ? newTestimonial : t)));
+        await updateTestimonial.mutateAsync({
+          id: editingId,
+          ...payload,
+        });
         toast.success("Testimonial updated.");
       } else {
-        setTestimonials((prev) => [...prev, newTestimonial]);
+        await addTestimonial.mutateAsync(payload);
         toast.success("Testimonial created as draft.");
       }
 
@@ -93,22 +101,18 @@ export default function DashboardTestimonials() {
     }
   };
 
-  const handleDelete = (testimonialId: string, author: string) => {
+  const handleDelete = async (testimonialId: string, author: string) => {
     const confirmDelete = window.confirm(
       `Are you sure you want to delete the testimonial from "${author}"? This cannot be undone.`
     );
     if (!confirmDelete) return;
 
-    setDeletingId(testimonialId);
     try {
-      // TODO: Call useDeleteTestimonial hook
-      setTestimonials((prev) => prev.filter((t) => t.id !== testimonialId));
+      await deleteTestimonial.mutateAsync(testimonialId);
       toast.success(`Testimonial from "${author}" has been removed.`);
     } catch (err) {
       toast.error("Failed to delete testimonial. Please try again.");
       if (import.meta.env.DEV) console.error(err);
-    } finally {
-      setDeletingId(null);
     }
   };
 
@@ -130,7 +134,7 @@ export default function DashboardTestimonials() {
     setEditingId(null);
   };
 
-  if (isLoading) {
+  if (practitionerLoading || testimonialsLoading) {
     return (
       <div className="mx-auto max-w-2xl space-y-6">
         <Skeleton className="h-8 w-48" />
@@ -197,7 +201,7 @@ export default function DashboardTestimonials() {
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive"
-                      disabled={deletingId === testimonial.id}
+                      disabled={deleteTestimonial.isPending}
                       onClick={() => handleDelete(testimonial.id, testimonial.author)}
                     >
                       <Trash2 className="h-4 w-4" />
