@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.VITE_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.VITE_SUPABASE_ANON_KEY!
 );
 
 export default async function handler(_req: VercelRequest, res: VercelResponse) {
@@ -20,7 +20,7 @@ export default async function handler(_req: VercelRequest, res: VercelResponse) 
 
   const urls = data.map(a => `
   <url>
-    <loc>https://hawaiiwellness.net/articles/${a.slug}</loc>
+    <loc>https://hawaiiwellness.net/api/articles/${a.slug}</loc>
     <lastmod>${(a.updated_at ?? a.published_at)?.substring(0, 10) ?? '2026-03-01'}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
