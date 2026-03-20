@@ -140,7 +140,10 @@ export function usePractitioner(id: string | undefined) {
       }
 
       const { data, error } = await supabase
-        .rpc('get_practitioner_public', { p_id: id })
+        .from('practitioners')
+        .select('*')
+        .eq('id', id)
+        .eq('status', 'published')
         .single();
 
       if (error) {

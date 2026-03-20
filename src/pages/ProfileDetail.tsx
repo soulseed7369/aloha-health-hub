@@ -383,16 +383,6 @@ const ProfileDetail = () => {
     }}),
   };
 
-  const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
-      { '@type': 'ListItem', position: 2, name: 'Directory', item: `${SITE_URL}/directory` },
-      { '@type': 'ListItem', position: 3, name: p.name, item: profileUrl },
-    ],
-  };
-
   // ── Review schema — only when testimonials exist ─────────────────────────
   const reviewSchema = p.testimonials.length > 0 ? {
     '@context': 'https://schema.org',
