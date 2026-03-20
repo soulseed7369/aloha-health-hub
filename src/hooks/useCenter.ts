@@ -107,7 +107,10 @@ export function useCenter(id: string | undefined) {
       if (!id || !supabase) return null;
 
       const { data, error } = await supabase
-        .rpc('get_center_public', { p_id: id })
+        .from('centers')
+        .select('*')
+        .eq('id', id)
+        .eq('status', 'published')
         .single();
 
       if (error) {
