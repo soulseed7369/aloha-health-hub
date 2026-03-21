@@ -5,6 +5,7 @@ type CenterTabType = 'about' | 'locations' | 'events' | 'testimonials';
 import { useCenter, usePublicCenterLocations } from "@/hooks/useCenter";
 import { usePublicCenterEvents } from "@/hooks/useCenterEvents";
 import { useTrackView, useTrackClick } from "@/hooks/useTrackEvent";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -426,21 +427,27 @@ export default function CenterDetail() {
       {/* Hero */}
       <section className="relative mt-4">
         <div className="h-48 overflow-hidden md:h-64">
-          <img
+          <OptimizedImage
             src={c.photos?.[0] || PLACEHOLDER_COVER}
             alt={`${c.name} cover`}
+            width={1200}
+            height={256}
             className="h-full w-full object-cover"
             loading="eager"
+            fetchPriority="high"
             onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER_COVER; }}
           />
         </div>
         <div className="container relative">
           <div className="flex flex-col items-start gap-4 pb-6 pt-0 md:flex-row md:items-end md:gap-6">
             {c.profileImage ? (
-              <img
+              <OptimizedImage
                 src={c.profileImage}
                 alt={c.name}
+                width={128}
+                height={128}
                 className="-mt-16 h-32 w-32 rounded-xl border-4 border-background object-cover shadow-lg"
+                loading="eager"
               />
             ) : (
               <div className="-mt-16 h-32 w-32 rounded-xl border-4 border-background bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-3xl font-semibold text-white shadow-lg">
@@ -614,12 +621,15 @@ export default function CenterDetail() {
                   <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
                     {c.photos.slice(1).map((img, i) => (
-                      <img
+                      <OptimizedImage
                         key={i}
                         src={img}
                         alt={`${c.name} photo ${i + 2}`}
+                        width={300}
+                        height={225}
                         className="aspect-[4/3] rounded-lg object-cover"
                         loading="lazy"
+                        sizes="(max-width: 768px) 50vw, 33vw"
                       />
                     ))}
                   </div>

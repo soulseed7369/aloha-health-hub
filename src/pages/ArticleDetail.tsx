@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { OptimizedImage } from '@/components/OptimizedImage';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -144,10 +145,14 @@ export default function ArticleDetail() {
         {/* Cover image */}
         {article.image && (
           <div className="mb-8 overflow-hidden rounded-xl">
-            <img
+            <OptimizedImage
               src={article.image}
               alt={`Cover image for ${article.title}`}
+              width={1000}
+              height={480}
               className="w-full object-cover max-h-[480px]"
+              loading="eager"
+              fetchPriority="high"
             />
           </div>
         )}

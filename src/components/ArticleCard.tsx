@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import type { Article } from "@/data/mockData";
 import { Link } from "react-router-dom";
 
@@ -14,11 +15,14 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
       <Card className="overflow-hidden">
         <div className="grid md:grid-cols-2">
           <div className="aspect-video overflow-hidden md:aspect-auto md:min-h-[300px]">
-            <img
+            <OptimizedImage
               src={article.image}
               alt={`Cover image for ${article.title}`}
+              width={600}
+              height={400}
               className="h-full w-full object-cover"
               loading="lazy"
+              sizes="(max-width: 768px) 100vw, 50vw"
             />
           </div>
           <CardContent className="flex flex-col justify-center p-6 md:p-10">
@@ -49,11 +53,14 @@ export function ArticleCard({ article, featured = false }: ArticleCardProps) {
     <Link to={`/articles/${article.slug}`} className="block group">
       <Card className="overflow-hidden transition-shadow hover:shadow-lg">
         <div className="aspect-video overflow-hidden">
-          <img
+          <OptimizedImage
             src={article.image}
             alt={`Cover image for ${article.title}`}
+            width={600}
+            height={337}
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
             loading="lazy"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </div>
         <CardContent className="p-5">

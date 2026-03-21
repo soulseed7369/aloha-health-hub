@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { MapPin, ExternalLink, CheckCircle } from "lucide-react";
 
 // ── Island badge (compact, for use in cards) ─────────────────────────────────
@@ -135,9 +136,11 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
           <div className="flex gap-4 p-4">
             {/* Avatar — 72px for stronger human presence */}
             {hasImage ? (
-              <img
+              <OptimizedImage
                 src={provider.image}
                 alt={`Photo of ${provider.name}`}
+                width={72}
+                height={72}
                 className="h-[72px] w-[72px] flex-shrink-0 rounded-lg object-cover"
                 loading="lazy"
               />
@@ -264,9 +267,11 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
         {/* Avatar — centered at top */}
         <div className="flex justify-center pt-5">
           {hasImage ? (
-            <img
+            <OptimizedImage
               src={provider.image}
               alt={`Photo of ${provider.name}`}
+              width={80}
+              height={80}
               className="h-20 w-20 rounded-full object-cover ring-2 ring-background shadow"
               loading="lazy"
             />

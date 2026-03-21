@@ -9,6 +9,7 @@ import { useArticlesByModality } from "@/hooks/useArticlesByModality";
 import { useTrackView, useTrackClick } from "@/hooks/useTrackEvent";
 import { ProviderCard } from "@/components/ProviderCard";
 import { ArticleCard } from "@/components/ArticleCard";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -483,9 +484,11 @@ const ProfileDetail = () => {
             <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5">
               {/* Avatar — larger, circular, face-first */}
               {p.profileImage ? (
-                <img
+                <OptimizedImage
                   src={p.profileImage}
                   alt={p.name}
+                  width={112}
+                  height={112}
                   className="h-24 w-24 flex-shrink-0 rounded-full border-4 border-background object-cover shadow-lg sm:h-28 sm:w-28"
                   loading="eager"
                   fetchPriority="high"
@@ -763,12 +766,15 @@ const ProfileDetail = () => {
                   <h2 className="mb-3 font-display text-xl font-bold">Gallery</h2>
                   <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                     {p.gallery.map((img, i) => (
-                      <img
+                      <OptimizedImage
                         key={i}
                         src={img}
                         alt={`Gallery ${i + 1}`}
+                        width={300}
+                        height={225}
                         className="aspect-[4/3] rounded-lg object-cover"
                         loading="lazy"
+                        sizes="(max-width: 768px) 50vw, 25vw"
                       />
                     ))}
                   </div>
@@ -898,10 +904,14 @@ const ProfileDetail = () => {
                     return (
                       <Card key={off.id} className="border border-border overflow-hidden">
                         {off.image_url && (
-                          <img
+                          <OptimizedImage
                             src={off.image_url}
                             alt={off.title}
+                            width={600}
+                            height={192}
                             className="w-full h-48 object-cover"
+                            loading="lazy"
+                            sizes="100vw"
                           />
                         )}
                         <CardContent className="p-4">
@@ -1033,7 +1043,9 @@ const ProfileDetail = () => {
                       className="group block rounded-xl border border-border bg-card p-3 shadow-sm hover:shadow-md hover:border-border/80 transition-all">
                       <div className="flex items-center gap-2.5">
                         {hasImg ? (
-                          <img src={sp.image} alt={sp.name}
+                          <OptimizedImage src={sp.image} alt={sp.name}
+                            width={40}
+                            height={40}
                             className="h-10 w-10 flex-shrink-0 rounded-full object-cover" loading="lazy" />
                         ) : (
                           <div className={`h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br ${grad} flex items-center justify-center text-white text-xs font-semibold`}>

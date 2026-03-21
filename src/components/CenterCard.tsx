@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import { MapPin, Building2 } from "lucide-react";
 import type { Center } from "@/data/mockData";
 import { Link } from "react-router-dom";
@@ -69,9 +70,11 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
           <div className="flex gap-4 p-4">
             {/* Image / fallback */}
             {hasImage ? (
-              <img
+              <OptimizedImage
                 src={center.image}
                 alt={`Photo of ${center.name}`}
+                width={64}
+                height={64}
                 className="h-16 w-16 flex-shrink-0 rounded-lg object-cover"
                 loading="lazy"
               />
@@ -143,9 +146,11 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
         {/* Avatar — centered at top */}
         <div className="flex justify-center pt-5">
           {hasImage ? (
-            <img
+            <OptimizedImage
               src={center.image}
               alt={`Photo of ${center.name}`}
+              width={80}
+              height={80}
               className="h-20 w-20 rounded-full object-cover ring-2 ring-background shadow"
               loading="lazy"
             />
