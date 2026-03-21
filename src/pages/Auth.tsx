@@ -11,6 +11,43 @@ import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from '@/contexts/AuthContext';
 import { useSetAccountType } from '@/hooks/useAccountType';
 
+// ── Friendly error messages ──────────────────────────────────────────────────
+
+/** Map raw Supabase / network / edge-function errors to user-friendly text */
+function friendlyAuthError(err: unknown): string {
+  const msg = err instanceof Error ? err.message : String(err);
+
+  // Supabase rate limit (magic link cooldown)
+  if (msg.includes('security purposes') || msg.includes('rate limit') || msg.includes('Rate limit')) {
+    return 'Too many sign-in attempts. Please wait a minute before trying again.';
+  }
+  // Bad email format
+  if (msg.includes('invalid format') || msg.includes('validate email') || msg.includes('Unable to validate')) {
+    return 'That doesn\u2019t look like a valid email address. Please double-check and try again.';
+  }
+  // Network failure
+  if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('network') || msg.includes('ECONNREFUSED')) {
+    return 'Network error \u2014 please check your internet connection and try again.';
+  }
+  // Signups disabled
+  if (msg.includes('Signups not allowed') || msg.includes('signup_disabled')) {
+    return 'New account sign-ups are temporarily disabled. Please contact aloha@hawaiiwellness.net for help.';
+  }
+  // Wrong password
+  if (msg.includes('Invalid login credentials')) {
+    return 'Incorrect email or password. Try the magic link option instead \u2014 no password needed.';
+  }
+  // Unconfirmed email
+  if (msg.includes('Email not confirmed')) {
+    return 'Your email hasn\u2019t been confirmed yet. Check your inbox for a confirmation link, or use the magic link option.';
+  }
+  // Pass through edge-function errors (already user-friendly)
+  if (msg.includes('No account found') || msg.includes('Too many attempts') || msg.includes('Please enter') || msg.includes('not configured')) {
+    return msg;
+  }
+  return msg || 'Something went wrong. Please try again.';
+}
+
 export default function Auth() {
   usePageMeta("Sign In", "Sign in to manage your Hawa'i Wellness practitioner or center listing.");
   const navigate = useNavigate();
@@ -28,6 +65,7 @@ export default function Auth() {
   const [phone, setPhone] = useState('');
   const [otpCode, setOtpCode] = useState('');
   const [phoneSent, setPhoneSent] = useState(false);
+  const [phoneMasked, setPhoneMasked] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [magicSent, setMagicSent] = useState(false);
@@ -57,6 +95,8 @@ export default function Auth() {
     }
   }, [user]);
 
+  // ── Magic link handler ─────────────────────────────────────────────────────
+
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!supabase) return;
@@ -75,11 +115,13 @@ export default function Auth() {
       if (otpError) throw otpError;
       setMagicSent(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
   };
+
+  // ── Password handler ───────────────────────────────────────────────────────
 
   const handlePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,20 +148,42 @@ export default function Auth() {
         // navigation handled by useEffect above
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
   };
 
-  // ── Phone OTP ──────────────────────────────────────────────────────────────
+  // ── Edge function error helper ──────────────────────────────────────────────
+
+  /**
+   * Extract a user-friendly error message from a Supabase edge function error.
+   *
+   * `supabase.functions.invoke` returns FunctionsHttpError whose `.message` is
+   * always the generic string "Edge Function returned a non-2xx status code".
+   * The actual JSON body is in `.context` (an unconsumed Response object).
+   */
+  async function extractEdgeFunctionError(fnErr: unknown): Promise<string> {
+    // Try to read the JSON body from FunctionsHttpError.context (a Response)
+    if (fnErr && typeof fnErr === 'object' && 'context' in fnErr) {
+      try {
+        const ctx = (fnErr as { context: Response }).context;
+        if (ctx && typeof ctx.json === 'function') {
+          const body = await ctx.json();
+          if (typeof body?.error === 'string') return body.error;
+        }
+      } catch { /* response already consumed or not JSON — fall through */ }
+    }
+    return fnErr instanceof Error ? fnErr.message : String(fnErr);
+  }
+
+  // ── Phone OTP via custom edge function (Twilio) ────────────────────────────
 
   /** Normalise a US/HI phone number → E.164 (+1XXXXXXXXXX) */
   function normalisePhone(raw: string): string {
     const digits = raw.replace(/\D/g, '');
     if (digits.length === 10) return `+1${digits}`;
     if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
-    // Return as-is with leading + if it already has a country code
     if (raw.trimStart().startsWith('+')) return raw.trim();
     return `+1${digits}`;
   }
@@ -132,15 +196,20 @@ export default function Auth() {
     try {
       localStorage.setItem('pendingAccountType', selectedAccountType);
       const e164 = normalisePhone(phone);
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        phone: e164,
-        options: { shouldCreateUser: true },
+
+      // Call custom edge function instead of supabase.auth.signInWithOtp({ phone })
+      // because Supabase native phone auth is not enabled on this project.
+      const { data, error: fnErr } = await supabase.functions.invoke('auth-phone-otp', {
+        body: { action: 'send', phone: e164 },
       });
-      if (otpError) throw otpError;
+
+      if (fnErr) throw new Error(await extractEdgeFunctionError(fnErr));
+      if (data?.error) throw new Error(data.error);
+
+      setPhoneMasked(data?.maskedPhone || e164);
       setPhoneSent(true);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Could not send SMS. Please try again.';
-      setError(msg);
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -153,15 +222,24 @@ export default function Auth() {
     setLoading(true);
     try {
       const e164 = normalisePhone(phone);
+
+      // Verify the OTP via edge function — returns a tokenHash for session exchange
+      const { data, error: fnErr } = await supabase.functions.invoke('auth-phone-otp', {
+        body: { action: 'verify', phone: e164, code: otpCode.trim() },
+      });
+
+      if (fnErr) throw new Error(await extractEdgeFunctionError(fnErr));
+      if (data?.error) throw new Error(data.error);
+
+      // Exchange the token hash for a real session
       const { error: verifyError } = await supabase.auth.verifyOtp({
-        phone: e164,
-        token: otpCode.trim(),
-        type: 'sms',
+        token_hash: data.tokenHash,
+        type: 'magiclink',
       });
       if (verifyError) throw verifyError;
       // navigation handled by useEffect above once user session is set
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Invalid code. Please try again.');
+      setError(friendlyAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -199,7 +277,7 @@ export default function Auth() {
           </CardContent>
         </Card>
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          <Link to="/" className="hover:underline">← Back to directory</Link>
+          <Link to="/" className="hover:underline">&larr; Back to directory</Link>
         </p>
       </div>
     );
@@ -221,7 +299,7 @@ export default function Auth() {
             </div>
             <CardTitle className="font-display text-xl">Enter your code</CardTitle>
             <CardDescription>
-              We sent a 6-digit code to <span className="font-medium text-foreground">{phone}</span>.
+              We sent a 6-digit code to <span className="font-medium text-foreground">{phoneMasked || phone}</span>.
               It expires in 10 minutes.
             </CardDescription>
           </CardHeader>
@@ -250,7 +328,7 @@ export default function Auth() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading || otpCode.length < 6}>
-                {loading ? 'Verifying…' : 'Verify & Sign In'}
+                {loading ? 'Verifying\u2026' : 'Verify & Sign In'}
               </Button>
             </form>
             <div className="pt-1 text-center text-sm text-muted-foreground space-y-1">
@@ -275,7 +353,7 @@ export default function Auth() {
           </CardContent>
         </Card>
         <p className="mt-6 text-center text-xs text-muted-foreground">
-          <Link to="/" className="hover:underline">← Back to directory</Link>
+          <Link to="/" className="hover:underline">&larr; Back to directory</Link>
         </p>
       </div>
     );
@@ -303,9 +381,9 @@ export default function Auth() {
           </CardTitle>
           <CardDescription>
             {mode === 'magic'
-              ? "Enter your email and we'll send you a sign-in link — no password needed."
+              ? "Enter your email and we'll send you a sign-in link \u2014 no password needed."
               : mode === 'phone'
-                ? "We'll text a verification code to your mobile number."
+                ? "Enter the phone number on your listing and we\u2019ll text you a code."
                 : isSignUp
                   ? 'Create an account to list your practice on the directory.'
                   : 'Access your provider dashboard.'}
@@ -378,7 +456,7 @@ export default function Auth() {
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading || !hasSupabase}>
-                {loading ? 'Sending…' : 'Send sign-in link'}
+                {loading ? 'Sending\u2026' : 'Send sign-in link'}
               </Button>
             </form>
           )}
@@ -397,10 +475,13 @@ export default function Auth() {
                   required
                   disabled={!hasSupabase}
                 />
-                <p className="text-xs text-muted-foreground">U.S./Hawaiʻi numbers — standard messaging rates may apply.</p>
+                <p className="text-xs text-muted-foreground">
+                  Enter the phone number listed on your practitioner or center profile.
+                  U.S./Hawai&#x02BB;i numbers only &mdash; standard messaging rates may apply.
+                </p>
               </div>
               <Button type="submit" className="w-full" disabled={loading || !hasSupabase}>
-                {loading ? 'Sending…' : 'Send verification text'}
+                {loading ? 'Sending\u2026' : 'Send verification text'}
               </Button>
             </form>
           )}
@@ -425,7 +506,7 @@ export default function Auth() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
@@ -437,7 +518,7 @@ export default function Auth() {
                 )}
               </div>
               <Button type="submit" className="w-full" disabled={loading || !hasSupabase}>
-                {loading ? 'Please wait…' : isSignUp ? 'Create Account' : 'Sign In'}
+                {loading ? 'Please wait\u2026' : isSignUp ? 'Create Account' : 'Sign In'}
               </Button>
               {!isSignUp && (
                 <p className="text-center text-sm text-muted-foreground">
@@ -498,7 +579,7 @@ export default function Auth() {
       </Card>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        <Link to="/" className="hover:underline">← Back to directory</Link>
+        <Link to="/" className="hover:underline">&larr; Back to directory</Link>
       </p>
     </div>
   );
