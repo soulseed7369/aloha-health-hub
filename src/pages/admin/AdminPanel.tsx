@@ -958,18 +958,34 @@ const AdminPanel = () => {
     }).map(f => f.label) };
   };
 
-  // ── Client-side quality sort (applies within the current page when quality_asc/desc selected) ─
-  const sortedPractitioners: PractitionerRow[] = (sort === 'quality_asc' || sort === 'quality_desc')
+  // ── Client-side quality & completeness sort (applies within the current page) ─
+  const sortedPractitioners: PractitionerRow[] = (sort === 'quality_asc' || sort === 'quality_desc' || sort === 'completeness_asc' || sort === 'completeness_desc')
     ? [...practitioners].sort((a, b) => {
-        const diff = getPractitionerQuality(a).filled - getPractitionerQuality(b).filled;
-        return sort === 'quality_asc' ? diff : -diff;
+        if (sort === 'quality_asc' || sort === 'quality_desc') {
+          const diff = getPractitionerQuality(a).filled - getPractitionerQuality(b).filled;
+          return sort === 'quality_asc' ? diff : -diff;
+        } else {
+          // completeness_asc / completeness_desc
+          const qualityA = Math.round((getPractitionerQuality(a).filled / getPractitionerQuality(a).total) * 100);
+          const qualityB = Math.round((getPractitionerQuality(b).filled / getPractitionerQuality(b).total) * 100);
+          const diff = qualityA - qualityB;
+          return sort === 'completeness_asc' ? diff : -diff;
+        }
       })
     : practitioners;
 
-  const sortedCenters: CenterRow[] = (sort === 'quality_asc' || sort === 'quality_desc')
+  const sortedCenters: CenterRow[] = (sort === 'quality_asc' || sort === 'quality_desc' || sort === 'completeness_asc' || sort === 'completeness_desc')
     ? [...centers].sort((a, b) => {
-        const diff = getCenterQuality(a).filled - getCenterQuality(b).filled;
-        return sort === 'quality_asc' ? diff : -diff;
+        if (sort === 'quality_asc' || sort === 'quality_desc') {
+          const diff = getCenterQuality(a).filled - getCenterQuality(b).filled;
+          return sort === 'quality_asc' ? diff : -diff;
+        } else {
+          // completeness_asc / completeness_desc
+          const qualityA = Math.round((getCenterQuality(a).filled / getCenterQuality(a).total) * 100);
+          const qualityB = Math.round((getCenterQuality(b).filled / getCenterQuality(b).total) * 100);
+          const diff = qualityA - qualityB;
+          return sort === 'completeness_asc' ? diff : -diff;
+        }
       })
     : centers;
 
@@ -2246,6 +2262,13 @@ const AdminPanel = () => {
                 </div>
               </div>
 
+              <Button type="submit" className="w-full"
+                disabled={updatePractitioner.isPending || editPractitionerUploading}>
+                {(updatePractitioner.isPending || editPractitionerUploading)
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Saving...</>
+                  : 'Save Changes'}
+              </Button>
+
               {/* Photo upload */}
               <div>
                 <Label>Profile Photo</Label>
@@ -2740,6 +2763,82 @@ const AdminPanel = () => {
           {editingCenter && (
             <form onSubmit={handleEditCenterSubmit} className="space-y-4">
 
+              {/* Status + Tier + Save — top row for quick admin triage */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Status</Label>
+                  <Select value={editCenterForm.status}
+                    onValueChange={v => handleEditCenterChange('status', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="published">Published</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Subscription Tier</Label>
+                  <Select
+                    value={(editingCenter as any).tier ?? 'free'}
+                    onValueChange={v => {
+                      setListingTier.mutate({
+                        listingId: editingCenter.id,
+                        listingType: 'center',
+                        tier: v as 'free' | 'premium' | 'featured',
+                        island: editingCenter.island ?? 'big_island',
+                        ownerId: (editingCenter as any).owner_id ?? null,
+                        previousTier: (editingCenter as any).tier ?? null,
+                      }, {
+                        onSuccess: () => toast.success(`Tier set to ${v}`),
+                        onError: (e: Error) => toast.error(e.message),
+                      });
+                    }}
+                    disabled={setListingTier.isPending}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="free">Free</SelectItem>
+                      <SelectItem value="premium">⭐ Premium</SelectItem>
+                      <SelectItem value="featured">👑 Featured</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full"
+                disabled={updateCenter.isPending || editCenterUploading}>
+                {(updateCenter.isPending || editCenterUploading)
+                  ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      {editCenterUploading ? `Uploading photos…` : 'Saving…'}
+                    </>
+                  : 'Save Changes'}
+              </Button>
+
+              {/* Avatar / main photo */}
+              <div>
+                <Label>Main Photo (Avatar)</Label>
+                <div className="mt-2 flex items-center gap-3">
+                  {editCenterForm.avatar_url ? (
+                    <div className="relative">
+                      <img src={editCenterForm.avatar_url} alt="Avatar"
+                        className="w-20 h-20 rounded object-cover border" />
+                      <button type="button"
+                        onClick={() => handleEditCenterChange('avatar_url', null)}
+                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded border-2 border-dashed border-gray-300 flex items-center justify-center">
+                      <Upload className="w-6 h-6 text-gray-400" />
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {editCenterForm.avatar_url ? 'Click × to remove' : 'Set from gallery below, or first uploaded photo becomes the avatar'}
+                  </p>
+                </div>
+              </div>
+
               {/* Existing photos */}
               {editCenterForm.photos && editCenterForm.photos.length > 0 && (
                 <div>
@@ -2928,47 +3027,6 @@ const AdminPanel = () => {
                 <Input id="ec-website" placeholder="https://"
                   value={editCenterForm.website_url}
                   onChange={e => handleEditCenterChange('website_url', e.target.value)} />
-              </div>
-
-              <div>
-                <Label>Status</Label>
-                <Select value={editCenterForm.status}
-                  onValueChange={v => handleEditCenterChange('status', v)}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="published">Published</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Subscription Tier */}
-              <div>
-                <Label>Subscription Tier</Label>
-                <Select
-                  value={(editingCenter as any).tier ?? 'free'}
-                  onValueChange={v => {
-                    setListingTier.mutate({
-                      listingId: editingCenter.id,
-                      listingType: 'center',
-                      tier: v as 'free' | 'premium' | 'featured',
-                      island: editingCenter.island ?? 'big_island',
-                      ownerId: (editingCenter as any).owner_id ?? null,
-                      previousTier: (editingCenter as any).tier ?? null,
-                    }, {
-                      onSuccess: () => toast.success(`Tier set to ${v}`),
-                      onError: (e: Error) => toast.error(e.message),
-                    });
-                  }}
-                  disabled={setListingTier.isPending}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="premium">⭐ Premium</SelectItem>
-                    <SelectItem value="featured">👑 Featured</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
               {/* Premium Features */}
