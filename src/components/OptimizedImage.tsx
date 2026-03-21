@@ -1,4 +1,4 @@
-import { ImgHTMLAttributes } from "react";
+import { ImgHTMLAttributes, useState, useCallback } from "react";
 
 interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -18,7 +18,8 @@ interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
  * - Lazy loading by default (override with loading="eager")
  * - Async decoding to prevent blocking
  * - Width/height attributes to prevent CLS
- * - Automatic WebP transformation for Supabase Storage URLs
+ * - Automatic WebP transformation for Supabase Storage URLs (when Image Transforms are enabled)
+ * - Graceful fallback to original URL if the transform endpoint returns an error
  * - Responsive sizing via sizes prop
  */
 export function OptimizedImage({
@@ -33,12 +34,21 @@ export function OptimizedImage({
   className,
   ...props
 }: OptimizedImageProps) {
-  // Transform Supabase Storage URLs to use /render/image/ for on-the-fly transforms
-  const optimizedSrc = optimizeSupabaseUrl(src, width, height);
+  const originalSrc = src;
+  const transformedSrc = optimizeSupabaseUrl(src, width, height);
+  const [currentSrc, setCurrentSrc] = useState(transformedSrc);
+
+  // If the transformed URL fails (e.g. Image Transformations not enabled on
+  // this Supabase project), fall back to the original untransformed URL.
+  const handleError = useCallback(() => {
+    if (currentSrc !== originalSrc) {
+      setCurrentSrc(originalSrc);
+    }
+  }, [currentSrc, originalSrc]);
 
   return (
     <img
-      src={optimizedSrc}
+      src={currentSrc}
       alt={alt}
       width={width}
       height={height}
@@ -47,6 +57,7 @@ export function OptimizedImage({
       fetchPriority={fetchPriority}
       sizes={sizes}
       className={className}
+      onError={handleError}
       {...props}
     />
   );
@@ -56,6 +67,9 @@ export function OptimizedImage({
  * Transform Supabase Storage URL to use render/image endpoint with WebP and quality params
  * Original: https://PROJECT.supabase.co/storage/v1/object/public/BUCKET/PATH
  * Transformed: https://PROJECT.supabase.co/storage/v1/render/image/public/BUCKET/PATH?width=W&height=H&format=webp&quality=80
+ *
+ * If Image Transformations are not enabled on the Supabase project, the component's
+ * onError handler will fall back to the original URL automatically.
  */
 function optimizeSupabaseUrl(
   url: string,
