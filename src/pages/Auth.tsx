@@ -556,6 +556,8 @@ export default function Auth() {
                 Sign in with email link
               </button>
             )}
+            {/* Phone sign-in hidden until A2P 10DLC registration is approved.
+               Uncomment once Twilio brand/campaign registration clears (~2-4 weeks for EIN propagation).
             {mode !== 'phone' && (
               <button
                 onClick={() => { setMode('phone'); setError(''); }}
@@ -565,6 +567,7 @@ export default function Auth() {
                 Sign in with text message
               </button>
             )}
+            */}
             {mode !== 'password' && (
               <button
                 onClick={() => { setMode('password'); setError(''); setIsSignUp(false); }}
