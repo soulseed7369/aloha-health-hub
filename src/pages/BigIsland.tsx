@@ -1,12 +1,17 @@
+import { useMemo } from "react";
 import { IslandHome } from "./IslandHome";
 import heroImage from "@/assets/hero-homepage.jpg";
 
-const config = {
+const HERO_VARIANTS = [
+  { title: "Your Wellness Journey on the Big Island Starts Here", subtitle: "Connect with practitioners and wellness centers across the Big Island" },
+  { title: "Discover Healing on the Big Island", subtitle: "Connect with practitioners and wellness centers across the Big Island" },
+  { title: "Your Path to Wellness on the Big Island", subtitle: "From Kona to Hilo, find the right healer for your journey" },
+];
+
+const baseConfig = {
   island: 'big_island',
   displayName: "Big Island",
   heroImageUrl: heroImage,
-  heroTitle: "Find a Wellness Practitioner on the Big Island",
-  heroSubtitle: "Holistic practitioners and wellness centers across Hawaiʻi Island",
   pageTitle: "Big Island Wellness Directory – Hawaiʻi Island",
   pageDescription: "Find acupuncture, massage, yoga, reiki & naturopathic practitioners in Kona, Hilo & Waimea. Hawaiʻi Island's largest holistic wellness directory — 500+ practitioners, 34 specialties.",
   faqItems: [
@@ -34,5 +39,7 @@ const config = {
 };
 
 export default function BigIsland() {
+  const hero = useMemo(() => HERO_VARIANTS[Math.floor(Math.random() * HERO_VARIANTS.length)], []);
+  const config = { ...baseConfig, heroTitle: hero.title, heroSubtitle: hero.subtitle };
   return <IslandHome config={config} />;
 }

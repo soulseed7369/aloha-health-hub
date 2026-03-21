@@ -176,34 +176,40 @@ export function IslandHome({ config }: IslandHomeProps) {
         heroImageUrl={config.heroImageUrl}
         heroTitle={config.heroTitle}
         heroSubtitle={config.heroSubtitle}
-        trustBadge={
-          !loadingPractitioners && practitioners.length > 0
-            ? `${practitioners.length}+ practitioners · Free to browse`
-            : undefined
-        }
+        trustBadge={undefined}
       />
 
-      {/* ── Trust / Stats bar ────────────────────────────────────────────── */}
+      {/* ── Stats bar ─────────────────────────────────────────────────────── */}
       {(practitioners.length > 0 || centers.length > 0) && (
-        <div className="border-b border-border bg-muted/30 py-2.5">
-          <div className="container flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-sm text-muted-foreground">
-            {practitioners.length > 0 && (
-              <span><strong className="font-semibold text-foreground">{practitioners.length}</strong> Practitioners</span>
-            )}
-            {centers.length > 0 && (
-              <span className="flex items-center gap-2">
-                <span aria-hidden="true">·</span>
-                <strong className="font-semibold text-foreground">{centers.length}</strong> Wellness Centers
-              </span>
-            )}
-            <span className="flex items-center gap-2">
-              <span aria-hidden="true">·</span>
-              <strong className="font-semibold text-foreground">34</strong> Specialties
-            </span>
-            <span className="flex items-center gap-2">
-              <span aria-hidden="true">·</span>
-              The {config.displayName}&apos;s Hub for Holistic Health
-            </span>
+        <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 py-6">
+          <div className="container">
+            <div className="mx-auto flex max-w-3xl items-center justify-evenly gap-4">
+              {practitioners.length > 0 && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-primary md:text-3xl">{practitioners.length}+</div>
+                  <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Practitioners</div>
+                </div>
+              )}
+              <div className="h-8 w-px bg-border" aria-hidden="true" />
+              {centers.length > 0 && (
+                <>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary md:text-3xl">{centers.length}</div>
+                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Wellness Centers</div>
+                  </div>
+                  <div className="h-8 w-px bg-border" aria-hidden="true" />
+                </>
+              )}
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary md:text-3xl">34</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Specialties</div>
+              </div>
+              <div className="h-8 w-px bg-border" aria-hidden="true" />
+              <div className="text-center">
+                <div className="text-sm font-semibold text-foreground md:text-base">The {config.displayName}&apos;s Hub</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">for Holistic Health</div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -443,6 +449,19 @@ export function IslandHome({ config }: IslandHomeProps) {
                 <p className="font-semibold">{island.label}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{island.description}</p>
               </Link>
+            ))}
+            {/* Coming-soon islands — visible but not clickable */}
+            {areasServed.filter(i => i.comingSoon).map(island => (
+              <div
+                key={island.slug}
+                className="rounded-xl border border-border bg-muted/40 p-5"
+              >
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-foreground/70">{island.label}</p>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">Coming Soon</span>
+                </div>
+                <p className="mt-1 text-sm text-muted-foreground">{island.description}</p>
+              </div>
             ))}
             {/* Full directory link */}
             <Link

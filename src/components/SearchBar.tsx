@@ -78,6 +78,59 @@ export function SearchBar({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const zipInputRef = useRef<HTMLInputElement>(null);
 
+  // ── Animated placeholder (typewriter cycle) ──────────────────────────────
+  const PLACEHOLDER_EXAMPLES = useMemo(() => [
+    'yoga in Kona',
+    'help with anxiety',
+    'prenatal massage',
+    'acupuncture near Hilo',
+    'stress relief',
+    'chiropractor accepting new clients',
+    'sound healing',
+    'back pain',
+  ], []);
+
+  const [placeholderText, setPlaceholderText] = useState('');
+  const placeholderIdx = useRef(0);
+
+  useEffect(() => {
+    // Don't animate when user has typed something
+    if (what) return;
+
+    let charIdx = 0;
+    let deleting = false;
+    let timer: number;
+    let cancelled = false;
+    const phrase = () => PLACEHOLDER_EXAMPLES[placeholderIdx.current % PLACEHOLDER_EXAMPLES.length];
+
+    const tick = () => {
+      if (cancelled) return;
+      if (!deleting) {
+        charIdx++;
+        setPlaceholderText(phrase().slice(0, charIdx));
+        if (charIdx === phrase().length) {
+          deleting = true;
+          timer = window.setTimeout(tick, 2000);
+          return;
+        }
+        timer = window.setTimeout(tick, 70);
+      } else {
+        charIdx--;
+        setPlaceholderText(phrase().slice(0, charIdx));
+        if (charIdx === 0) {
+          deleting = false;
+          placeholderIdx.current++;
+          timer = window.setTimeout(tick, 400);
+          return;
+        }
+        timer = window.setTimeout(tick, 35);
+      }
+    };
+
+    timer = window.setTimeout(tick, 1000);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [what, PLACEHOLDER_EXAMPLES]);
+
   // ── Geolocation / location state ──────────────────────────────────────────
   const [userLat, setUserLat] = useState<number | null>(null);
   const [userLng, setUserLng] = useState<number | null>(null);
@@ -338,7 +391,7 @@ export function SearchBar({
               <div className="relative flex-1" ref={wrapperRef}>
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <Input
-                  placeholder="What are you looking for? (yoga, massage, reiki…)"
+                  placeholder={what ? '' : (placeholderText || 'Search…')}
                   className="h-12 border-0 bg-transparent pl-10 text-base shadow-none focus-visible:ring-0"
                   value={what}
                   onChange={e => { setWhat(e.target.value); setIsOpen(true); setHighlightIdx(-1); }}
