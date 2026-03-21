@@ -52,7 +52,7 @@ export function ContactReveal({ listingId, listingType, type, className }: Props
     const href = type === 'phone' ? `tel:${value}` : `mailto:${value}`;
     const Icon = type === 'phone' ? Phone : Mail;
     return (
-      <a href={href} className={`flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors ${className ?? ''}`}>
+      <a href={href} className={`flex w-full items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors ${className ?? ''}`}>
         <Icon className="h-4 w-4 flex-shrink-0" /> {value}
       </a>
     );
@@ -61,7 +61,7 @@ export function ContactReveal({ listingId, listingType, type, className }: Props
   if (notAvailable) {
     const Icon = type === 'phone' ? Phone : Mail;
     return (
-      <div className={`flex items-center gap-2 text-sm text-muted-foreground ${className ?? ''}`}>
+      <div className={`flex w-full items-center gap-2 text-sm text-muted-foreground ${className ?? ''}`}>
         <Icon className="h-4 w-4 flex-shrink-0" />
         <span>Not available</span>
       </div>
@@ -73,7 +73,7 @@ export function ContactReveal({ listingId, listingType, type, className }: Props
 
   return (
     <Button variant="ghost" size="sm" onClick={reveal} disabled={loading}
-      className={`gap-2 text-primary ${className ?? ''}`}>
+      className={`w-full justify-start gap-2 text-primary ${className ?? ''}`}>
       {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Icon className="h-4 w-4" />}
       {label}
     </Button>

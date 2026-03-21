@@ -331,38 +331,21 @@ export function SearchBar({
             })}
           </div>
 
-          {/* ── Search card — single row ──────────────────────────── */}
+          {/* ── Search card ──────────────────────────────────────────── */}
           <div className="rounded-xl bg-background/80 shadow-xl backdrop-blur-md">
-            <div className="flex items-center gap-2 p-3">
+            {/* What field */}
+            <div className="flex items-center gap-2 px-3 pt-3">
               <div className="relative flex-1" ref={wrapperRef}>
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                 <Input
-                  placeholder="Modality, concern, or name…"
-                  className="h-12 border-0 bg-transparent pl-10 pr-10 text-base shadow-none focus-visible:ring-0"
+                  placeholder="What are you looking for? (yoga, massage, reiki…)"
+                  className="h-12 border-0 bg-transparent pl-10 text-base shadow-none focus-visible:ring-0"
                   value={what}
                   onChange={e => { setWhat(e.target.value); setIsOpen(true); setHighlightIdx(-1); }}
                   onKeyDown={handleKeyDown}
                   onFocus={() => { if (suggestions.length > 0) setIsOpen(true); }}
                   autoComplete="off"
                 />
-
-                {/* Location pin — right of input */}
-                <button
-                  type="button"
-                  onClick={hasLocation ? () => handleClearLocation() : handleLocate}
-                  disabled={locating}
-                  title={hasLocation ? 'Clear location' : 'Use my location'}
-                  className={`absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 transition-colors ${
-                    hasLocation
-                      ? 'text-green-500 hover:text-green-600'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {locating
-                    ? <Loader2 className="h-4 w-4 animate-spin" />
-                    : <LocateFixed className="h-4 w-4" />
-                  }
-                </button>
 
                 {/* Autocomplete dropdown */}
                 {showDropdown && (
@@ -395,70 +378,93 @@ export function SearchBar({
                 Search
               </Button>
             </div>
+
+            {/* Where / location row — always visible inside the card */}
+            <div className="border-t border-border/50 mx-3 mt-2" />
+            <div className="flex items-center gap-2 px-3 pb-3 pt-2">
+              <LocateFixed className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+
+              {hasLocation ? (
+                /* Location set — show label + clear */
+                <div className="flex flex-1 items-center justify-between gap-2">
+                  <span className="text-sm text-emerald-600 font-medium truncate">
+                    {locationLabel ? `Near ${locationLabel}` : 'Using your location'}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleClearLocation()}
+                    className="flex-shrink-0 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                    aria-label="Clear location"
+                  >
+                    <X className="h-3 w-3" /> Change
+                  </button>
+                </div>
+              ) : showZipInput ? (
+                /* Zip / town entry */
+                <div className="flex flex-1 items-center gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      ref={zipInputRef}
+                      type="text"
+                      placeholder="Enter zip code or town name"
+                      value={zipInput}
+                      onChange={e => { setZipInput(e.target.value); setZipError(''); }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleZipSearch();
+                        if (e.key === 'Escape') handleCancelZip();
+                      }}
+                      className="h-8 border-border bg-background text-sm focus-visible:ring-1"
+                    />
+                    {zipError && (
+                      <p className="absolute top-full mt-1 whitespace-nowrap text-xs text-destructive">{zipError}</p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    className="h-8 flex-shrink-0"
+                    onClick={handleZipSearch}
+                    disabled={geocoding || zipInput.trim().length < 2}
+                  >
+                    {geocoding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Go'}
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={handleCancelZip}
+                    className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                /* Default — two clear CTAs side by side */
+                <div className="flex flex-1 items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleLocate}
+                    disabled={locating}
+                    className="flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                  >
+                    {locating
+                      ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      : <LocateFixed className="h-3.5 w-3.5" />
+                    }
+                    {locating ? 'Locating…' : 'Use my location'}
+                  </button>
+                  <span className="text-muted-foreground/50 text-xs">or</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowZipInput(true)}
+                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Enter zip / town
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* ── Location status / zip input — below card ─────────── */}
-          {hasLocation && (
-            <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="text-xs font-medium text-green-300">
-                ✓ {locationLabel ? `Near ${locationLabel}` : 'Using your location'}
-              </span>
-              <button
-                type="button"
-                onClick={() => handleClearLocation()}
-                className="flex items-center gap-0.5 text-xs text-primary-foreground/50 transition-colors hover:text-primary-foreground/80"
-                aria-label="Clear location"
-              >
-                <X className="h-3 w-3" /> clear
-              </button>
-            </div>
-          )}
-
-          {!hasLocation && showZipInput && (
-            <div className="mt-2 flex items-center justify-center gap-2">
-              <div className="relative">
-                <Input
-                  ref={zipInputRef}
-                  type="text"
-                  placeholder="Town or zip code"
-                  value={zipInput}
-                  onChange={e => { setZipInput(e.target.value); setZipError(''); }}
-                  onKeyDown={e => { if (e.key === 'Enter') handleZipSearch(); if (e.key === 'Escape') handleCancelZip(); }}
-                  className="h-9 w-44 border-white/30 bg-white/15 text-sm text-white placeholder:text-white/50 focus-visible:ring-white/30"
-                />
-                {zipError && (
-                  <p className="absolute top-full mt-1 whitespace-nowrap text-xs text-red-300">{zipError}</p>
-                )}
-              </div>
-              <Button
-                size="sm"
-                className="h-9"
-                onClick={handleZipSearch}
-                disabled={geocoding || zipInput.trim().length < 2}
-              >
-                {geocoding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : 'Go'}
-              </Button>
-              <button
-                type="button"
-                onClick={handleCancelZip}
-                className="text-xs text-primary-foreground/50 transition-colors hover:text-primary-foreground/80"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {!hasLocation && !showZipInput && (
-            <div className="mt-2 text-center">
-              <button
-                type="button"
-                onClick={() => setShowZipInput(true)}
-                className="text-xs text-primary-foreground/45 underline-offset-2 transition-colors hover:text-primary-foreground/70 hover:underline"
-              >
-                enter town or zip for distance results
-              </button>
-            </div>
-          )}
+          {/* ── Location status shown below card only when no location set and no zip input ── */}
+          {/* (status is now shown inline inside the card above) */}
 
           {/* ── Modality chips ────────────────────────────────────── */}
           <div className={`mt-4 flex flex-wrap items-center justify-center gap-2 transition-opacity duration-150 ${showDropdown ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>

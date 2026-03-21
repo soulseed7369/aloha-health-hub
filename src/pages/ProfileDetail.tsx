@@ -1059,7 +1059,7 @@ const ProfileDetail = () => {
               </p>
               <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                 {similarProviders.slice(0, 4).map(sp => {
-                  const hasImg = !!sp.image && !sp.image.includes('unsplash.com/photo-1540555700478');
+                  const hasImg = !!sp.image && !sp.image.includes('unsplash.com');
                   const initials = sp.name.split(' ').filter(Boolean).slice(0,2).map((w: string) => w[0]).join('').toUpperCase();
                   const GRADIENTS = ['from-teal-400 to-cyan-500','from-violet-400 to-purple-500','from-amber-400 to-orange-500','from-rose-400 to-pink-500','from-emerald-400 to-green-500'];
                   const grad = GRADIENTS[sp.name.charCodeAt(0) % GRADIENTS.length];

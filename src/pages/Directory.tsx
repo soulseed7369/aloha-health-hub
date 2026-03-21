@@ -490,7 +490,8 @@ const Directory = () => {
     modality,
     city,
     sessionType,
-    acceptsClients,
+    // Centers don't have an "accepting new clients" concept — never apply this filter for centers
+    acceptsClients: tab === 'centers' ? false : acceptsClients,
     tab,
     page,
     pageSize: 25,
@@ -654,7 +655,12 @@ const Directory = () => {
             </button>
           </div>
 
-          <Tabs value={tab} onValueChange={(v) => setTab(v as DirectoryTab)}>
+          <Tabs value={tab} onValueChange={(v) => {
+            const next = v as DirectoryTab;
+            setTab(next);
+            // Accepting-clients filter doesn't apply to centers — reset it when switching tabs
+            if (next === 'centers') setAcceptsClients(false);
+          }}>
             <TabsList className="w-full">
               <TabsTrigger value="practitioners" className="flex-1 text-xs sm:text-sm">
                 <span className="sm:hidden">Practitioners</span>

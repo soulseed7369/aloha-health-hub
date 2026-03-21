@@ -7,11 +7,18 @@ import { Link } from 'react-router-dom';
 import type { AccountType } from '@/hooks/useAccountType';
 
 /**
- * Handles the Supabase PKCE magic-link / email-confirm callback.
+ * Handles the Supabase magic-link / email-confirm / phone-OTP callback.
  *
- * Supabase JS v2 uses PKCE by default. When the user clicks the magic link
- * in their email, Supabase redirects to this page with ?code=xxxx in the URL.
- * We exchange that code for a session, then forward to /dashboard.
+ * Supports two Supabase auth flow configurations:
+ *
+ * 1. PKCE flow (default in v2): URL contains ?code=xxxx — we call
+ *    exchangeCodeForSession() to turn it into a session.
+ *
+ * 2. Implicit flow (legacy / some project configs): URL hash contains
+ *    #access_token=xxx&refresh_token=xxx — Supabase JS processes the hash
+ *    automatically; we just wait for the session via onAuthStateChange.
+ *
+ * After either path resolves we save the pending account type and redirect.
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -25,55 +32,95 @@ export default function AuthCallback() {
 
     const code = new URLSearchParams(window.location.search).get('code');
 
-    if (!code) {
-      // No code in URL — might be an old implicit-flow link or direct navigation
-      navigate('/auth');
+    // ── PKCE flow ─────────────────────────────────────────────────────────────
+    if (code) {
+      supabase.auth
+        .exchangeCodeForSession(code)
+        .then(async ({ data, error: exchangeError }) => {
+          if (exchangeError) {
+            // Surface a clear message — most common cause is an expired link
+            setError(exchangeError.message || 'Sign-in link is invalid or has expired. Please request a new one.');
+            return;
+          }
+          await finalise(data.session?.user?.id);
+        });
       return;
     }
 
-    supabase.auth
-      .exchangeCodeForSession(code)
-      .then(async ({ data, error: exchangeError }) => {
-        if (exchangeError) {
-          setError(exchangeError.message);
-          return;
-        }
+    // ── Implicit flow / hash-based token ─────────────────────────────────────
+    // Supabase JS auto-processes #access_token=… hashes before we can read them,
+    // so by the time this effect runs the session may already be set.
+    // We listen for the first SIGNED_IN event (fires within milliseconds).
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        subscription.unsubscribe();
+        await finalise(session.user?.id);
+      }
+      // If no SIGNED_IN fires, check whether we already have an active session
+      // (e.g. user navigated to /auth/callback directly while already logged in)
+    });
 
-        const userId = data.session?.user?.id;
+    // Fallback: if already signed in right now, proceed immediately
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (data.session) {
+        subscription.unsubscribe();
+        await finalise(data.session.user?.id);
+        return;
+      }
+      // Give the implicit-flow listener a few seconds; if nothing fires, send
+      // them to /auth with an explanation
+      const timer = setTimeout(() => {
+        subscription.unsubscribe();
+        setError('Could not verify your sign-in. The link may have expired — please request a new one.');
+      }, 8000);
+      // Store timer reference so the cleanup can cancel it
+      return () => clearTimeout(timer);
+    });
 
-        // Save pending account type if it exists
-        const pendingAccountType = localStorage.getItem('pendingAccountType') as AccountType | null;
-        if (userId && pendingAccountType) {
-          try {
-            const { error: updateError } = await supabase
-              .from('user_profiles')
-              .update({ account_type: pendingAccountType })
-              .eq('id', userId);
-            if (updateError) {
-              console.error('Failed to set account type:', updateError);
-            }
-          } catch (err) {
-            console.error('Failed to set account type:', err);
-          }
-        }
-        // Always clean up localStorage, even if upsert failed
-        localStorage.removeItem('pendingAccountType');
-
-        // Admin users go straight to the admin panel
-        if (isAdmin(data.session?.user?.email)) {
-          navigate('/admin', { replace: true });
-          return;
-        }
-        // Check for a pending plan or other post-login redirect
-        const pending = localStorage.getItem('pendingPlan');
-        const validPlans = ['free', 'price_1TCo3PAmznBlrx8spOgZD1VC', 'price_1T7loEAmznBlrx8s5j92qxX8', 'price_1TCA70AmznBlrx8sSVyl2HtA', 'price_1TCA7KAmznBlrx8s2IOtOThI'];
-        if (pending && validPlans.includes(pending) && pending !== 'free') {
-          navigate('/dashboard/billing', { replace: true });
-        } else {
-          navigate('/dashboard', { replace: true });
-        }
-      });
+    return () => subscription.unsubscribe();
   }, []);
+
+  // ── Shared post-auth logic ──────────────────────────────────────────────────
+  async function finalise(userId?: string) {
+    if (!supabase) { navigate('/auth'); return; }
+
+    // Persist the account type chosen before sign-in
+    const pendingAccountType = localStorage.getItem('pendingAccountType') as AccountType | null;
+    if (userId && pendingAccountType) {
+      try {
+        await supabase
+          .from('user_profiles')
+          .upsert({ id: userId, account_type: pendingAccountType }, { onConflict: 'id' });
+      } catch (err) {
+        // Non-fatal — user is still logged in
+        console.error('Failed to save account type:', err);
+      }
+    }
+    localStorage.removeItem('pendingAccountType');
+
+    // Re-fetch the session to get the user email for the admin check
+    const { data: sessionData } = await supabase.auth.getSession();
+    const userEmail = sessionData.session?.user?.email;
+
+    if (isAdmin(userEmail)) {
+      navigate('/admin', { replace: true });
+      return;
+    }
+
+    const pending = localStorage.getItem('pendingPlan');
+    const validPlans = [
+      'free',
+      'price_1TCo3PAmznBlrx8spOgZD1VC',
+      'price_1T7loEAmznBlrx8s5j92qxX8',
+      'price_1TCA70AmznBlrx8sSVyl2HtA',
+      'price_1TCA7KAmznBlrx8s2IOtOThI',
+    ];
+    if (pending && validPlans.includes(pending) && pending !== 'free') {
+      navigate('/dashboard/billing', { replace: true });
+    } else {
+      navigate('/dashboard', { replace: true });
+    }
+  }
 
   if (error) {
     return (

@@ -50,8 +50,8 @@ export interface PractitionerProfile {
 
 const PLACEHOLDER_COVER =
   'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&h=400&fit=crop';
-const PLACEHOLDER_PROFILE =
-  'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop';
+// No hardcoded profile photo fallback — ProfileDetail renders name initials when avatar_url is empty
+const PLACEHOLDER_PROFILE = '';
 
 function rowToProfile(row: PractitionerRow): PractitionerProfile {
   return {

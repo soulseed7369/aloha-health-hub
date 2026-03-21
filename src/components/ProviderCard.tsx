@@ -118,7 +118,12 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
       })
     : displayModalities;
 
-  const hasImage = !!provider.image && !provider.image.includes("no%20image") && !provider.image.includes("no image") && !provider.image.includes("unsplash.com/photo-1540555700478");
+  // Exclude missing images, the old hardcoded stock-photo placeholder, and ALL Unsplash URLs
+  // (project images live in Supabase Storage, never on unsplash.com)
+  const hasImage = !!provider.image
+    && !provider.image.includes("no%20image")
+    && !provider.image.includes("no image")
+    && !provider.image.includes("unsplash.com");
 
   // ── Compact (directory list) layout ────────────────────────────────────────
   if (compact) {

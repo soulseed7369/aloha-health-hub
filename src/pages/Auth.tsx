@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Leaf, AlertCircle, Mail, Lock, User, Building2 } from 'lucide-react';
+import { Leaf, AlertCircle, Mail, Lock, User, Building2, Smartphone, ArrowLeft } from 'lucide-react';
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useAuth } from '@/contexts/AuthContext';
 import { useSetAccountType } from '@/hooks/useAccountType';
@@ -20,10 +20,14 @@ export default function Auth() {
   const redirectTo = searchParams.get('redirect');
   const setAccountType = useSetAccountType();
 
-  const [mode, setMode] = useState<'magic' | 'password'>('magic');
+  const [mode, setMode] = useState<'magic' | 'password' | 'phone'>('magic');
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // Phone OTP state
+  const [phone, setPhone] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [phoneSent, setPhoneSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [magicSent, setMagicSent] = useState(false);
@@ -108,6 +112,63 @@ export default function Auth() {
     }
   };
 
+  // ── Phone OTP ──────────────────────────────────────────────────────────────
+
+  /** Normalise a US/HI phone number → E.164 (+1XXXXXXXXXX) */
+  function normalisePhone(raw: string): string {
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits.startsWith('1')) return `+${digits}`;
+    // Return as-is with leading + if it already has a country code
+    if (raw.trimStart().startsWith('+')) return raw.trim();
+    return `+1${digits}`;
+  }
+
+  const handlePhoneSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) return;
+    setError('');
+    setLoading(true);
+    try {
+      localStorage.setItem('pendingAccountType', selectedAccountType);
+      const e164 = normalisePhone(phone);
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        phone: e164,
+        options: { shouldCreateUser: true },
+      });
+      if (otpError) throw otpError;
+      setPhoneSent(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Could not send SMS. Please try again.';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePhoneVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) return;
+    setError('');
+    setLoading(true);
+    try {
+      const e164 = normalisePhone(phone);
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        phone: e164,
+        token: otpCode.trim(),
+        type: 'sms',
+      });
+      if (verifyError) throw verifyError;
+      // navigation handled by useEffect above once user session is set
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ── Confirmation / success screens ────────────────────────────────────────
+
   if (magicSent) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/30 px-4">
@@ -144,6 +205,84 @@ export default function Auth() {
     );
   }
 
+  // ── Phone OTP: code entry step ─────────────────────────────────────────────
+
+  if (phoneSent) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/30 px-4">
+        <Link to="/" className="mb-8 flex items-center gap-2 text-primary">
+          <Leaf className="h-6 w-6" />
+          <span className="font-display text-xl font-bold">Hawa'i Wellness</span>
+        </Link>
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-3 w-14 h-14 rounded-full bg-ocean/10 flex items-center justify-center">
+              <Smartphone className="h-7 w-7 text-ocean" />
+            </div>
+            <CardTitle className="font-display text-xl">Enter your code</CardTitle>
+            <CardDescription>
+              We sent a 6-digit code to <span className="font-medium text-foreground">{phone}</span>.
+              It expires in 10 minutes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <form onSubmit={handlePhoneVerify} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="otp-code">Verification code</Label>
+                <Input
+                  id="otp-code"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={6}
+                  placeholder="000000"
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  autoFocus
+                  className="text-center text-xl tracking-[0.5em] font-mono"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading || otpCode.length < 6}>
+                {loading ? 'Verifying…' : 'Verify & Sign In'}
+              </Button>
+            </form>
+            <div className="pt-1 text-center text-sm text-muted-foreground space-y-1">
+              <p>
+                Didn't receive it?{' '}
+                <button
+                  type="button"
+                  onClick={() => { setPhoneSent(false); setOtpCode(''); setError(''); }}
+                  className="text-primary hover:underline font-medium"
+                >
+                  Try a different number
+                </button>
+              </p>
+              <button
+                type="button"
+                onClick={() => { setMode('magic'); setPhoneSent(false); setOtpCode(''); setError(''); }}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="h-3 w-3" /> Back to email sign-in
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          <Link to="/" className="hover:underline">← Back to directory</Link>
+        </p>
+      </div>
+    );
+  }
+
+  // ── Main sign-in card ──────────────────────────────────────────────────────
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/30 px-4">
       <Link to="/" className="mb-8 flex items-center gap-2 text-primary">
@@ -156,22 +295,26 @@ export default function Auth() {
           <CardTitle className="font-display text-2xl">
             {mode === 'magic'
               ? 'Sign in with email'
-              : isSignUp
-                ? 'Create provider account'
-                : 'Sign in with password'}
+              : mode === 'phone'
+                ? 'Sign in with phone'
+                : isSignUp
+                  ? 'Create provider account'
+                  : 'Sign in with password'}
           </CardTitle>
           <CardDescription>
             {mode === 'magic'
               ? "Enter your email and we'll send you a sign-in link — no password needed."
-              : isSignUp
-                ? 'Create an account to list your practice on the directory.'
-                : 'Access your provider dashboard.'}
+              : mode === 'phone'
+                ? "We'll text a verification code to your mobile number."
+                : isSignUp
+                  ? 'Create an account to list your practice on the directory.'
+                  : 'Access your provider dashboard.'}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Account type selector — shown during signup/magic link */}
-          {(mode === 'magic' || isSignUp) && (
+          {/* Account type selector — shown during signup/magic link/phone */}
+          {(mode === 'magic' || mode === 'phone' || isSignUp) && (
             <div className="space-y-3 pb-2 border-b border-border">
               <Label className="text-sm font-medium text-foreground">I'm a:</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -240,6 +383,28 @@ export default function Auth() {
             </form>
           )}
 
+          {/* Phone OTP form */}
+          {mode === 'phone' && (
+            <form onSubmit={handlePhoneSend} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="phone">Mobile number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="(808) 555-0100"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  required
+                  disabled={!hasSupabase}
+                />
+                <p className="text-xs text-muted-foreground">U.S./Hawaiʻi numbers — standard messaging rates may apply.</p>
+              </div>
+              <Button type="submit" className="w-full" disabled={loading || !hasSupabase}>
+                {loading ? 'Sending…' : 'Send verification text'}
+              </Button>
+            </form>
+          )}
+
           {/* Password form */}
           {mode === 'password' && (
             <form onSubmit={handlePassword} className="space-y-4">
@@ -299,23 +464,33 @@ export default function Auth() {
             </form>
           )}
 
-          {/* Toggle between magic link and password */}
-          <div className="pt-2 border-t border-border text-center">
-            {mode === 'magic' ? (
+          {/* Toggle between sign-in methods */}
+          <div className="pt-2 border-t border-border space-y-2 text-center">
+            {mode !== 'magic' && (
               <button
-                onClick={() => { setMode('password'); setError(''); }}
-                className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
-              >
-                <Lock className="h-3.5 w-3.5" />
-                Sign in with password instead
-              </button>
-            ) : (
-              <button
-                onClick={() => { setMode('magic'); setIsSignUp(false); setError(''); }}
-                className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5"
+                onClick={() => { setMode('magic'); setError(''); setPhoneSent(false); }}
+                className="w-full text-sm text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
               >
                 <Mail className="h-3.5 w-3.5" />
-                Use magic link instead
+                Sign in with email link
+              </button>
+            )}
+            {mode !== 'phone' && (
+              <button
+                onClick={() => { setMode('phone'); setError(''); }}
+                className="w-full text-sm text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
+              >
+                <Smartphone className="h-3.5 w-3.5" />
+                Sign in with text message
+              </button>
+            )}
+            {mode !== 'password' && (
+              <button
+                onClick={() => { setMode('password'); setError(''); setIsSignUp(false); }}
+                className="w-full text-sm text-muted-foreground hover:text-foreground inline-flex items-center justify-center gap-1.5"
+              >
+                <Lock className="h-3.5 w-3.5" />
+                Sign in with password
               </button>
             )}
           </div>

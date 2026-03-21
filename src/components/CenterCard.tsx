@@ -53,7 +53,11 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
       })
     : displayModalities;
 
-  const hasImage = !!center.image && !center.image.includes("no%20image") && !center.image.includes("no image") && !center.image.includes("unsplash.com/photo-1540555700478");
+  // Exclude missing images and all Unsplash stock photos (project images live in Supabase Storage)
+  const hasImage = !!center.image
+    && !center.image.includes("no%20image")
+    && !center.image.includes("no image")
+    && !center.image.includes("unsplash.com");
 
   // ── Compact (directory list) layout ────────────────────────────────────────
   if (compact) {
