@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useState } from 'react';
+// useState removed — no longer needed after ShareButtons extraction
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,71 +11,17 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { ArrowLeft, Facebook, Twitter, Link2, Check } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { useArticleBySlug } from '@/hooks/useArticles';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { useRelatedPractitioners } from '@/hooks/useRelatedPractitioners';
 import { ProviderCard } from '@/components/ProviderCard';
+import { ShareButtons } from '@/components/ShareButtons';
 import { JsonLd } from '@/components/JsonLd';
 import { SITE_URL, SITE_NAME } from '@/lib/siteConfig';
 
-function ShareButtons({ title }: { title: string }) {
-  const [copied, setCopied] = useState(false);
-  const url = window.location.href;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for browsers that don't support clipboard API
-      const ta = document.createElement('textarea');
-      ta.value = url;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-  const xUrl  = `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`;
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-sm text-muted-foreground">Share:</span>
-      <a
-        href={fbUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Share on Facebook"
-        className="inline-flex items-center justify-center rounded-full bg-[#1877F2] p-2 text-white hover:bg-[#1877F2]/90 transition-colors"
-      >
-        <Facebook className="h-4 w-4" />
-      </a>
-      <a
-        href={xUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Share on X"
-        className="inline-flex items-center justify-center rounded-full bg-black p-2 text-white hover:bg-black/80 transition-colors"
-      >
-        <Twitter className="h-4 w-4" />
-      </a>
-      <button
-        onClick={handleCopy}
-        aria-label="Copy link"
-        className="inline-flex items-center justify-center rounded-full bg-muted p-2 text-muted-foreground hover:bg-muted/70 transition-colors"
-      >
-        {copied ? <Check className="h-4 w-4 text-green-600" /> : <Link2 className="h-4 w-4" />}
-      </button>
-    </div>
-  );
-}
+// Inline ShareButtons removed — using shared ShareButtons component
 
 export default function ArticleDetail() {
   const { slug } = useParams<{ slug: string }>();

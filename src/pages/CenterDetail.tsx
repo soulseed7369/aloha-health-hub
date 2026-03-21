@@ -20,11 +20,12 @@ import {
 } from "@/components/ui/breadcrumb";
 import {
   MapPin, Phone, Mail, Globe, ExternalLink,
-  Quote, Flag, Instagram, Facebook, Linkedin, Link2, Check, Clock,
+  Quote, Flag, Instagram, Facebook, Linkedin, Clock,
   Star, Users, CalendarDays, Repeat,
 } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
 import { ContactReveal } from "@/components/ContactReveal";
+import { ShareButtons } from "@/components/ShareButtons";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { SITE_URL } from "@/lib/siteConfig";
@@ -135,38 +136,7 @@ function PublicEventCard({ event: ev }: { event: CenterEventRow }) {
   );
 }
 
-// ── Share button ───────────────────────────────────────────────────────────────
-function ShareButton({ name, isTiered }: { name: string; isTiered?: boolean }) {
-  const [copied, setCopied] = useState(false);
-  const url = window.location.href;
-
-  const handleCopy = async () => {
-    try { await navigator.clipboard.writeText(url); } catch { /* ignore */ }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-  const xUrl  = `https://x.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(`Check out ${name} on Hawaiʻi Wellness`)}`;
-
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs text-muted-foreground">Share:</span>
-      {isTiered && (
-        <>
-          <a href={fbUrl} target="_blank" rel="noopener noreferrer"
-            className="rounded border border-border px-2 py-1 text-xs hover:bg-muted">Facebook</a>
-          <a href={xUrl} target="_blank" rel="noopener noreferrer"
-            className="rounded border border-border px-2 py-1 text-xs hover:bg-muted">X</a>
-        </>
-      )}
-      <button onClick={handleCopy}
-        className="flex items-center gap-1 rounded border border-border px-2 py-1 text-xs hover:bg-muted">
-        {copied ? <><Check className="h-3 w-3" /> Copied</> : <><Link2 className="h-3 w-3" /> Copy link</>}
-      </button>
-    </div>
-  );
-}
+// ShareButton removed — replaced by shared ShareButtons component
 
 // ── Working hours ──────────────────────────────────────────────────────────────
 const DAY_LABELS: Record<string, string> = {
@@ -497,9 +467,12 @@ export default function CenterDetail() {
                   </Badge>
                 )}
               </div>
-              <div className="mt-3">
-                <ShareButton name={c.name} isTiered={!!isTiered} />
-              </div>
+              {isTiered && (
+                <div className="mt-3 flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Share:</span>
+                  <ShareButtons title={`Check out ${c.name} on Hawaiʻi Wellness`} compact />
+                </div>
+              )}
             </div>
           </div>
         </div>
