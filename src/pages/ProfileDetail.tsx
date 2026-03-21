@@ -1007,7 +1007,7 @@ const ProfileDetail = () => {
           {similarProviders && similarProviders.length > 0 && (
             <div>
               <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Similar practitioners on {ISLAND_CONFIG[p.island ?? '']?.label ?? 'Hawaiʻi'}
+                Similar practitioners on {ISLAND_CFG[p.island ?? '']?.label ?? 'Hawaiʻi'}
               </p>
               <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
                 {similarProviders.slice(0, 4).map(sp => {
