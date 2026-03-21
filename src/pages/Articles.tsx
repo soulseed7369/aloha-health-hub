@@ -26,9 +26,9 @@ const Articles = () => {
   return (
     <main className="container py-10">
       <h1 className="mb-2 font-display text-3xl font-bold md:text-4xl">
-        Wellness Articles &amp; Guides
+        Explore Wellness on the Islands
       </h1>
-      <p className="mb-8 text-muted-foreground">Holistic health insights from across the Hawaiian Islands.</p>
+      <p className="mb-8 text-muted-foreground">Practitioner stories, healing traditions, and wellness guides from across Hawaiʻi.</p>
 
       {featured && (
         <section className="mb-12">
