@@ -354,7 +354,7 @@ export function SearchBar({
           )}
 
           {/* ── Island tabs ──────────────────────────────────────── */}
-          <div className="no-scrollbar -mx-4 mb-3 flex items-center justify-center gap-1.5 overflow-x-auto px-4">
+          <div className="mb-3 flex flex-wrap items-center justify-center gap-1.5">
             {ISLAND_TABS.map(tab => {
               const isActive = island === tab.value;
               if (tab.comingSoon) {
