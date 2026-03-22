@@ -5,6 +5,7 @@ import { useSimilarPractitioners } from "@/hooks/usePractitioners";
 import { usePractitionerOfferings } from "@/hooks/usePractitionerOfferings";
 import { usePractitionerClasses } from "@/hooks/usePractitionerClasses";
 import { usePractitionerTestimonials } from "@/hooks/usePractitionerTestimonials";
+import { useVerifiedTestimonials } from "@/hooks/useVerifiedTestimonials";
 import { useArticlesByModality } from "@/hooks/useArticlesByModality";
 import { useTrackView, useTrackClick } from "@/hooks/useTrackEvent";
 import { ProviderCard } from "@/components/ProviderCard";
@@ -185,6 +186,7 @@ const ProfileDetail = () => {
   const { data: classes } = usePractitionerClasses(p?.id ?? null);
   const { data: offerings } = usePractitionerOfferings(p?.id ?? null);
   const { data: newTestimonials } = usePractitionerTestimonials(p?.id ?? null);
+  const { data: verifiedTestimonials } = useVerifiedTestimonials(p?.id ?? null);
   const { data: relatedArticles = [] } = useArticlesByModality(
     p?.services ?? [],
     !!p,
@@ -194,6 +196,7 @@ const ProfileDetail = () => {
   const [reportOpen, setReportOpen] = useState(false);
   const [reportReason, setReportReason] = useState<string>('');
   const [reportDetails, setReportDetails] = useState<string>('');
+  const [expandedTestimonials, setExpandedTestimonials] = useState<Set<string>>(new Set());
 
   useTrackView(id, 'practitioner');
   const trackClick = useTrackClick(id, 'practitioner');
@@ -273,10 +276,10 @@ const ProfileDetail = () => {
   // ── Tab visibility ───────────────────────────────────────────────────────
   const showClassesTab = isTiered && (classes?.length ?? 0) > 0;
   const showOfferingsTab = isTiered && (offerings?.length ?? 0) > 0;
-  // Hide testimonials tab when neither the DB testimonials nor the legacy array have data.
-  // newTestimonials is undefined while loading; fall back to p.testimonials to avoid flickering the tab away on load.
-  const showTestimonialsTab = isTiered && (newTestimonials != null
-    ? newTestimonials.length > 0 || p.testimonials.length > 0
+  // Hide testimonials tab when no verified, practitioner, or legacy testimonials exist.
+  // verifiedTestimonials, newTestimonials are undefined while loading; fall back to p.testimonials to avoid flickering the tab away on load.
+  const showTestimonialsTab = isTiered && (verifiedTestimonials != null || newTestimonials != null
+    ? (verifiedTestimonials?.length ?? 0) > 0 || (newTestimonials?.length ?? 0) > 0 || p.testimonials.length > 0
     : p.testimonials.length > 0);
 
   // ── Structured data ──────────────────────────────────────────────────────
@@ -635,6 +638,40 @@ const ProfileDetail = () => {
                 </div>
               )}
 
+              {/* Verified testimonials teaser — Featured tier only */}
+              {p.tier === 'featured' && verifiedTestimonials && verifiedTestimonials.length > 0 && (
+                <div className="border border-amber-200 bg-amber-50/50 rounded-lg p-4">
+                  <h3 className="mb-3 font-semibold text-sm text-amber-900">Client Testimonials</h3>
+                  <div className="space-y-3 mb-3">
+                    {verifiedTestimonials.slice(0, 2).map((t) => (
+                      <div key={t.id} className="text-sm">
+                        <p className="italic text-amber-900 leading-relaxed mb-1">
+                          "{t.highlight || t.full_text?.slice(0, 100)}"
+                        </p>
+                        <div className="text-xs text-amber-800">
+                          {t.client_display_name && (
+                            <>
+                              <span className="font-medium">{t.client_display_name}</span>
+                              {t.client_island && <span> · {ISLAND_CFG[t.client_island]?.label ?? t.client_island}</span>}
+                              <span className="inline-flex items-center gap-1 ml-2">
+                                <CheckCircle className="h-3 w-3 text-green-600" />
+                                Verified client
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('testimonials')}
+                    className="text-xs text-amber-700 hover:text-amber-800 font-medium"
+                  >
+                    Read all {verifiedTestimonials.length} client testimonials →
+                  </button>
+                </div>
+              )}
+
               {/* CTA Block for tiered listings */}
               {isTiered && (
                 <div className="border border-teal-200 bg-teal-50 rounded-lg p-5">
@@ -962,7 +999,91 @@ const ProfileDetail = () => {
           {activeTab === 'testimonials' && (
             <div>
               <h2 className="mb-4 font-display text-xl font-bold">What Clients Say</h2>
-              {newTestimonials && newTestimonials.length > 0 ? (
+
+              {/* Verified testimonials (if any) */}
+              {verifiedTestimonials && verifiedTestimonials.length > 0 ? (
+                <div className="space-y-4 mb-6">
+                  {verifiedTestimonials.map((t) => {
+                    const isExpanded = expandedTestimonials.has(t.id);
+                    return (
+                      <Card key={t.id} className="border border-border bg-card shadow-sm">
+                        <CardContent className="p-4">
+                          {/* AI highlight in larger, italic text with amber left border */}
+                          <div className="pl-3 border-l-3 border-amber-300 mb-3">
+                            <p className="text-base italic text-foreground leading-relaxed">
+                              "{t.highlight || t.full_text?.slice(0, 100)}"
+                            </p>
+                          </div>
+
+                          {/* Read more / expanded text */}
+                          {t.full_text && !isExpanded && (
+                            <button
+                              onClick={() => setExpandedTestimonials(new Set([...expandedTestimonials, t.id]))}
+                              className="text-xs text-teal-600 hover:text-teal-700 font-medium mb-3"
+                            >
+                              Read more →
+                            </button>
+                          )}
+                          {isExpanded && t.full_text && (
+                            <>
+                              <p className="text-sm leading-relaxed text-muted-foreground mb-3">
+                                {t.full_text}
+                              </p>
+                              <button
+                                onClick={() => {
+                                  const newSet = new Set(expandedTestimonials);
+                                  newSet.delete(t.id);
+                                  setExpandedTestimonials(newSet);
+                                }}
+                                className="text-xs text-teal-600 hover:text-teal-700 font-medium mb-3"
+                              >
+                                Show less
+                              </button>
+                            </>
+                          )}
+
+                          {/* Client info & verified badge */}
+                          <div className="border-t border-border/40 pt-3 mb-3">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <div className="text-sm">
+                                {t.client_display_name && (
+                                  <p className="font-semibold text-foreground">{t.client_display_name}</p>
+                                )}
+                                {(t.client_island || t.submitted_at) && (
+                                  <p className="text-xs text-muted-foreground">
+                                    {t.client_island && <span>{ISLAND_CFG[t.client_island]?.label ?? t.client_island}</span>}
+                                    {t.client_island && t.submitted_at && <span> · </span>}
+                                    {t.submitted_at && <span>{formatDate(t.submitted_at)}</span>}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                                <CheckCircle className="h-3 w-3" />
+                                <span>Verified</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Practitioner response (if present) */}
+                          {t.practitioner_response && (
+                            <div className="ml-3 pl-3 border-l border-teal-200 py-2 bg-teal-50 rounded p-2">
+                              <p className="text-xs font-semibold text-teal-900 mb-1">
+                                Response from {p.name}
+                              </p>
+                              <p className="text-xs text-teal-800 leading-relaxed">
+                                {t.practitioner_response}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              ) : null}
+
+              {/* Legacy practitioner testimonials (if no verified ones) */}
+              {(!verifiedTestimonials || verifiedTestimonials.length === 0) && newTestimonials && newTestimonials.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {newTestimonials.map((t) => (
                     <Card key={t.id} className="border border-border bg-card shadow-sm">
@@ -984,7 +1105,7 @@ const ProfileDetail = () => {
                     </Card>
                   ))}
                 </div>
-              ) : p.testimonials && p.testimonials.length > 0 ? (
+              ) : (!verifiedTestimonials || verifiedTestimonials.length === 0) && p.testimonials && p.testimonials.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {p.testimonials.map((t, i) => (
                     <Card key={i} className="border border-border bg-card shadow-sm">

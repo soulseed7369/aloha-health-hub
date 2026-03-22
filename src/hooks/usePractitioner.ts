@@ -33,6 +33,7 @@ export interface PractitionerProfile {
   gallery: string[];
   tier: string;
   ownerId: string | null;
+  createdAt: string | null;
   updatedAt: string | null;
   responseTime: string | null;  // e.g. 'within_hours' | 'within_day' | 'within_2_3_days' | 'within_week'
   testimonials: Array<{ author: string; text: string; date: string }>;
@@ -80,6 +81,7 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     gallery: [],
     tier: row.tier,
     ownerId: row.owner_id,
+    createdAt: row.created_at ?? null,
     updatedAt: row.updated_at ?? null,
     responseTime: row.response_time ?? null,
     testimonials: row.testimonials ?? [],
@@ -129,6 +131,7 @@ export function usePractitioner(id: string | undefined) {
           gallery: profileData.gallery,
           tier: 'free',
           ownerId: null,
+          createdAt: null,
           updatedAt: null,
           responseTime: null,
           testimonials: [],

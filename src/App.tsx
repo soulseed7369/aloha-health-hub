@@ -29,6 +29,7 @@ const NotFound          = lazyWithRetry(() => import("./pages/NotFound"));
 const Auth              = lazyWithRetry(() => import("./pages/Auth"));
 const AuthCallback      = lazyWithRetry(() => import("./pages/AuthCallback"));
 const ClaimListing      = lazyWithRetry(() => import("./pages/ClaimListing"));
+const TestimonialSubmit = lazyWithRetry(() => import("./pages/TestimonialSubmit"));
 const BigIsland         = lazyWithRetry(() => import("./pages/BigIsland"));
 const MauiHome          = lazyWithRetry(() => import("./pages/MauiHome"));
 const OahuHome          = lazyWithRetry(() => import("./pages/OahuHome"));
@@ -105,6 +106,9 @@ const App = () => (
 
               {/* Claim listing — full screen, no nav */}
               <Route path="/claim/:id" element={<ClaimListing />} />
+
+              {/* Testimonial submission — full screen, no nav */}
+              <Route path="/testimonial/:token" element={<TestimonialSubmit />} />
 
               {/* Dashboard — protected; ProtectedRoute renders Outlet */}
               <Route path="/dashboard" element={<ProtectedRoute />}>

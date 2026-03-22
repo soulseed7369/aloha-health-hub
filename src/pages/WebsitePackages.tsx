@@ -356,7 +356,7 @@ export default function WebsitePackages() {
                   variant={pkg.highlight ? "default" : "outline"}
                   asChild
                 >
-                  <a href={pkg.mailto}>
+                  <a href={DISCOVERY_CALL_URL} target="_blank" rel="noopener noreferrer">
                     <Mail className="h-4 w-4" />
                     Get Started
                   </a>

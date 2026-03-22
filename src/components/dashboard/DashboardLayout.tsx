@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Home, User, Building, CalendarDays, Sparkles, Quote, CreditCard, Settings, LogOut, Menu, X, ShieldCheck, BarChart3 } from "lucide-react";
+import { Home, User, Building, CalendarDays, Sparkles, CreditCard, Settings, LogOut, Menu, X, ShieldCheck, BarChart3, Quote } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +15,7 @@ const practitionerLinks = [
   { label: "My Practitioner Profile", to: "/dashboard/profile",      icon: User },
   { label: "Offerings & Events",      to: "/dashboard/offerings",    icon: Sparkles },
   { label: "Classes",                 to: "/dashboard/classes",      icon: CalendarDays },
-  { label: "Testimonials",            to: "/dashboard/testimonials", icon: Quote },
+  { label: "Client Testimonials",     to: "/dashboard/testimonials", icon: Quote },
   { label: "Billing & Subscription",  to: "/dashboard/billing",      icon: CreditCard },
   { label: "Account Settings",        to: "/dashboard/settings",     icon: Settings },
 ];

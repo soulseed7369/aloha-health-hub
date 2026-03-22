@@ -84,6 +84,35 @@ export interface PractitionerTestimonialRow {
 
 export type PractitionerTestimonialInsert = Omit<PractitionerTestimonialRow, 'id' | 'created_at' | 'updated_at'>;
 
+// ─── Verified testimonials (client-written reviews with email verification) ──
+
+export interface VerifiedTestimonialRow {
+  id: string;
+  practitioner_id: string;
+  invite_token: string;
+  invited_email_hash: string;
+  invite_status: 'pending' | 'submitted' | 'published' | 'flagged' | 'expired';
+  invited_at: string;
+  expires_at: string;
+  client_display_name: string | null;
+  client_island: string | null;
+  prompt_what_brought: string | null;
+  prompt_sessions: string | null;
+  prompt_what_changed: string | null;
+  full_text: string | null;
+  highlight: string | null;
+  practitioner_response: string | null;
+  responded_at: string | null;
+  submitted_at: string | null;
+  published_at: string | null;
+  flagged_at: string | null;
+  flag_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type VerifiedTestimonialInsert = Omit<VerifiedTestimonialRow, 'id' | 'created_at' | 'updated_at'>;
+
 // ─── Row types (SELECT results) ───────────────────────────────────────────────
 
 export interface PractitionerRow {
@@ -323,6 +352,11 @@ export interface Database {
         Row: PractitionerTestimonialRow;
         Insert: PractitionerTestimonialInsert;
         Update: Partial<PractitionerTestimonialInsert>;
+      };
+      verified_testimonials: {
+        Row: VerifiedTestimonialRow;
+        Insert: VerifiedTestimonialInsert;
+        Update: Partial<VerifiedTestimonialInsert>;
       };
     };
     Views: Record<string, never>;
