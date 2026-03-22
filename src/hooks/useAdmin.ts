@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { optimizeImage } from '@/lib/imageOptimize';
 import type { PractitionerRow, CenterRow, ArticleRow, PractitionerTestimonialRow, OfferingRow, OfferingInsert, ClassRow, ClassInsert } from '@/types/database';
 
 const IMAGE_BUCKET = 'practitioner-images'; // the Supabase storage bucket for all listing images
@@ -42,25 +43,14 @@ export async function uploadPractitionerImage(file: File): Promise<string> {
     );
   }
 
-  // Validate file type (only allow common image formats)
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (!allowedMimeTypes.includes(file.type)) {
-    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
-  }
+  // Optimize: resize + convert to WebP
+  const optimized = await optimizeImage(file);
 
-  // Validate file size (max 10MB for admin uploads)
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-    throw new Error(`File size must be less than 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
-  }
-
-  // Sanitize extension to prevent path traversal
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-  // Use 'practitioners/' prefix — matches the bucket RLS policy used by uploadMyPhoto
+  const ext = optimized.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'webp';
   const path = `practitioners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage
     .from(IMAGE_BUCKET)
-    .upload(path, file, { upsert: true });
+    .upload(path, optimized, { upsert: true });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
   const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;
@@ -74,25 +64,14 @@ export async function uploadCenterImage(file: File): Promise<string> {
     );
   }
 
-  // Validate file type (only allow common image formats)
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (!allowedMimeTypes.includes(file.type)) {
-    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
-  }
+  // Optimize: resize + convert to WebP
+  const optimized = await optimizeImage(file);
 
-  // Validate file size (max 10MB for admin uploads)
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  if (file.size > maxSize) {
-    throw new Error(`File size must be less than 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
-  }
-
-  // Sanitize extension to prevent path traversal
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-  // Use 'practitioners/' prefix — matches the bucket RLS policy
+  const ext = optimized.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'webp';
   const path = `practitioners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage
     .from(IMAGE_BUCKET)
-    .upload(path, file, { upsert: true });
+    .upload(path, optimized, { upsert: true });
   if (error) throw new Error(`Storage upload failed: ${error.message}`);
   const { data } = supabase.storage.from(IMAGE_BUCKET).getPublicUrl(path);
   return data.publicUrl;

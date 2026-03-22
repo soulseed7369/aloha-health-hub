@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTestimonialInvite } from '@/hooks/useVerifiedTestimonials';
+import { supabase } from '@/lib/supabase';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -101,12 +102,14 @@ export default function TestimonialSubmit() {
         ? `What brought you: ${promptWhatBrought}\n\nSessions: ${promptSessions}\n\nWhat changed: ${promptWhatChanged}`
         : freeformText;
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/submit-testimonial`,
+      if (!supabase) throw new Error('Supabase not initialized');
+
+      // Use supabase.functions.invoke — handles apikey header automatically.
+      // No auth needed for submit (token-based), but invoke still needs the anon key.
+      const { data: result, error: fnError } = await supabase.functions.invoke(
+        'submit-testimonial',
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: {
             inviteToken: token,
             clientDisplayName: getDisplayName(),
             clientIsland: island,
@@ -115,13 +118,16 @@ export default function TestimonialSubmit() {
             promptWhatBrought: useGuidedPrompts ? promptWhatBrought : undefined,
             promptSessions: useGuidedPrompts ? promptSessions : undefined,
             promptWhatChanged: useGuidedPrompts ? promptWhatChanged : undefined,
-          }),
+          },
         }
       );
 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.error || 'Failed to submit testimonial');
+      if (fnError) {
+        throw new Error(fnError.message || 'Failed to submit testimonial');
+      }
+
+      if (result?.error) {
+        throw new Error(result.error);
       }
 
       setSubmitted(true);

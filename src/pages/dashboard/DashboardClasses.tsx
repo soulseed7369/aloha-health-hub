@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Trash2, Edit2, Lock } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Plus, Trash2, Edit2, Lock, Calendar, Info } from "lucide-react";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
 import { useMyClasses, useSaveClass, useDeleteClass } from "@/hooks/useMyClasses";
@@ -20,6 +21,9 @@ interface ClassFormData {
   day_of_week: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun' | '';
   start_time: string;
   duration_minutes: string;
+  specific_date: string;
+  end_date: string;
+  use_specific_date: boolean;
   price_mode: PriceMode;
   price_fixed: string;
   price_min: string;
@@ -36,6 +40,9 @@ const emptyForm: ClassFormData = {
   day_of_week: "",
   start_time: "",
   duration_minutes: "",
+  specific_date: "",
+  end_date: "",
+  use_specific_date: false,
   price_mode: "free",
   price_fixed: "",
   price_min: "",
@@ -93,9 +100,16 @@ export default function DashboardClasses() {
       toast.error("Class title is required.");
       return;
     }
-    if (!form.day_of_week) {
-      toast.error("Day of week is required.");
-      return;
+    if (form.use_specific_date) {
+      if (!form.specific_date) {
+        toast.error("Specific date is required.");
+        return;
+      }
+    } else {
+      if (!form.day_of_week) {
+        toast.error("Day of week is required.");
+        return;
+      }
     }
     if (!form.start_time) {
       toast.error("Start time is required.");
@@ -105,13 +119,13 @@ export default function DashboardClasses() {
       toast.error("Duration is required.");
       return;
     }
-    if (['fixed', 'range'].includes(form.price_mode)) {
+    if (['fixed', 'range', 'sliding'].includes(form.price_mode)) {
       if (form.price_mode === 'fixed' && !form.price_fixed) {
         toast.error("Fixed price is required for this pricing mode.");
         return;
       }
-      if (form.price_mode === 'range' && (!form.price_min || !form.price_max)) {
-        toast.error("Min and max price are required for price range mode.");
+      if ((form.price_mode === 'range' || form.price_mode === 'sliding') && (!form.price_min || !form.price_max)) {
+        toast.error("Min and max price are required for this pricing mode.");
         return;
       }
     }
@@ -132,13 +146,19 @@ export default function DashboardClasses() {
         price_min: form.price_min,
         price_max: form.price_max,
         duration_minutes: form.duration_minutes,
-        day_of_week: form.day_of_week,
+        day_of_week: form.use_specific_date ? null : (form.day_of_week || null),
         start_time: form.start_time,
+        specific_date: form.use_specific_date ? form.specific_date : '',
+        end_date: form.use_specific_date ? form.end_date : '',
         location: form.location,
         registration_url: form.registration_url,
         max_spots: form.max_spots,
-        spots_booked: 0,
-        sort_order: 0,
+        spots_booked: editingId
+          ? (classes.find(c => c.id === editingId)?.spots_booked ?? 0)
+          : 0,
+        sort_order: editingId
+          ? (classes.find(c => c.id === editingId)?.sort_order ?? 0)
+          : 0,
         status: form.status,
       });
 
@@ -170,12 +190,16 @@ export default function DashboardClasses() {
   const handleEdit = (classItem: ClassRow) => {
     setEditingId(classItem.id);
     const timeWithoutSeconds = classItem.start_time?.split(':').slice(0, 2).join(':') || '';
+    const hasSpecificDate = !!classItem.specific_date;
     setForm({
       title: classItem.title,
       description: classItem.description || '',
       day_of_week: classItem.day_of_week || '',
       start_time: timeWithoutSeconds,
       duration_minutes: classItem.duration_minutes ? classItem.duration_minutes.toString() : '',
+      specific_date: classItem.specific_date || '',
+      end_date: classItem.end_date || '',
+      use_specific_date: hasSpecificDate,
       price_mode: classItem.price_mode,
       price_fixed: classItem.price_fixed ? classItem.price_fixed.toString() : '',
       price_min: classItem.price_min ? classItem.price_min.toString() : '',
@@ -241,12 +265,17 @@ export default function DashboardClasses() {
         <div className="space-y-3">
           {classes.map((classItem) => {
             const dayLabel = DAYS_OF_WEEK.find((d) => d.value === classItem.day_of_week)?.label;
+            const specificDate = classItem.specific_date;
+            const scheduleLabel = specificDate
+              ? new Date(specificDate + 'T00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
+              : dayLabel ? `Every ${dayLabel}` : '';
             return (
               <Card key={classItem.id}>
                 <CardContent className="flex items-start justify-between p-4">
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">{classItem.title}</p>
+                      {specificDate && <Badge variant="outline" className="text-xs"><Calendar className="w-3 h-3 mr-1" />One-off</Badge>}
                       <Badge
                         variant={classItem.status === 'published' ? 'default' : 'secondary'}
                         className="text-xs"
@@ -255,7 +284,7 @@ export default function DashboardClasses() {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Every {dayLabel} at {classItem.start_time?.split(':').slice(0, 2).join(':')}{' '}
+                      {scheduleLabel}{classItem.start_time ? ` at ${classItem.start_time.split(':').slice(0, 2).join(':')}` : ''}{' '}
                       {classItem.duration_minutes && `· ${classItem.duration_minutes} min`}
                       {classItem.location ? ` · ${classItem.location}` : ''}
                     </p>
@@ -350,56 +379,112 @@ export default function DashboardClasses() {
               />
             </div>
 
-            {/* Schedule */}
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="day">
-                  Day <span className="text-destructive">*</span>
-                </Label>
-                <Select value={form.day_of_week} onValueChange={(v) => handleChange('day_of_week', v)}>
-                  <SelectTrigger id="day">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DAYS_OF_WEEK.map((d) => (
-                      <SelectItem key={d.value} value={d.value}>
-                        {d.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="time">
-                  Time <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="time"
-                  type="time"
-                  value={form.start_time}
-                  onChange={(e) => handleChange('start_time', e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="duration">
-                  Duration <span className="text-destructive">*</span>
-                </Label>
-                <Select value={form.duration_minutes} onValueChange={(v) => handleChange('duration_minutes', v)}>
-                  <SelectTrigger id="duration">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DURATIONS.map((d) => (
-                      <SelectItem key={d.value} value={d.value}>
-                        {d.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Schedule type toggle */}
+            <div className="flex items-center gap-3">
+              <Switch
+                id="useSpecificDate"
+                checked={form.use_specific_date}
+                onCheckedChange={(v) => handleChange('use_specific_date', v)}
+              />
+              <Label htmlFor="useSpecificDate" className="cursor-pointer text-sm">
+                Specific date (one-off class)
+              </Label>
             </div>
+
+            {/* Schedule — recurring (day of week) or specific date */}
+            {form.use_specific_date ? (
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="specificDate">
+                    Date <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="specificDate"
+                    type="date"
+                    value={form.specific_date}
+                    onChange={(e) => handleChange('specific_date', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="time">
+                    Time <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={form.start_time}
+                    onChange={(e) => handleChange('start_time', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="duration">
+                    Duration <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={form.duration_minutes} onValueChange={(v) => handleChange('duration_minutes', v)}>
+                    <SelectTrigger id="duration">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DURATIONS.map((d) => (
+                        <SelectItem key={d.value} value={d.value}>
+                          {d.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="day">
+                    Day <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={form.day_of_week} onValueChange={(v) => handleChange('day_of_week', v)}>
+                    <SelectTrigger id="day">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DAYS_OF_WEEK.map((d) => (
+                        <SelectItem key={d.value} value={d.value}>
+                          {d.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="time">
+                    Time <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    value={form.start_time}
+                    onChange={(e) => handleChange('start_time', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="duration">
+                    Duration <span className="text-destructive">*</span>
+                  </Label>
+                  <Select value={form.duration_minutes} onValueChange={(v) => handleChange('duration_minutes', v)}>
+                    <SelectTrigger id="duration">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DURATIONS.map((d) => (
+                        <SelectItem key={d.value} value={d.value}>
+                          {d.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             {/* Pricing */}
             <div className="space-y-2">
@@ -465,9 +550,37 @@ export default function DashboardClasses() {
             )}
 
             {form.price_mode === 'sliding' && (
-              <p className="text-xs text-muted-foreground">
-                Sliding scale pricing: students pay what they can afford.
-              </p>
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Sliding scale: students pay what they can afford within a range.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="slidingMin">Min Price ($)</Label>
+                    <Input
+                      id="slidingMin"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="10"
+                      value={form.price_min}
+                      onChange={(e) => handleChange('price_min', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="slidingMax">Max Price ($)</Label>
+                    <Input
+                      id="slidingMax"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="40"
+                      value={form.price_max}
+                      onChange={(e) => handleChange('price_max', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Location */}
@@ -491,6 +604,20 @@ export default function DashboardClasses() {
                 value={form.registration_url}
                 onChange={(e) => handleChange('registration_url', e.target.value)}
               />
+            </div>
+
+            {/* Google Calendar tip */}
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
+              <div className="flex items-start gap-2">
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+                <div className="text-xs text-blue-800 space-y-1">
+                  <p className="font-medium">Import from Google Calendar</p>
+                  <p>
+                    To keep your classes in sync with Google Calendar, use the public event URL as your Registration URL above.
+                    You can also get a shareable event link: open your event in Google Calendar, click "More options" → "Publish event" and copy the link.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Max Spots */}

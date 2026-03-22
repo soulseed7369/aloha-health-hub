@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import {
   CheckCircle, MapPin, Phone, Mail, Globe, ExternalLink, ArrowLeft,
-  Store, Instagram, Facebook, Linkedin, Link2, Check, Clock,
+  Store, Instagram, Facebook, Linkedin, Link2, Check, Clock, Calendar, Users,
   CalendarClock, Lock, Flag, Building2, ArrowRight,
 } from "lucide-react";
 import { FlagListingButton } from "@/components/FlagListingButton";
@@ -122,24 +122,38 @@ function formatTime(timeStr: string | null): string {
   }
 }
 
-// ── Helper: format price ───────────────────────────────────────────────────
-function formatPrice(mode: string | undefined, fixed: number | null, min: number | null, max: number | null): string {
-  if (!mode) return '';
-  if (mode === 'free') return 'Free';
-  if (mode === 'contact') return 'Contact for pricing';
-  if (mode === 'fixed' && fixed !== null) return `$${fixed}`;
-  if ((mode === 'range' || mode === 'sliding') && min !== null && max !== null) return `$${min}–$${max}`;
-  return '';
+// ── Helper: format price with label ─────────────────────────────────────────
+function formatPrice(mode: string | undefined, fixed: number | null, min: number | null, max: number | null): { label: string; sub?: string } | null {
+  if (!mode) return null;
+  if (mode === 'free') return { label: 'Free' };
+  if (mode === 'contact') return { label: 'Contact for pricing' };
+  if (mode === 'fixed' && fixed !== null) return { label: `$${fixed.toLocaleString()}` };
+  if (mode === 'sliding' && min !== null && max !== null) return { label: `$${min}–$${max}`, sub: 'Sliding scale' };
+  if (mode === 'range' && min !== null && max !== null) return { label: `$${min.toLocaleString()}–$${max.toLocaleString()}` };
+  return null;
 }
 
-// ── Helper: format date ISO → "Month Year" ─────────────────────────────────
+// ── Helper: format exact date ──────────────────────────────────────────────
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return '';
   try {
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(new Date(dateStr));
+    return new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }).format(new Date(dateStr + 'T12:00:00'));
   } catch {
     return dateStr;
   }
+}
+
+// ── Helper: format date range ──────────────────────────────────────────────
+function formatDateRange(start: string | null, end: string | null): string {
+  if (!start) return 'Flexible start · Ongoing';
+  const s = new Date(start + 'T12:00:00');
+  if (!end) return formatDate(start);
+  const e = new Date(end + 'T12:00:00');
+  const sameMonth = s.getMonth() === e.getMonth() && s.getFullYear() === e.getFullYear();
+  if (sameMonth) {
+    return `${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(s)}–${new Intl.DateTimeFormat('en-US', { day: 'numeric', year: 'numeric' }).format(e)}`;
+  }
+  return `${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(s)} – ${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(e)}`;
 }
 
 // ── Helper: day of week to label ───────────────────────────────────────────
@@ -197,6 +211,7 @@ const ProfileDetail = () => {
   const [reportReason, setReportReason] = useState<string>('');
   const [reportDetails, setReportDetails] = useState<string>('');
   const [expandedTestimonials, setExpandedTestimonials] = useState<Set<string>>(new Set());
+  const [expandedOfferings, setExpandedOfferings] = useState<Set<string>>(new Set());
 
   useTrackView(id, 'practitioner');
   const trackClick = useTrackClick(id, 'practitioner');
@@ -677,13 +692,13 @@ const ProfileDetail = () => {
                 <div className="border border-teal-200 bg-teal-50 rounded-lg p-5">
                   <h3 className="mb-3 font-semibold text-sm text-teal-900">Connect with {p.name}</h3>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {p.bookingLabel && p.externalBookingUrl && (
+                    {p.externalBookingUrl && (
                       <Button
                         className="gap-2 bg-teal-600 text-white hover:bg-teal-700"
                         asChild
                       >
                         <a href={p.externalBookingUrl} onClick={() => trackClick('booking')} target="_blank" rel="noopener noreferrer">
-                          {p.bookingLabel}
+                          {p.bookingLabel || 'Book a Session'}
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       </Button>
@@ -863,11 +878,15 @@ const ProfileDetail = () => {
                         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1">
-                              {cls.day_of_week && (
+                              {cls.specific_date ? (
                                 <Badge variant="outline" className="text-xs">
-                                  {dayToLabel(cls.day_of_week)}
+                                  {formatDate(cls.specific_date)}
                                 </Badge>
-                              )}
+                              ) : cls.day_of_week ? (
+                                <Badge variant="outline" className="text-xs">
+                                  Every {dayToLabel(cls.day_of_week)}
+                                </Badge>
+                              ) : null}
                             </div>
                             <h3 className="font-semibold text-sm mb-1">{cls.title}</h3>
                             <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-2">
@@ -887,9 +906,15 @@ const ProfileDetail = () => {
                                 <span>{cls.location}</span>
                               )}
                             </div>
-                            {cls.price_mode && (
-                              <p className="text-sm font-medium text-foreground">{formatPrice(cls.price_mode, cls.price_fixed, cls.price_min, cls.price_max)}</p>
-                            )}
+                            {cls.price_mode && (() => {
+                              const price = formatPrice(cls.price_mode, cls.price_fixed, cls.price_min, cls.price_max);
+                              return price ? (
+                                <div className="text-sm">
+                                  <span className="font-medium text-foreground">{price.label}</span>
+                                  {price.sub && <span className="text-xs text-muted-foreground ml-1">({price.sub})</span>}
+                                </div>
+                              ) : null;
+                            })()}
                             {cls.max_spots && cls.spots_booked / cls.max_spots >= 0.5 && (
                               <div className="mt-2 text-xs text-muted-foreground">
                                 {cls.max_spots - cls.spots_booked} spots remaining
@@ -923,68 +948,107 @@ const ProfileDetail = () => {
                 <div className="grid grid-cols-1 gap-4">
                   {offerings.map((off) => {
                     const isSoldOut = off.max_spots && off.spots_booked >= off.max_spots;
-                    const hasSpotsBadge = off.max_spots && off.spots_booked / off.max_spots >= 0.5;
+                    const spotsLeft = off.max_spots ? off.max_spots - off.spots_booked : null;
+                    const isAlmostFull = spotsLeft !== null && spotsLeft <= 3 && !isSoldOut;
+                    const price = off.price_mode ? formatPrice(off.price_mode, off.price_fixed, off.price_min, off.price_max) : null;
+                    const desc = off.description ?? '';
+                    const isExpanded = expandedOfferings.has(off.id);
+                    const truncated = desc.length > 300 ? desc.slice(0, 300).trim() + '…' : desc;
+                    const showReadMore = desc.length > 300;
+
                     return (
-                      <Card key={off.id} className="border border-border overflow-hidden">
-                        {off.image_url && (
-                          <OptimizedImage
-                            src={off.image_url}
-                            alt={off.title}
-                            width={600}
-                            height={192}
-                            className="w-full h-48 object-cover"
-                            loading="lazy"
-                            sizes="100vw"
-                          />
-                        )}
-                        <CardContent className="p-4">
-                          <div className="mb-2">
-                            <Badge className={`text-xs ${offeringTypeColor(off.offering_type)}`}>
-                              {off.offering_type}
-                            </Badge>
-                          </div>
-                          <h3 className="font-semibold mb-1 line-clamp-2">{off.title}</h3>
-                          {off.description && (
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{off.description}</p>
-                          )}
-                          <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-3">
-                            {off.price_mode && (
-                              <span className="font-medium text-foreground">{formatPrice(off.price_mode, off.price_fixed, off.price_min, off.price_max)}</span>
-                            )}
-                            {off.start_date ? (
-                              <span>
-                                {formatDate(off.start_date)}
-                                {off.end_date && ` – ${formatDate(off.end_date)}`}
-                              </span>
-                            ) : (
-                              <span>Ongoing — flexible start</span>
-                            )}
-                            {off.location && (
-                              <span>·</span>
-                            )}
-                            {off.location && (
-                              <span>{off.location}</span>
-                            )}
-                          </div>
-                          {hasSpotsBadge && !isSoldOut && (
-                            <div className="mb-3 text-xs text-muted-foreground">
-                              {off.max_spots! - off.spots_booked} spots remaining
+                      <Card key={off.id} className="border border-border overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="flex flex-col sm:flex-row">
+                          {/* Thumbnail — small side panel on desktop, full-width on mobile */}
+                          {off.image_url && (
+                            <div className="sm:w-40 sm:min-w-[10rem] sm:h-auto h-40 flex-shrink-0">
+                              <OptimizedImage
+                                src={off.image_url}
+                                alt={off.title}
+                                width={160}
+                                height={160}
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                sizes="(min-width: 640px) 160px, 100vw"
+                              />
                             </div>
                           )}
-                          {off.registration_url && (
-                            <Button
-                              size="sm"
-                              variant={isSoldOut ? 'outline' : 'default'}
-                              className="w-full gap-1"
-                              asChild
-                            >
-                              <a href={off.registration_url} target="_blank" rel="noopener noreferrer">
-                                {isSoldOut ? 'Join Waitlist' : 'Register'}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            </Button>
-                          )}
-                        </CardContent>
+
+                          {/* Content */}
+                          <CardContent className="flex-1 p-4 sm:p-5 flex flex-col">
+                            {/* Top row: badge + price */}
+                            <div className="flex items-start justify-between gap-3 mb-2">
+                              <Badge className={`text-xs ${offeringTypeColor(off.offering_type)}`}>
+                                {off.offering_type?.charAt(0).toUpperCase()}{off.offering_type?.slice(1)}
+                              </Badge>
+                              {price && (
+                                <div className="text-right flex-shrink-0">
+                                  <span className="text-sm font-semibold">{price.label}</span>
+                                  {price.sub && <span className="block text-xs text-muted-foreground">{price.sub}</span>}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="font-semibold text-base leading-snug mb-1.5">{off.title}</h3>
+
+                            {/* Description — 300 chars visible, expand for rest */}
+                            {desc && (
+                              <p className="text-sm text-muted-foreground leading-relaxed mb-3 whitespace-pre-line">
+                                {isExpanded ? desc : truncated}
+                                {showReadMore && (
+                                  <button
+                                    onClick={() => {
+                                      const newSet = new Set(expandedOfferings);
+                                      if (isExpanded) { newSet.delete(off.id); } else { newSet.add(off.id); }
+                                      setExpandedOfferings(newSet);
+                                    }}
+                                    className="ml-1 text-primary hover:text-primary/80 font-medium text-sm"
+                                  >
+                                    {isExpanded ? 'Show less' : 'Read more'}
+                                  </button>
+                                )}
+                              </p>
+                            )}
+
+                            {/* Meta: dates, location, spots */}
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground mb-3">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="h-3.5 w-3.5" />
+                                {formatDateRange(off.start_date, off.end_date)}
+                              </span>
+                              {off.location && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5" />
+                                  {off.location}
+                                </span>
+                              )}
+                              {spotsLeft !== null && (
+                                <span className={`flex items-center gap-1 font-medium ${isAlmostFull ? 'text-amber-600' : isSoldOut ? 'text-destructive' : ''}`}>
+                                  <Users className="h-3.5 w-3.5" />
+                                  {isSoldOut ? 'Sold out' : isAlmostFull ? `Only ${spotsLeft} spots left` : `${spotsLeft} of ${off.max_spots} spots left`}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* CTA */}
+                            {off.registration_url && (
+                              <div className="mt-auto pt-1">
+                                <Button
+                                  size="sm"
+                                  variant={isSoldOut ? 'outline' : 'default'}
+                                  className="gap-1.5"
+                                  asChild
+                                >
+                                  <a href={off.registration_url} target="_blank" rel="noopener noreferrer">
+                                    {isSoldOut ? 'Join Waitlist' : 'Learn More'}
+                                    <ExternalLink className="h-3 w-3" />
+                                  </a>
+                                </Button>
+                              </div>
+                            )}
+                          </CardContent>
+                        </div>
                       </Card>
                     );
                   })}
@@ -1226,7 +1290,7 @@ const ProfileDetail = () => {
           {p.externalBookingUrl ? (
             <Button className="w-full gap-2" size="lg" asChild>
               <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
-                {p.bookingLabel || 'Book Appointment'}
+                {p.bookingLabel || 'Book a Session'}
                 <ExternalLink className="h-4 w-4" />
               </a>
             </Button>
@@ -1408,7 +1472,7 @@ const ProfileDetail = () => {
         {p.externalBookingUrl ? (
           <Button className="w-full gap-2" size="lg" asChild>
             <a href={p.externalBookingUrl} onClick={() => trackClick('booking')} target="_blank" rel="noopener noreferrer">
-              {p.bookingLabel || 'Book Appointment'}
+              {p.bookingLabel || 'Book a Session'}
               <ExternalLink className="h-4 w-4" />
             </a>
           </Button>

@@ -78,7 +78,7 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     whatToExpect: row.what_to_expect ?? null,
     services: row.modalities,
     modalities: row.modalities,
-    gallery: [],
+    gallery: (row.photos ?? []).filter(Boolean),
     tier: row.tier,
     ownerId: row.owner_id,
     createdAt: row.created_at ?? null,

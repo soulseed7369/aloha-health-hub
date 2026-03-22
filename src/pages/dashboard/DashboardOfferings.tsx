@@ -391,9 +391,13 @@ export default function DashboardOfferings() {
                 id="description"
                 placeholder="Describe the offering, what's included, daily schedule..."
                 className="min-h-[100px]"
+                maxLength={750}
                 value={form.description}
                 onChange={(e) => handleChange('description', e.target.value)}
               />
+              <p className="text-xs text-muted-foreground text-right">
+                {form.description.length}/750 characters
+              </p>
             </div>
 
             {/* Dates */}
@@ -494,9 +498,37 @@ export default function DashboardOfferings() {
             )}
 
             {form.price_mode === 'sliding' && (
-              <p className="text-xs text-muted-foreground">
-                Sliding scale pricing: clients pay what they can afford within a range.
-              </p>
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Sliding scale: clients pay what they can afford within a range.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="slidingMin">Min Price ($)</Label>
+                    <Input
+                      id="slidingMin"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="35"
+                      value={form.price_min}
+                      onChange={(e) => handleChange('price_min', e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="slidingMax">Max Price ($)</Label>
+                    <Input
+                      id="slidingMax"
+                      type="number"
+                      min="0"
+                      step="1"
+                      placeholder="75"
+                      value={form.price_max}
+                      onChange={(e) => handleChange('price_max', e.target.value)}
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             {/* Location */}

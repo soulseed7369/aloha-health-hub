@@ -96,7 +96,8 @@ export default function DashboardTestimonials() {
       toast.success("Invitation sent!");
       setInviteEmail("");
     } catch (err) {
-      toast.error("Failed to send invitation. Please try again.");
+      const msg = err instanceof Error ? err.message : "Failed to send invitation";
+      toast.error(msg);
       if (import.meta.env.DEV) console.error(err);
     }
   };

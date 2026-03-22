@@ -53,6 +53,8 @@ export interface ClassRow {
   duration_minutes: number | null;
   day_of_week: 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun' | null;
   start_time: string | null;    // "HH:mm:ss" from Postgres time
+  specific_date: string | null; // "YYYY-MM-DD" — for one-off classes
+  end_date: string | null;      // "YYYY-MM-DD" — optional end date for multi-day
   location: string | null;
   registration_url: string | null;
   max_spots: number | null;
@@ -181,6 +183,9 @@ export interface PractitionerRow {
   messaging_enabled: boolean;
   discovery_call_enabled: boolean;
   discovery_call_url: string | null;
+  // Multi-photo support (migration 20260322000002)
+  photos: string[];
+  profile_photo_index: number;
   // Search rebuild sprint — populated by pipeline/scripts/31_rebuild_search_docs.py
   profile_completeness: number | null;
 }

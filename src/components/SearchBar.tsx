@@ -354,7 +354,7 @@ export function SearchBar({
           )}
 
           {/* ── Island tabs ──────────────────────────────────────── */}
-          <div className="mb-3 flex flex-wrap items-center justify-center gap-1.5">
+          <div className="mb-3 flex items-center justify-center gap-1.5">
             {ISLAND_TABS.map(tab => {
               const isActive = island === tab.value;
               if (tab.comingSoon) {
@@ -362,10 +362,9 @@ export function SearchBar({
                   <span
                     key={tab.value}
                     title="Coming soon"
-                    className="relative shrink-0 cursor-default select-none rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-sm font-medium text-primary-foreground/70"
+                    className="cursor-default select-none rounded-full px-4 py-1.5 text-sm font-medium text-primary-foreground/40"
                   >
                     {tab.label}
-                    <span className="ml-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-primary-foreground/80">soon</span>
                   </span>
                 );
               }
@@ -374,7 +373,7 @@ export function SearchBar({
                   key={tab.value}
                   type="button"
                   onClick={() => setIsland(tab.value)}
-                  className={`shrink-0 rounded-full px-5 py-1.5 text-sm font-medium transition-all ${
+                  className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
                     isActive
                       ? 'bg-white text-primary shadow-sm'
                       : 'text-primary-foreground/80 hover:bg-white/20 hover:text-primary-foreground'

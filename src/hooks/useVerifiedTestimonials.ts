@@ -134,24 +134,25 @@ export function useSendTestimonialInvite() {
     mutationFn: async (payload: SendTestimonialInvitePayload) => {
       if (!supabase || !user) throw new Error('Not authenticated');
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-testimonial-invite`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          },
-          body: JSON.stringify(payload),
-        }
+      // Refresh session to ensure valid token
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error('Session expired — please sign in again');
+
+      // Use supabase.functions.invoke — handles apikey, auth, and CORS correctly
+      const { data, error } = await supabase.functions.invoke(
+        'create-testimonial-invite',
+        { body: payload }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to send testimonial invite');
+      if (error) {
+        throw new Error(error.message || 'Failed to send testimonial invite');
       }
 
-      return response.json();
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
     },
     onSuccess: (_, payload) => {
       queryClient.invalidateQueries({

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { optimizeImage } from '@/lib/imageOptimize';
 import type { OfferingRow, OfferingInsert, PriceMode } from '@/types/database';
 
 export type OfferingFormData = {
@@ -126,22 +127,15 @@ export function useDeleteOffering() {
 export async function uploadOfferingImage(file: File): Promise<string> {
   if (!supabase) throw new Error('Supabase not configured');
 
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (!allowedMimeTypes.includes(file.type)) {
-    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
-  }
+  // Optimize: resize + convert to WebP
+  const optimized = await optimizeImage(file);
 
-  const maxSize = 5 * 1024 * 1024;
-  if (file.size > maxSize) {
-    throw new Error(`File size must be less than 5MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
-  }
-
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const ext = optimized.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'webp';
   const path = `offerings/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { error } = await supabase.storage
     .from('practitioner-images')
-    .upload(path, file, { upsert: true });
+    .upload(path, optimized, { upsert: true });
 
   if (error) throw error;
 

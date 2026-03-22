@@ -7,12 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Upload, X, ExternalLink, Loader2, Lock, Crown, ShieldCheck, CheckCircle } from "lucide-react";
+import { ExternalLink, Loader2, Lock, Crown, ShieldCheck, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useMyPractitioner, useSavePractitioner, uploadMyPhoto, type PractitionerFormData } from "@/hooks/useMyPractitioner";
 import { ContactVerification } from "@/components/ContactVerification";
 import { useRequestReview } from "@/hooks/useVerification";
+import MultiPhotoUpload, { type PhotoSlot } from "@/components/MultiPhotoUpload";
 
 const ISLANDS = [
   { value: 'big_island', label: 'Big Island' },
@@ -44,10 +45,9 @@ const MODALITIES = [
 ];
 
 const BOOKING_LABELS = [
-  { value: 'Book Appointment', label: 'Book Appointment' },
-  { value: 'Schedule Discovery Call', label: 'Schedule Discovery Call' },
   { value: 'Book a Session', label: 'Book a Session' },
-  { value: 'Request a Consultation', label: 'Request a Consultation' },
+  { value: 'Schedule Discovery Call', label: 'Schedule Discovery Call' },
+  { value: 'Book Appointment', label: 'Book Appointment' },
 ];
 
 const RESPONSE_TIME_OPTIONS = [
@@ -86,12 +86,14 @@ export default function DashboardProfile() {
   const saveMutation = useSavePractitioner();
   const requestReview = useRequestReview();
   const [form, setForm] = useState<PractitionerFormData>(emptyForm);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>([]);
+  const [profilePhotoIndex, setProfilePhotoIndex] = useState(0);
   const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
   const initialized = useRef(false);
+  // Stable initial values for MultiPhotoUpload (set once when practitioner loads)
+  const [initialPhotos, setInitialPhotos] = useState<string[]>([]);
+  const [initialProfileIdx, setInitialProfileIdx] = useState(0);
+  const [photoKey, setPhotoKey] = useState(0); // bump to remount MultiPhotoUpload
 
   useEffect(() => {
     // Only initialize once — prevents background refetches from overwriting unsaved edits
@@ -109,7 +111,7 @@ export default function DashboardProfile() {
         email: practitioner.email ?? '',
         website_url: practitioner.website_url ?? '',
         external_booking_url: practitioner.external_booking_url ?? '',
-        booking_label: (practitioner as any).booking_label ?? '',
+        booking_label: (practitioner as any).booking_label || 'Book a Session',
         accepts_new_clients: practitioner.accepts_new_clients ?? true,
         response_time: (practitioner as any).response_time ?? '',
         booking_enabled: (practitioner as any).booking_enabled ?? true,
@@ -119,21 +121,23 @@ export default function DashboardProfile() {
         social_links: (practitioner as any).social_links ?? {},
         working_hours: (practitioner as any).working_hours ?? {},
       });
-      setAvatarUrl(practitioner.avatar_url ?? null);
+      // Initialize photos from the practitioner's photos array (or fallback to avatar_url)
+      const existingPhotos = (practitioner as any).photos?.filter(Boolean) ?? [];
+      const photoUrls = existingPhotos.length > 0
+        ? existingPhotos
+        : practitioner.avatar_url ? [practitioner.avatar_url] : [];
+      const pIdx = (practitioner as any).profile_photo_index ?? 0;
+      setInitialPhotos(photoUrls);
+      setInitialProfileIdx(pIdx);
+      setPhotoKey(k => k + 1); // remount MultiPhotoUpload with fresh data
+      setPhotoSlots(photoUrls.map((url: string) => ({ url })));
+      setProfilePhotoIndex(pIdx);
     }
   }, [practitioner]);
 
-  // Revoke blob URL to prevent memory leak when component unmounts
-  useEffect(() => {
-    return () => { if (photoPreview) URL.revokeObjectURL(photoPreview); };
-  }, [photoPreview]);
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (photoPreview) URL.revokeObjectURL(photoPreview); // revoke previous before creating new
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
+  const handlePhotosChange = (slots: PhotoSlot[], idx: number) => {
+    setPhotoSlots(slots);
+    setProfilePhotoIndex(idx);
   };
 
   const toggleModality = (m: string) => {
@@ -153,15 +157,34 @@ export default function DashboardProfile() {
     if (!form.name.trim()) { toast.error('Full name is required.'); return; }
     try {
       setUploading(true);
-      let finalAvatarUrl = avatarUrl;
-      if (photoFile) {
-        finalAvatarUrl = await uploadMyPhoto(photoFile);
-        setAvatarUrl(finalAvatarUrl);
-        setPhotoFile(null);
-        setPhotoPreview(null);
+
+      // Upload pending photos sequentially to avoid orphaned files on partial failure
+      const finalSlots: PhotoSlot[] = [];
+      for (const slot of photoSlots) {
+        if (slot.file) {
+          const url = await uploadMyPhoto(slot.file);
+          finalSlots.push({ url });
+        } else {
+          finalSlots.push({ url: slot.url });
+        }
       }
-      // Include avatar_url in the save payload so it persists to the DB
-      await saveMutation.mutateAsync({ ...form, avatar_url: finalAvatarUrl });
+
+      // Build photos array of URLs
+      const photoUrls = finalSlots.map(s => s.url).filter(Boolean);
+      const safeIdx = photoUrls.length > 0
+        ? Math.min(profilePhotoIndex, photoUrls.length - 1)
+        : 0;
+      const avatarUrl = photoUrls[safeIdx] ?? null;
+
+      // Update local state with uploaded URLs (clear file refs)
+      setPhotoSlots(finalSlots);
+
+      await saveMutation.mutateAsync({
+        ...form,
+        avatar_url: avatarUrl,
+        photos: photoUrls,
+        profile_photo_index: safeIdx,
+      });
       toast.success('Profile saved! It will appear in the directory once reviewed.');
     } catch (err) {
       toast.error('Failed to save profile. Please try again.');
@@ -182,7 +205,6 @@ export default function DashboardProfile() {
     );
   }
 
-  const currentPhoto = photoPreview || avatarUrl;
   const cities = CITIES_BY_ISLAND[form.island] ?? [];
   const tier = practitioner?.tier ?? 'free';
   const isPremiumOrFeatured = tier === 'premium' || tier === 'featured';
@@ -202,31 +224,17 @@ export default function DashboardProfile() {
           <CardTitle className="text-lg">Identity</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Photo upload */}
-          <div className="flex items-center gap-4">
-            {currentPhoto ? (
-              <div className="relative">
-                <img src={currentPhoto} alt="Profile" className="w-20 h-20 rounded-full object-cover border" />
-                <button
-                  type="button"
-                  onClick={() => { setPhotoFile(null); setPhotoPreview(null); setAvatarUrl(null); }}
-                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center"
-                >
-                  <X className="w-3 h-3" />
-                </button>
-              </div>
-            ) : (
-              <div className="w-20 h-20 rounded-full border-2 border-dashed border-input bg-muted flex items-center justify-center">
-                <Upload className="w-6 h-6 text-muted-foreground" />
-              </div>
-            )}
-            <div>
-              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-                {currentPhoto ? 'Change Photo' : 'Upload Photo'}
-              </Button>
-              <p className="mt-1 text-xs text-muted-foreground">JPG or PNG, up to 5MB</p>
-            </div>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          {/* Photo upload — up to 3 photos with profile designation */}
+          <div>
+            <Label className="mb-2 block">Photos {isPremiumOrFeatured ? '(up to 3)' : '(1 photo)'}</Label>
+            <MultiPhotoUpload
+              key={photoKey}
+              photos={initialPhotos}
+              profileIndex={initialProfileIdx}
+              maxPhotos={isPremiumOrFeatured ? 3 : 1}
+              onChange={handlePhotosChange}
+              disabled={uploading}
+            />
           </div>
 
           <div className="space-y-2">

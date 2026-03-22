@@ -15,6 +15,8 @@ export type ClassFormData = {
   duration_minutes: string;
   day_of_week: ClassRow['day_of_week'];
   start_time: string;
+  specific_date: string;  // "YYYY-MM-DD" for one-off classes
+  end_date: string;       // optional end date for multi-day
   location: string;
   registration_url: string;
   max_spots: string;
@@ -74,6 +76,8 @@ export function useSaveClass() {
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes, 10) : null,
         day_of_week: formData.day_of_week,
         start_time: formData.start_time || null,
+        specific_date: formData.specific_date || null,
+        end_date: formData.end_date || null,
         location: formData.location.trim() || null,
         registration_url: formData.registration_url.trim() || null,
         max_spots: formData.max_spots ? parseInt(formData.max_spots, 10) : null,

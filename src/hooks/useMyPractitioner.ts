@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { optimizeImage } from '@/lib/imageOptimize';
 import type { PractitionerRow, PractitionerInsert } from '@/types/database';
 
 export function useMyPractitioner() {
@@ -40,6 +41,8 @@ export type PractitionerFormData = {
   booking_label: string;
   accepts_new_clients: boolean;
   avatar_url?: string | null;
+  photos?: string[];
+  profile_photo_index?: number;
   response_time: string;  // '' | 'within_hours' | 'within_day' | 'within_2_3_days' | 'within_week'
   // Privacy & CTA toggles (Offerings & Events feature)
   booking_enabled: boolean;
@@ -74,6 +77,8 @@ export function useSavePractitioner() {
         external_booking_url: formData.external_booking_url.trim() || null,
         accepts_new_clients: formData.accepts_new_clients,
         ...(formData.avatar_url !== undefined && { avatar_url: formData.avatar_url }),
+        ...(formData.photos !== undefined && { photos: formData.photos }),
+        ...(formData.profile_photo_index !== undefined && { profile_photo_index: formData.profile_photo_index }),
         // Extended fields (added by later migrations — safe if columns exist)
         what_to_expect: formData.what_to_expect?.trim() || null,
         booking_label: formData.booking_label?.trim() || null,
@@ -116,28 +121,21 @@ export function useSavePractitioner() {
   });
 }
 
-/** Upload a profile photo using the authenticated user's session */
+/**
+ * Upload a photo using the authenticated user's session.
+ * Automatically optimizes to WebP before upload.
+ */
 export async function uploadMyPhoto(file: File): Promise<string> {
   if (!supabase) throw new Error('Supabase not configured');
 
-  // Validate file type (only allow common image formats)
-  const allowedMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (!allowedMimeTypes.includes(file.type)) {
-    throw new Error(`Invalid file type. Only JPG, PNG, WebP, and GIF are allowed.`);
-  }
+  // optimizeImage handles validation + WebP conversion + resize
+  const optimized = await optimizeImage(file);
 
-  // Validate file size (max 5MB)
-  const maxSize = 5 * 1024 * 1024; // 5MB
-  if (file.size > maxSize) {
-    throw new Error(`File size must be less than 5MB. Your file is ${(file.size / 1024 / 1024).toFixed(1)}MB.`);
-  }
-
-  // Sanitize extension to prevent path traversal
-  const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+  const ext = optimized.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'webp';
   const path = `practitioners/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
   const { error } = await supabase.storage
     .from('practitioner-images')
-    .upload(path, file, { upsert: true });
+    .upload(path, optimized, { upsert: true });
   if (error) throw error;
   const { data } = supabase.storage.from('practitioner-images').getPublicUrl(path);
   return data.publicUrl;
