@@ -363,7 +363,7 @@ export function SearchBar({
                   <span
                     key={tab.value}
                     title="Coming soon"
-                    className="cursor-default select-none rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-medium text-primary-foreground/50 sm:px-4 sm:py-1.5 sm:text-sm"
+                    className="cursor-default select-none rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-[13.5px] font-medium text-primary-foreground/50 sm:px-4 sm:py-1.5 sm:text-sm"
                   >
                     {tab.label}
                   </span>
@@ -374,7 +374,7 @@ export function SearchBar({
                   key={tab.value}
                   type="button"
                   onClick={() => setIsland(tab.value)}
-                  className={`rounded-full px-2.5 py-1 text-xs font-medium transition-all sm:px-4 sm:py-1.5 sm:text-sm ${
+                  className={`rounded-full px-2.5 py-1 text-[13.5px] font-medium transition-all sm:px-4 sm:py-1.5 sm:text-sm ${
                     isActive
                       ? 'bg-white text-primary shadow-sm'
                       : 'text-primary-foreground/80 hover:bg-white/20 hover:text-primary-foreground'
