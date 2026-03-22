@@ -124,6 +124,10 @@
   background-size: 30px 30px;
 }
 
+/* Hide scrollbar but keep scrolling */
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Leaflet custom marker reset */
 .custom-map-marker {
   background: transparent !important;
