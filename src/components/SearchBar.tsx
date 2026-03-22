@@ -15,6 +15,9 @@ const ISLAND_TABS = [
   { value: 'kauai',       label: 'Kauai',       comingSoon: true  },
 ];
 
+/** Set of island values that are currently active (not coming soon). */
+const ACTIVE_ISLANDS = new Set(ISLAND_TABS.filter(t => !t.comingSoon).map(t => t.value));
+
 /** Map lat/lng to a Hawaii island DB key, or null if outside all islands. */
 function detectIslandFromCoords(lat: number, lng: number): string | null {
   if (lat >= 18.9 && lat <= 20.3 && lng >= -156.1 && lng <= -154.8) return 'big_island';
@@ -181,8 +184,28 @@ export function SearchBar({
         const { latitude, longitude } = pos.coords;
         setUserLat(latitude);
         setUserLng(longitude);
-        setLocationLabel(null);
-        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({ lat: latitude, lng: longitude }));
+
+        // Auto-select island from coordinates (only if that island is live)
+        const islandNames: Record<string, string> = { big_island: 'Big Island', maui: 'Maui', oahu: 'Oahu', kauai: 'Kauai' };
+        const detected = detectIslandFromCoords(latitude, longitude);
+        const isLive = detected && ACTIVE_ISLANDS.has(detected);
+
+        if (isLive) {
+          setIsland(detected);
+          setLocationLabel(`Your location · ${islandNames[detected]}`);
+        } else if (detected) {
+          // On a coming-soon island — keep current island, still save coords for distance
+          setLocationLabel(`Your location · ${islandNames[detected]} (coming soon)`);
+        } else {
+          // Outside Hawaii
+          setLocationLabel('Your location');
+        }
+
+        localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({
+          lat: latitude, lng: longitude,
+          label: isLive ? `Your location · ${islandNames[detected]}` :
+                 detected ? `Your location · ${islandNames[detected]} (coming soon)` : 'Your location',
+        }));
         setLocating(false);
       },
       () => {
@@ -210,7 +233,7 @@ export function SearchBar({
         setUserLat(latitude);
         setUserLng(longitude);
         const detected = detectIslandFromCoords(latitude, longitude);
-        if (detected && island === 'all') setIsland(detected);
+        if (detected && ACTIVE_ISLANDS.has(detected)) setIsland(detected);
         const islandNames: Record<string, string> = { big_island: 'Big Island', maui: 'Maui', oahu: 'Oahu', kauai: 'Kauai' };
         const islandName = detected ? islandNames[detected] : null;
         const label = islandName ? `${zipInput.trim()} · ${islandName}` : zipInput.trim();
@@ -443,7 +466,7 @@ export function SearchBar({
                 /* Location set — show label + clear */
                 <div className="flex flex-1 items-center justify-between gap-2">
                   <span className="text-sm text-emerald-600 font-medium truncate">
-                    {locationLabel ? `Near ${locationLabel}` : 'Using your location'}
+                    {locationLabel ?? 'Using your location'}
                   </span>
                   <button
                     type="button"
