@@ -19,9 +19,31 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Mail, Phone, AlertCircle, Loader2 } from 'lucide-react';
+import { CheckCircle, Mail, Phone, AlertCircle, Loader2, HelpCircle } from 'lucide-react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { toast } from 'sonner';
+
+/** Build a pre-filled mailto link so the admin gets all the context they need. */
+function buildHelpMailto(listing: Listing | null, userEmail: string | undefined): string {
+  const subject = encodeURIComponent(
+    listing ? `Claim help: ${listing.name}` : 'Help claiming my listing',
+  );
+  const body = encodeURIComponent(
+    [
+      `Hi Hawai'i Wellness,`,
+      ``,
+      `I'd like to claim my listing but need help with verification.`,
+      ``,
+      listing ? `Listing: ${listing.name}` : '',
+      listing ? `Listing ID: ${listing.id}` : '',
+      listing ? `Type: ${listing.type}` : '',
+      userEmail ? `My account email: ${userEmail}` : '',
+      ``,
+      `Mahalo!`,
+    ].filter(Boolean).join('\n'),
+  );
+  return `mailto:aloha@hawaiiwellness.net?subject=${subject}&body=${body}`;
+}
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -249,8 +271,9 @@ export default function ClaimListing() {
   }
 
   const hasEmail = !!listing?.email;
-  const hasPhone = !!listing?.phone;
-  const hasNoOptions = !hasEmail && !hasPhone;
+  // SMS claim is hidden until A2P 10DLC is approved — treat phone-only as no options
+  // const hasPhone = !!listing?.phone;
+  const hasNoOptions = !hasEmail;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/30 px-4 py-12">
@@ -318,6 +341,8 @@ export default function ClaimListing() {
                 </Button>
               )}
 
+              {/* SMS claim hidden until A2P 10DLC registration is approved.
+                 Uncomment once Twilio brand/campaign registration clears.
               {hasPhone && (
                 <Button
                   className="w-full justify-start gap-3 h-14"
@@ -334,26 +359,36 @@ export default function ClaimListing() {
                   </div>
                 </Button>
               )}
+              */}
 
               {hasNoOptions && (
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    This listing has no email or phone on file. Contact{' '}
-                    <a href="mailto:aloha@hawaiiwellness.net" className="font-medium underline">
-                      aloha@hawaiiwellness.net
-                    </a>{' '}
-                    and we'll help you claim it manually.
+                    This listing has no email or phone on file. Request admin help below
+                    and we'll verify your ownership manually.
                   </AlertDescription>
                 </Alert>
               )}
 
-              <p className="text-center text-xs text-muted-foreground pt-1">
-                Having trouble?{' '}
-                <a href="mailto:aloha@hawaiiwellness.net" className="underline hover:text-foreground">
-                  Email us for help
+              {/* Admin help — prominent button when no options, subtle link otherwise */}
+              <Button
+                className={hasNoOptions ? 'w-full justify-start gap-3 h-14' : 'w-full justify-start gap-3 h-14'}
+                variant={hasNoOptions ? 'default' : 'ghost'}
+                asChild
+              >
+                <a href={buildHelpMailto(listing, user?.email ?? undefined)}>
+                  <HelpCircle className={`h-5 w-5 flex-shrink-0 ${hasNoOptions ? '' : 'text-muted-foreground'}`} />
+                  <div className="text-left">
+                    <p className={`font-medium text-sm ${hasNoOptions ? '' : 'text-muted-foreground'}`}>
+                      {hasNoOptions ? 'Request admin help to claim' : 'Need help? Contact admin'}
+                    </p>
+                    <p className={`text-xs ${hasNoOptions ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                      We'll verify your ownership manually
+                    </p>
+                  </div>
                 </a>
-              </p>
+              </Button>
             </CardContent>
           </>
         )}
@@ -412,8 +447,8 @@ export default function ClaimListing() {
 
               <p className="text-center text-xs text-muted-foreground">
                 Still having trouble?{' '}
-                <a href="mailto:aloha@hawaiiwellness.net" className="underline hover:text-foreground">
-                  Email us for help
+                <a href={buildHelpMailto(listing, user?.email ?? undefined)} className="underline hover:text-foreground">
+                  Contact admin for help
                 </a>
               </p>
             </CardContent>
