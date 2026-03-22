@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Center Redesign Preview — Hawaiʻi Wellness</title>
+<style>
+  /* ── Reset + Base ─────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #fafaf9; --card: #ffffff; --border: #e7e5e4; --muted: #78716c;
+    --foreground: #1c1917; --primary: #0d9488; --primary-fg: #fff;
+    --sage: #4d7c4a; --sage-light: #f0f5ef; --sage-border: rgba(77,124,74,.3);
+    --ocean: #1a6e8a; --ocean-light: #eef6fa; --ocean-border: rgba(26,110,138,.3);
+    --terra: #b45309; --terra-light: #fef3e2; --terra-border: rgba(180,83,9,.3);
+    --amber-300: #fcd34d; --amber-400: #fbbf24; --amber-50: #fffbeb;
+    --emerald-50: #ecfdf5; --emerald-200: #a7f3d0; --emerald-500: #10b981; --emerald-700: #047857;
+    --radius: 12px; --shadow-sm: 0 1px 2px rgba(0,0,0,.05); --shadow: 0 1px 3px rgba(0,0,0,.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.1); --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  body { font-family: var(--font); background: var(--bg); color: var(--foreground); line-height: 1.5; }
+  a { color: var(--primary); text-decoration: none; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+
+  /* ── Section nav ──────────────────────────────────────────────── */
+  .preview-nav { background: var(--foreground); color: #fff; padding: 14px 0; position: sticky; top: 0; z-index: 100; }
+  .preview-nav .container { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  .preview-nav h1 { font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .preview-nav button { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25); color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 13px; cursor: pointer; transition: .15s; }
+  .preview-nav button:hover, .preview-nav button.active { background: var(--primary); border-color: var(--primary); }
+
+  /* ── Callout ──────────────────────────────────────────────────── */
+  .callout { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 16px 20px; margin: 24px 0; font-size: 14px; color: #1e3a5f; }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  /* ── Section headers ──────────────────────────────────────────── */
+  .section-label { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 32px 0 16px; }
+
+  /* ── Card base ────────────────────────────────────────────────── */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: .2s; }
+  .card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+  .card.featured { border: 2px solid var(--amber-300); box-shadow: var(--shadow-lg); background: linear-gradient(135deg, var(--amber-50) 0%, var(--card) 40%); }
+  .card.featured.compact { border-left: 4px solid var(--amber-400); }
+  .card.premium { border-color: var(--sage-border); box-shadow: var(--shadow); }
+
+  /* ── Badge ────────────────────────────────────────────────────── */
+  .badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .badge-secondary { background: #f5f5f4; color: var(--muted); border: 1px solid var(--border); }
+  .badge-amber { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .badge-emerald { background: var(--emerald-50); color: var(--emerald-700); border: 1px solid var(--emerald-200); }
+  .badge-sage { background: var(--sage-light); color: var(--sage); border: 1px solid var(--sage-border); }
+  .badge-ocean { background: var(--ocean-light); color: var(--ocean); border: 1px solid var(--ocean-border); }
+  .badge-terra { background: var(--terra-light); color: var(--terra); border: 1px solid var(--terra-border); }
+  .badge-island { background: #f5f3ff; color: #7c3aed; border: 1px solid rgba(124,58,237,.2); font-weight: 600; }
+
+  /* ── Tier badge ───────────────────────────────────────────────── */
+  .tier-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 6px; text-transform: uppercase; letter-spacing: .04em; }
+  .tier-featured { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #78350f; }
+  .tier-premium { background: linear-gradient(135deg, #86efac, #4ade80); color: #14532d; }
+
+  /* ── Verified badge ───────────────────────────────────────────── */
+  .verified { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-weight: 600; color: var(--primary); }
+  .verified svg { width: 14px; height: 14px; fill: var(--primary); }
+
+  /* ── CTA button ───────────────────────────────────────────────── */
+  .btn-primary { display: inline-flex; align-items: center; gap: 6px; background: var(--primary); color: var(--primary-fg); padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; transition: .15s; }
+  .btn-primary:hover { opacity: .9; }
+  .btn-outline { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: var(--foreground); padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); cursor: pointer; transition: .15s; }
+  .btn-outline:hover { background: #f5f5f4; }
+
+  /* ── Avatar fallback ──────────────────────────────────────────── */
+  .avatar-fallback { display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #2dd4bf, #06b6d4); color: #fff; font-weight: 600; flex-shrink: 0; }
+
+  /* ── Compact card ─────────────────────────────────────────────── */
+  .compact-card { display: flex; gap: 16px; padding: 16px; }
+  .compact-card .avatar { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; flex-shrink: 0; }
+  .compact-card .info { flex: 1; min-width: 0; }
+  .compact-card .info h3 { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .compact-card .info .subtitle { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .compact-card .info .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; font-size: 12px; color: var(--muted); }
+  .compact-card .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .compact-card .bottom-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 6px; }
+  .compact-card .bio-excerpt { font-size: 12px; color: var(--muted); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px; }
+  .compact-card .center-type-badge { font-size: 11px; font-weight: 500; color: var(--primary); background: rgba(13,148,136,.08); padding: 1px 8px; border-radius: 6px; border: 1px solid rgba(13,148,136,.2); }
+  .compact-card .hours-hint { font-size: 11px; color: var(--emerald-700); display: flex; align-items: center; gap: 3px; }
+  .compact-card .hours-hint .dot { width: 6px; height: 6px; background: var(--emerald-500); border-radius: 50%; }
+
+  /* ── Full (homepage) vertical card ────────────────────────────── */
+  .full-card { display: flex; flex-direction: column; height: 340px; position: relative; text-align: center; }
+  .full-card .tier-pos { position: absolute; top: 12px; right: 12px; z-index: 2; }
+  .full-card .center-type-pos { position: absolute; top: 12px; left: 12px; z-index: 2; font-size: 10px; font-weight: 600; color: var(--primary); background: rgba(255,255,255,.9); padding: 2px 8px; border-radius: 6px; backdrop-filter: blur(4px); border: 1px solid rgba(13,148,136,.15); }
+  .full-card .avatar-wrap { display: flex; justify-content: center; padding-top: 20px; }
+  .full-card .avatar-wrap img, .full-card .avatar-wrap .avatar-fallback { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,.1); border: 3px solid #fff; }
+  .full-card .card-body { flex: 1; display: flex; flex-direction: column; padding: 12px 16px 16px; }
+  .full-card h3 { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .full-card .card-subtitle { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .full-card .card-location { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .full-card .card-desc { font-size: 12px; color: var(--muted); margin-top: 8px; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .full-card .card-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 8px; }
+  .full-card .card-cta { margin-top: 10px; background: var(--primary); color: #fff; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+
+  /* ── Featured full card — photo carousel ──────────────────────── */
+  .full-card-featured { display: flex; flex-direction: column; height: 380px; position: relative; text-align: center; }
+  .full-card-featured .tier-pos { position: absolute; top: 12px; right: 12px; z-index: 5; }
+  .full-card-featured .center-type-pos { position: absolute; top: 12px; left: 12px; z-index: 5; font-size: 10px; font-weight: 600; color: #fff; background: rgba(0,0,0,.5); padding: 2px 8px; border-radius: 6px; backdrop-filter: blur(4px); }
+  .carousel-wrap { position: relative; height: 140px; overflow: hidden; }
+  .carousel-track { display: flex; height: 100%; transition: transform .35s ease; }
+  .carousel-track img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+  .carousel-btn { position: absolute; top: 50%; transform: translateY(-50%); z-index: 4; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.85); border: 1px solid rgba(0,0,0,.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: var(--foreground); box-shadow: 0 1px 4px rgba(0,0,0,.15); transition: .15s; }
+  .carousel-btn:hover { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
+  .carousel-btn.prev { left: 6px; }
+  .carousel-btn.next { right: 6px; }
+  .carousel-dots { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; z-index: 4; }
+  .carousel-dots .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.5); border: 1px solid rgba(255,255,255,.3); transition: .2s; }
+  .carousel-dots .dot.active { background: #fff; transform: scale(1.2); }
+  .full-card-featured .card-body { flex: 1; display: flex; flex-direction: column; padding: 10px 16px 14px; }
+  .full-card-featured h3 { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .full-card-featured .card-location { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .full-card-featured .card-desc { font-size: 12px; color: var(--muted); margin-top: 6px; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .full-card-featured .card-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 6px; }
+  .full-card-featured .card-cta { margin-top: 8px; background: var(--primary); color: #fff; padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; }
+
+  /* ── Grid for homepage cards ──────────────────────────────────── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+  /* ── Detail page ──────────────────────────────────────────────── */
+  .detail-hero { position: relative; margin-top: 16px; }
+  .detail-hero .hero-gradient {
+    border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border);
+    background: linear-gradient(135deg, hsl(260,25%,96%), hsl(200,20%,96%));
+  }
+  .detail-hero .hero-inner { display: flex; flex-direction: column; gap: 16px; padding: 20px; }
+  @media (min-width: 640px) { .detail-hero .hero-inner { flex-direction: row; align-items: flex-start; gap: 20px; } }
+  .detail-hero .hero-avatar { width: 112px; height: 112px; border-radius: 14px; object-fit: cover; border: 4px solid #fff; box-shadow: var(--shadow-lg); flex-shrink: 0; }
+  .detail-hero .hero-avatar-fallback { width: 112px; height: 112px; border-radius: 14px; border: 4px solid #fff; box-shadow: var(--shadow-lg); font-size: 28px; flex-shrink: 0; }
+  .detail-hero .hero-info { flex: 1; min-width: 0; }
+  .detail-hero .hero-info h1 { font-size: 26px; font-weight: 700; line-height: 1.2; }
+  .detail-hero .hero-info .center-type-label { font-size: 14px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+  .detail-hero .hero-info .location-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
+  .detail-hero .hero-info .status-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
+  .detail-hero .hero-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid rgba(0,0,0,.06); background: rgba(255,255,255,.4); padding: 10px 20px; }
+  .detail-hero .hero-footer .share { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .detail-hero .hero-footer .updated { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+
+  /* ── Tab bar ──────────────────────────────────────────────────── */
+  .tab-bar { border-bottom: 1px solid var(--border); background: var(--card); position: sticky; top: 46px; z-index: 50; }
+  .tab-bar .container { display: flex; gap: 0; overflow-x: auto; }
+  .tab-bar button { position: relative; padding: 12px 16px; font-size: 14px; font-weight: 500; color: var(--muted); background: none; border: none; cursor: pointer; white-space: nowrap; transition: .15s; }
+  .tab-bar button:hover { color: var(--foreground); }
+  .tab-bar button.active { color: var(--foreground); }
+  .tab-bar button.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--primary); border-radius: 1px 1px 0 0; }
+
+  /* ── Content grid ─────────────────────────────────────────────── */
+  .content-grid { display: grid; gap: 32px; padding: 32px 0; }
+  @media (min-width: 960px) { .content-grid { grid-template-columns: 2fr 1fr; } }
+
+  /* ── Content sections ─────────────────────────────────────────── */
+  .section { margin-bottom: 28px; }
+  .section h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .section h2 .icon { width: 20px; height: 20px; color: var(--primary); }
+  .section p.desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* Services grid */
+  .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .services-grid .item { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 6px 0; }
+  .services-grid .item .color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .services-grid .item .modality-chip { padding: 3px 10px; border-radius: 9999px; font-size: 12px; font-weight: 500; }
+
+  /* Hours table */
+  .hours-table { width: 100%; }
+  .hours-table tr { border-bottom: 1px solid rgba(0,0,0,.04); }
+  .hours-table tr:last-child { border: none; }
+  .hours-table td { padding: 8px 0; font-size: 14px; }
+  .hours-table td:first-child { font-weight: 500; width: 120px; }
+  .hours-table td:last-child { color: var(--muted); text-align: right; }
+  .hours-table .closed { color: #a8a29e; font-style: italic; }
+  .hours-status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; margin-bottom: 10px; padding: 4px 10px; border-radius: 8px; }
+  .hours-open { background: var(--emerald-50); color: var(--emerald-700); }
+
+  /* Amenities */
+  .amenities-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+  .amenity { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 13px; background: #f5f5f4; border: 1px solid var(--border); color: var(--foreground); }
+  .amenity .amenity-icon { font-size: 16px; }
+
+  /* Gallery carousel (detail page) */
+  .gallery-carousel { position: relative; border-radius: 12px; overflow: hidden; background: #000; aspect-ratio: 16/9; }
+  .gallery-carousel-track { display: flex; height: 100%; transition: transform .4s ease; }
+  .gallery-carousel-track img { width: 100%; height: 100%; object-fit: cover; flex-shrink: 0; }
+  .gallery-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 4; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,.85); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; color: var(--foreground); box-shadow: 0 2px 8px rgba(0,0,0,.2); transition: .15s; }
+  .gallery-nav:hover { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+  .gallery-nav.prev { left: 12px; }
+  .gallery-nav.next { right: 12px; }
+  .gallery-counter { position: absolute; top: 12px; right: 12px; z-index: 4; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 8px; backdrop-filter: blur(4px); }
+  .gallery-dots-bar { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 4; }
+  .gdot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.4); border: 1px solid rgba(255,255,255,.2); transition: .2s; cursor: pointer; }
+  .gdot.active { background: #fff; transform: scale(1.25); }
+
+  /* Location cards */
+  .location-cards { display: grid; gap: 16px; }
+  @media (min-width: 640px) { .location-cards { grid-template-columns: 1fr 1fr; } }
+  .location-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .location-card.primary { border-color: rgba(13,148,136,.3); box-shadow: 0 0 0 1px rgba(13,148,136,.1); }
+  .location-card h3 { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .location-card .loc-addr { font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .location-card .loc-contact { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+  .location-card .loc-contact a { color: var(--foreground); }
+  .location-card .loc-contact a:hover { color: var(--primary); }
+  .location-card details { margin-top: 10px; font-size: 12px; }
+  .location-card details summary { cursor: pointer; color: var(--muted); display: flex; align-items: center; gap: 4px; list-style: none; }
+  .location-card details summary::-webkit-details-marker { display: none; }
+
+  /* Sidebar */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; }
+  .sidebar-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
+  .sidebar-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .sidebar-card .contact-list { display: flex; flex-direction: column; gap: 10px; }
+  .sidebar-card .contact-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+  .sidebar-card .contact-item a { color: var(--foreground); }
+  .sidebar-card .contact-item a:hover { color: var(--primary); }
+  .sidebar-card .contact-icon { width: 16px; height: 16px; color: var(--muted); flex-shrink: 0; }
+  .sidebar-card .social-links { display: flex; gap: 8px; margin-top: 10px; }
+  .sidebar-card .social-links a { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; background: #f5f5f4; border: 1px solid var(--border); color: var(--muted); transition: .15s; }
+  .sidebar-card .social-links a:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+  /* ── Event card ───────────────────────────────────────────────── */
+  .event-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+  .event-card h4 { font-size: 14px; font-weight: 600; }
+  .event-card .event-meta { font-size: 13px; color: var(--muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .event-card .event-desc { font-size: 13px; color: var(--muted); margin-top: 6px; }
+
+  /* ── Testimonial card ─────────────────────────────────────────── */
+  .testimonial-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .testimonial-card .quote { font-size: 14px; color: var(--foreground); line-height: 1.7; font-style: italic; }
+  .testimonial-card .author { margin-top: 12px; font-size: 13px; font-weight: 600; }
+  .testimonial-card .stars { color: #f59e0b; font-size: 13px; margin-top: 4px; }
+
+  /* ── Hidden sections ──────────────────────────────────────────── */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* ── Comparison before/after label ────────────────────────────── */
+  .compare-label { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 12px; }
+  .compare-before { background: #fee2e2; color: #991b1b; }
+  .compare-after { background: #dcfce7; color: #166534; }
+
+  .changes-list { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 16px 20px; margin: 16px 0; }
+  .changes-list h3 { font-size: 14px; font-weight: 600; color: #166534; margin-bottom: 8px; }
+  .changes-list ul { list-style: none; }
+  .changes-list li { font-size: 13px; color: #15803d; padding: 3px 0; }
+  .changes-list li::before { content: '✓ '; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="preview-nav">
+  <div class="container">
+    <h1>🌺 Center Redesign Preview</h1>
+    <button class="active" onclick="showView('cards')">Card Components</button>
+    <button onclick="showView('detail')">Detail Page</button>
+    <button onclick="showView('plan')">Implementation Plan</button>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- VIEW 1: CARD COMPONENTS                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="view-cards" class="view active">
+  <div class="container">
+    <div class="callout">
+      <strong>What's changing in CenterCard?</strong>
+      Aligning with ProviderCard's richer design: color-coded modality chips, center type badge,
+      open/closed status hint, bio excerpt, island pill badge, and the "recently updated" indicator.
+    </div>
+
+    <div class="changes-list">
+      <h3>Key Changes — CenterCard</h3>
+      <ul>
+        <li>Color-coded modality pills (sage/ocean/terracotta) matching ProviderCard</li>
+        <li>Center type badge (Spa, Wellness Center, Retreat Center, etc.)</li>
+        <li>Island pill badge with emoji + color per island</li>
+        <li>Open/Closed status hint based on working hours</li>
+        <li>"✦ Updated" badge for recently modified centers</li>
+        <li>Bio excerpt shown for all tiers (not just featured)</li>
+        <li>Bottom row with location count + "View Center →" CTA in compact mode</li>
+        <li><strong style="color: #166534;">NEW:</strong> Featured full card shows photo carousel with arrow navigation + dots</li>
+      </ul>
+    </div>
+
+    <!-- ── COMPACT CARDS ────────────────────────────────────────── -->
+    <p class="section-label">Compact Cards (Directory List View)</p>
+
+    <!-- Featured compact -->
+    <div class="card featured compact" style="margin-bottom: 12px; cursor: pointer;">
+      <div class="compact-card">
+        <img class="avatar" src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=144&h=144&fit=crop" alt="Spa">
+        <div class="info">
+          <div style="display: flex; align-items: start; justify-content: space-between; gap: 8px;">
+            <div style="min-width: 0;">
+              <h3>Hale Ola Wellness Retreat</h3>
+              <span class="center-type-badge">Retreat Center</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+              <span class="verified"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+              <span class="badge badge-emerald" style="font-size: 10px;">✦ Updated</span>
+              <span class="tier-badge tier-featured">Featured</span>
+            </div>
+          </div>
+          <div class="bio-excerpt">Nestled in the lush Hāmākua Coast, offering transformative wellness retreats and ceremonies…</div>
+          <div class="meta">
+            <span>📍 Hilo, Big Island</span>
+            <span>· 3.2 mi</span>
+            <span class="badge badge-island" style="font-size: 10px; padding: 1px 6px;">🌋 Big Island</span>
+          </div>
+          <div class="badges">
+            <span class="badge badge-sage" style="font-size: 11px;">Massage</span>
+            <span class="badge badge-ocean" style="font-size: 11px;">Yoga</span>
+            <span class="badge badge-ocean" style="font-size: 11px;">Meditation</span>
+            <span class="badge badge-secondary" style="font-size: 11px;">+4 more</span>
+          </div>
+          <div class="bottom-row">
+            <span class="hours-hint"><span class="dot"></span> Open now</span>
+            <span style="font-size: 11px; color: var(--muted);">📍 2 locations</span>
+            <span class="btn-primary" style="margin-left: auto; padding: 4px 12px; font-size: 11px; border-radius: 6px;">View Center →</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Premium compact -->
+    <div class="card premium compact" style="margin-bottom: 12px; cursor: pointer;">
+      <div class="compact-card">
+        <div class="avatar-fallback" style="width: 72px; height: 72px; border-radius: 10px; font-size: 20px; background: linear-gradient(135deg, #a78bfa, #8b5cf6);">MH</div>
+        <div class="info">
+          <div style="display: flex; align-items: start; justify-content: space-between; gap: 8px;">
+            <div style="min-width: 0;">
+              <h3>Maui Healing Arts Center</h3>
+              <span class="center-type-badge">Wellness Center</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+              <span class="tier-badge tier-premium">Premium</span>
+            </div>
+          </div>
+          <div class="bio-excerpt">A holistic sanctuary in the heart of Paia offering traditional Hawaiian and modern wellness therapies…</div>
+          <div class="meta">
+            <span>📍 Paia</span>
+            <span>· 5.1 mi</span>
+            <span class="badge" style="font-size: 10px; padding: 1px 6px; background: #ecfdf5; color: #065f46; border: 1px solid rgba(6,95,70,.2);">🌿 Maui</span>
+          </div>
+          <div class="badges">
+            <span class="badge badge-sage" style="font-size: 11px;">Lomilomi / Hawaiian Healing</span>
+            <span class="badge badge-sage" style="font-size: 11px;">Acupuncture</span>
+            <span class="badge badge-secondary" style="font-size: 11px;">+3 more</span>
+          </div>
+          <div class="bottom-row">
+            <span class="hours-hint"><span class="dot"></span> Open now</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Free compact -->
+    <div class="card compact" style="margin-bottom: 12px; cursor: pointer;">
+      <div class="compact-card">
+        <div class="avatar-fallback" style="width: 72px; height: 72px; border-radius: 10px; font-size: 20px; background: linear-gradient(135deg, #f59e0b, #f97316);">KW</div>
+        <div class="info">
+          <div style="display: flex; align-items: start; justify-content: space-between; gap: 8px;">
+            <div style="min-width: 0;">
+              <h3>Kauaʻi Wellness Studio</h3>
+              <span class="center-type-badge">Fitness Center</span>
+            </div>
+          </div>
+          <div class="meta">
+            <span>📍 Kapa'a</span>
+            <span class="badge" style="font-size: 10px; padding: 1px 6px; background: #fef3c7; color: #92400e; border: 1px solid rgba(146,64,14,.2);">🌺 Kauaʻi</span>
+          </div>
+          <div class="badges">
+            <span class="badge badge-ocean" style="font-size: 11px;">Yoga</span>
+            <span class="badge badge-sage" style="font-size: 11px;">Fitness</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FULL (HOMEPAGE) CARDS ────────────────────────────────── -->
+    <p class="section-label">Full Cards (Homepage / Featured Grid)</p>
+    <div class="card-grid">
+      <!-- Featured full card — PHOTO CAROUSEL -->
+      <div class="card featured" style="cursor: pointer;">
+        <div class="full-card-featured">
+          <div class="center-type-pos">Retreat Center</div>
+          <div class="tier-pos"><span class="tier-badge tier-featured">Featured</span></div>
+
+          <!-- Photo carousel -->
+          <div class="carousel-wrap" id="carousel-1">
+            <div class="carousel-track" id="track-1">
+              <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=520&h=280&fit=crop" alt="Retreat garden">
+              <img src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=520&h=280&fit=crop" alt="Treatment room">
+              <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=520&h=280&fit=crop" alt="Spa">
+              <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=520&h=280&fit=crop" alt="Pool">
+            </div>
+            <button class="carousel-btn prev" onclick="carouselNav('carousel-1', -1)" aria-label="Previous photo">‹</button>
+            <button class="carousel-btn next" onclick="carouselNav('carousel-1', 1)" aria-label="Next photo">›</button>
+            <div class="carousel-dots" id="dots-1">
+              <span class="dot active"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <h3>Hale Ola Wellness Retreat</h3>
+            <div class="verified" style="justify-content: center; margin-top: 2px;">
+              <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Verified
+            </div>
+            <div class="card-location">📍 Hilo, Big Island · 3.2 mi</div>
+            <div class="card-desc">Nestled in the lush Hāmākua Coast, offering transformative wellness retreats and ceremonies rooted in Hawaiian tradition.</div>
+            <div class="card-badges">
+              <span class="badge badge-sage" style="font-size: 10px; padding: 1px 6px;">Massage</span>
+              <span class="badge badge-ocean" style="font-size: 10px; padding: 1px 6px;">Yoga</span>
+              <span class="badge badge-secondary" style="font-size: 10px; padding: 1px 6px;">+4</span>
+              <span style="font-size: 10px; color: var(--emerald-700); display: flex; align-items: center; gap: 2px;"><span style="width:5px;height:5px;background:var(--emerald-500);border-radius:50%;display:inline-block;"></span> Open</span>
+            </div>
+            <div class="card-cta">View Center →</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium full card -->
+      <div class="card premium" style="cursor: pointer;">
+        <div class="full-card">
+          <div class="center-type-pos">Wellness Center</div>
+          <div class="tier-pos"><span class="tier-badge tier-premium">Premium</span></div>
+          <div class="avatar-wrap">
+            <div class="avatar-fallback" style="width: 80px; height: 80px; border-radius: 50%; font-size: 22px; background: linear-gradient(135deg, #a78bfa, #8b5cf6); box-shadow: 0 2px 8px rgba(0,0,0,.1); border: 3px solid #fff;">MH</div>
+          </div>
+          <div class="card-body">
+            <h3>Maui Healing Arts Center</h3>
+            <div class="card-location">📍 Paia, Maui · 5.1 mi</div>
+            <div class="card-desc">A holistic sanctuary in the heart of Paia offering traditional Hawaiian and modern wellness therapies.</div>
+            <div class="card-badges">
+              <span class="badge badge-sage" style="font-size: 10px; padding: 1px 6px;">Lomilomi</span>
+              <span class="badge badge-sage" style="font-size: 10px; padding: 1px 6px;">Acupuncture</span>
+              <span class="badge badge-secondary" style="font-size: 10px; padding: 1px 6px;">+3</span>
+            </div>
+            <div class="card-cta">View Center →</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Free full card -->
+      <div class="card" style="cursor: pointer;">
+        <div class="full-card">
+          <div class="center-type-pos">Fitness Center</div>
+          <div class="avatar-wrap">
+            <div class="avatar-fallback" style="width: 80px; height: 80px; border-radius: 50%; font-size: 22px; background: linear-gradient(135deg, #f59e0b, #f97316); box-shadow: 0 2px 8px rgba(0,0,0,.1); border: 3px solid #fff;">KW</div>
+          </div>
+          <div class="card-body">
+            <h3>Kauaʻi Wellness Studio</h3>
+            <div class="card-location">📍 Kapa'a, Kauaʻi</div>
+            <div class="card-desc">Community-focused wellness studio offering daily yoga classes, meditation, and fitness training.</div>
+            <div class="card-badges">
+              <span class="badge badge-ocean" style="font-size: 10px; padding: 1px 6px;">Yoga</span>
+              <span class="badge badge-sage" style="font-size: 10px; padding: 1px 6px;">Fitness</span>
+            </div>
+            <div class="card-cta">View Center →</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="height: 48px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- VIEW 2: DETAIL PAGE                                             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="view-detail" class="view">
+  <div class="container">
+    <div class="callout">
+      <strong>What's changing in CenterDetail?</strong>
+      Replacing the cover-photo hero with an island-gradient card (matching ProfileDetail), adding the center
+      type label, open/closed status, prominent hours section, amenity icons, richer gallery,
+      and a footer strip with share + last-updated.
+    </div>
+
+    <div class="changes-list">
+      <h3>Key Changes — CenterDetail Page</h3>
+      <ul>
+        <li>Island-gradient hero card replaces cover photo (matches practitioner design)</li>
+        <li>Rounded square avatar instead of overlapping circle</li>
+        <li>Center type label prominently shown below name</li>
+        <li>Island pill badge added to location row</li>
+        <li>Modality chips in hero (color-coded, top 2)</li>
+        <li>Share + "Last updated" footer strip on hero card</li>
+        <li>Hours shown only in sidebar (no duplication in main content)</li>
+        <li>Services section: compact flowing chip layout (not 2-col grid)</li>
+        <li>Amenity icons with descriptive labels</li>
+        <li>Pinterest-style photo gallery (large hero + grid)</li>
+        <li>Location cards with expandable hours</li>
+        <li>Sidebar with contact reveal + social links (matching practitioner)</li>
+      </ul>
+    </div>
+
+    <!-- Breadcrumb -->
+    <div style="padding-top: 16px; font-size: 13px; color: var(--muted);">
+      <a href="#" style="color: var(--muted);">Home</a> <span style="margin: 0 4px;">/</span>
+      <a href="#" style="color: var(--muted);">Directory</a> <span style="margin: 0 4px;">/</span>
+      <span style="color: var(--foreground);">Hale Ola Wellness Retreat</span>
+    </div>
+
+    <!-- Hero — island-gradient card (NEW design, matches practitioner) -->
+    <div class="detail-hero">
+      <div class="hero-gradient">
+        <div class="hero-inner">
+          <img class="hero-avatar" src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=224&h=224&fit=crop" alt="">
+          <div class="hero-info">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <h1>Hale Ola Wellness Retreat</h1>
+              <span class="verified"><svg viewBox="0 0 24 24" style="width: 18px; height: 18px;"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+            </div>
+            <div class="center-type-label">Retreat Center</div>
+            <div class="location-row">
+              <span class="badge badge-island" style="font-size: 11px;">🌋 Big Island of Hawaiʻi</span>
+              <span style="display: flex; align-items: center; gap: 4px; font-size: 13px; color: var(--muted);">📍 Hilo</span>
+              <span class="badge badge-secondary" style="font-size: 11px;">📍 2 locations</span>
+            </div>
+            <div class="status-row">
+              <span class="badge badge-sage" style="font-size: 12px;">Massage</span>
+              <span class="badge badge-ocean" style="font-size: 12px;">Yoga</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-footer">
+          <div class="share">
+            Share:
+            <a href="#" style="font-size: 18px;">📋</a>
+            <a href="#" style="font-size: 18px;">🔗</a>
+            <a href="#" style="font-size: 18px;">✉️</a>
+          </div>
+          <div class="updated">🕐 Managed by center · March 2026</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab bar -->
+    <div class="tab-bar" style="position: relative; top: 0;">
+      <div class="container" style="padding: 0;">
+        <button class="active" onclick="switchTab(this, 'about')">About</button>
+        <button onclick="switchTab(this, 'locations')">Locations</button>
+        <button onclick="switchTab(this, 'events')">Events</button>
+        <button onclick="switchTab(this, 'testimonials')">Testimonials</button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-grid">
+      <!-- Left — main content -->
+      <div>
+        <!-- Tab: About -->
+        <div id="tab-about" class="tab-content">
+          <!-- About text -->
+          <div class="section">
+            <h2>About</h2>
+            <p class="desc">
+              Hale Ola Wellness Retreat is a serene sanctuary nestled on the lush Hāmākua Coast of Hawaiʻi's Big Island.
+              Founded in 2018, we offer transformative wellness experiences that blend traditional Hawaiian healing practices
+              with modern therapeutic modalities. Our 5-acre property features meditation gardens, a natural hot spring,
+              and dedicated treatment spaces designed to support your journey to wholeness. Whether you're seeking a
+              weekend retreat, daily classes, or individual sessions, our team of experienced practitioners is here to guide
+              your path to wellness.
+            </p>
+          </div>
+
+          <!-- Services — compact flowing chip layout -->
+          <div class="section">
+            <h2><span class="icon">🌿</span> Services &amp; Modalities</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+              <span class="badge badge-sage" style="font-size: 12px; padding: 4px 12px;">Massage</span>
+              <span class="badge badge-sage" style="font-size: 12px; padding: 4px 12px;">Lomilomi / Hawaiian Healing</span>
+              <span class="badge badge-ocean" style="font-size: 12px; padding: 4px 12px;">Yoga</span>
+              <span class="badge badge-ocean" style="font-size: 12px; padding: 4px 12px;">Meditation</span>
+              <span class="badge badge-ocean" style="font-size: 12px; padding: 4px 12px;">Sound Healing</span>
+              <span class="badge badge-sage" style="font-size: 12px; padding: 4px 12px;">Craniosacral</span>
+              <span class="badge badge-sage" style="font-size: 12px; padding: 4px 12px;">Energy Healing</span>
+            </div>
+          </div>
+
+          <!-- Hours removed from main content — shown only in sidebar to avoid duplication -->
+
+          <!-- Amenities with icons (ENHANCED) -->
+          <div class="section">
+            <h2><span class="icon">✨</span> Amenities</h2>
+            <div class="amenities-grid">
+              <div class="amenity"><span class="amenity-icon">🅿️</span> Parking</div>
+              <div class="amenity"><span class="amenity-icon">📶</span> WiFi</div>
+              <div class="amenity"><span class="amenity-icon">🚿</span> Showers</div>
+              <div class="amenity"><span class="amenity-icon">♿</span> Wheelchair Accessible</div>
+              <div class="amenity"><span class="amenity-icon">🧖</span> Sauna / Steam Room</div>
+              <div class="amenity"><span class="amenity-icon">🏊</span> Pool / Hot Tub</div>
+              <div class="amenity"><span class="amenity-icon">🌴</span> Outdoor Area</div>
+              <div class="amenity"><span class="amenity-icon">🧃</span> Juice Bar / Café</div>
+            </div>
+          </div>
+
+          <!-- Gallery — full-width carousel with counter -->
+          <div class="section">
+            <h2><span class="icon">📸</span> Gallery</h2>
+            <div class="gallery-carousel" id="gallery-carousel">
+              <div class="gallery-carousel-track" id="gallery-track">
+                <img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800&h=450&fit=crop" alt="Meditation garden">
+                <img src="https://images.unsplash.com/photo-1600334089648-b0d9d3028eb2?w=800&h=450&fit=crop" alt="Treatment room">
+                <img src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&h=450&fit=crop" alt="Massage therapy">
+                <img src="https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&h=450&fit=crop" alt="Pool area">
+                <img src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=800&h=450&fit=crop" alt="Outdoor yoga deck">
+              </div>
+              <button class="gallery-nav prev" onclick="galleryNav(-1)" aria-label="Previous photo">‹</button>
+              <button class="gallery-nav next" onclick="galleryNav(1)" aria-label="Next photo">›</button>
+              <div class="gallery-counter" id="gallery-counter">1 / 5</div>
+              <div class="gallery-dots-bar" id="gallery-dots">
+                <span class="gdot active"></span><span class="gdot"></span><span class="gdot"></span><span class="gdot"></span><span class="gdot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Locations -->
+        <div id="tab-locations" class="tab-content" style="display: none;">
+          <div class="section">
+            <h2><span class="icon">📍</span> Locations</h2>
+            <div class="location-cards">
+              <div class="location-card primary">
+                <h3>
+                  Hilo Main Center
+                  <span class="badge badge-secondary" style="font-size: 10px;">⭐ Primary</span>
+                </h3>
+                <div class="loc-addr">123 Kamehameha Ave, Hilo, HI 96720</div>
+                <div class="loc-contact">
+                  <span>📞 <a href="#">(808) 555-0123</a></span>
+                  <span>✉️ <a href="#">hilo@haleola.com</a></span>
+                  <span>🗺️ <a href="#">Get directions</a></span>
+                </div>
+                <details>
+                  <summary>🕐 View hours</summary>
+                  <table class="hours-table" style="margin-top: 8px;">
+                    <tr><td>Mon–Fri</td><td>8:00 AM – 8:00 PM</td></tr>
+                    <tr><td>Saturday</td><td>9:00 AM – 6:00 PM</td></tr>
+                    <tr><td>Sunday</td><td class="closed">Closed</td></tr>
+                  </table>
+                </details>
+              </div>
+              <div class="location-card">
+                <h3>Kona Studio</h3>
+                <div class="loc-addr">456 Ali'i Drive, Kailua-Kona, HI 96740</div>
+                <div class="loc-contact">
+                  <span>📞 <a href="#">(808) 555-0456</a></span>
+                  <span>✉️ <a href="#">kona@haleola.com</a></span>
+                  <span>🗺️ <a href="#">Get directions</a></span>
+                </div>
+                <details>
+                  <summary>🕐 View hours</summary>
+                  <table class="hours-table" style="margin-top: 8px;">
+                    <tr><td>Mon–Fri</td><td>9:00 AM – 6:00 PM</td></tr>
+                    <tr><td>Sat–Sun</td><td class="closed">Closed</td></tr>
+                  </table>
+                </details>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Events -->
+        <div id="tab-events" class="tab-content" style="display: none;">
+          <div class="section">
+            <h2><span class="icon">📅</span> Upcoming Events</h2>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div class="event-card">
+                <div style="flex: 1;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <h4>Full Moon Sound Healing Ceremony</h4>
+                    <span class="badge badge-secondary" style="font-size: 10px;">🔁 Recurring</span>
+                  </div>
+                  <div class="event-meta">
+                    <span>📅 Every full moon · 7:00 PM</span>
+                    <span>📍 Hilo Main Center</span>
+                    <span style="font-weight: 600; color: var(--foreground);">$35</span>
+                    <span>12/20 spots</span>
+                  </div>
+                  <div class="event-desc">Join us for a deeply restorative sound healing ceremony under the full moon, featuring crystal singing bowls and traditional Hawaiian chants.</div>
+                </div>
+                <button class="btn-primary" style="white-space: nowrap;">Register ↗</button>
+              </div>
+              <div class="event-card">
+                <div style="flex: 1;">
+                  <h4>7-Day Wellness Intensive</h4>
+                  <div class="event-meta">
+                    <span>📅 Sat, Apr 5</span>
+                    <span>📍 Hilo Main Center</span>
+                    <span style="font-weight: 600; color: var(--foreground);">$1,200–$2,400</span>
+                    <span>8/15 spots</span>
+                  </div>
+                  <div class="event-desc">An immersive week of daily yoga, meditation, lomilomi massage, and plant medicine ceremonies led by our senior practitioners.</div>
+                </div>
+                <button class="btn-primary" style="white-space: nowrap;">Register ↗</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Testimonials -->
+        <div id="tab-testimonials" class="tab-content" style="display: none;">
+          <div class="section">
+            <h2><span class="icon">💬</span> Testimonials</h2>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+              <div class="testimonial-card">
+                <div class="quote">"The 7-day retreat at Hale Ola completely transformed my relationship with my body and mind. The combination of lomilomi, sound healing, and the stunning natural setting created the perfect environment for deep healing."</div>
+                <div class="stars">★★★★★</div>
+                <div class="author">— Sarah K. · March 2026</div>
+              </div>
+              <div class="testimonial-card">
+                <div class="quote">"I've been attending the weekly yoga classes for six months and the improvement in my flexibility and mental clarity has been remarkable. The instructors are world-class."</div>
+                <div class="stars">★★★★★</div>
+                <div class="author">— David M. · February 2026</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right — sidebar -->
+      <div class="sidebar">
+        <!-- Contact -->
+        <div class="sidebar-card">
+          <h3>Contact</h3>
+          <div class="contact-list">
+            <div class="contact-item">📞 <a href="#">(808) 555-0123</a></div>
+            <div class="contact-item">✉️ <a href="#">aloha@haleola.com</a></div>
+            <div class="contact-item">🌐 <a href="#">haleola.com</a></div>
+            <div class="contact-item">📍 <span>123 Kamehameha Ave, Hilo, HI</span></div>
+          </div>
+          <div class="social-links">
+            <a href="#" title="Instagram">📷</a>
+            <a href="#" title="Facebook">📘</a>
+            <a href="#" title="LinkedIn">💼</a>
+          </div>
+        </div>
+
+        <!-- Quick hours (sidebar) -->
+        <div class="sidebar-card">
+          <h3>Hours (Hilo)</h3>
+          <div class="hours-status hours-open" style="margin-bottom: 8px;">
+            <span style="width: 6px; height: 6px; background: var(--emerald-500); border-radius: 50%; display: inline-block;"></span>
+            Open · Closes 8 PM
+          </div>
+          <table class="hours-table" style="font-size: 13px;">
+            <tr><td>Mon–Fri</td><td>8 AM – 8 PM</td></tr>
+            <tr><td>Saturday</td><td>9 AM – 6 PM</td></tr>
+            <tr><td>Sunday</td><td class="closed">Closed</td></tr>
+          </table>
+        </div>
+
+        <!-- Flag -->
+        <div class="sidebar-card" style="text-align: center;">
+          <button class="btn-outline" style="width: 100%;">🚩 Report this listing</button>
+        </div>
+
+        <!-- Claim -->
+        <div class="sidebar-card" style="background: linear-gradient(135deg, #f0f9ff, #ecfdf5); border-color: #a7f3d0;">
+          <h3 style="color: var(--emerald-700);">Is this your center?</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Claim this listing to manage your profile, respond to reviews, and unlock premium features.</p>
+          <button class="btn-primary" style="width: 100%;">Claim Listing</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- VIEW 3: IMPLEMENTATION PLAN                                     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="view-plan" class="view">
+  <div class="container" style="max-width: 800px; padding-bottom: 60px;">
+    <h2 style="font-size: 22px; font-weight: 700; margin: 28px 0 8px;">Implementation Plan</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">Redesign CenterCard + CenterDetail to match the ProviderCard / ProfileDetail design language, while preserving center-specific features.</p>
+
+    <!-- Phase 1 -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Phase 1: CenterCard Redesign</h3>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">File: <code>src/components/CenterCard.tsx</code></p>
+      <div style="font-size: 14px; line-height: 2;">
+        <strong>1.1</strong> Add color-coded modality chip logic (reuse <code>modalityBadgeClass()</code> from ProviderCard or extract to shared util)<br>
+        <strong>1.2</strong> Add island pill badge component (reuse <code>IslandPill</code> from ProviderCard)<br>
+        <strong>1.3</strong> Add center type badge (new: Spa, Wellness Center, Clinic, Retreat Center, Fitness Center)<br>
+        <strong>1.4</strong> Add bio excerpt for all tiers (not just featured) — italic, single line truncated<br>
+        <strong>1.5</strong> Add "✦ Updated" badge (reuse <code>isRecentlyUpdated()</code> from ProviderCard)<br>
+        <strong>1.6</strong> Add open/closed status hint (new: derive from <code>working_hours</code>)<br>
+        <strong>1.7</strong> Add location count badge ("📍 2 locations") for multi-location centers<br>
+        <strong>1.8</strong> Full card: add center type label in top-left corner<br>
+        <strong>1.9</strong> Extract shared utilities to <code>src/lib/cardUtils.ts</code>: <code>modalityBadgeClass</code>, <code>tierCardClasses</code>, <code>isRecentlyUpdated</code>, <code>IslandPill</code>, <code>AvatarFallback</code>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Phase 2: CenterDetail Hero Redesign</h3>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">File: <code>src/pages/CenterDetail.tsx</code></p>
+      <div style="font-size: 14px; line-height: 2;">
+        <strong>2.1</strong> Replace cover photo hero with island-gradient card (match ProfileDetail pattern)<br>
+        <strong>2.2</strong> Switch avatar from circular overlap to rounded-square (14px radius), 112px, border-4<br>
+        <strong>2.3</strong> Add center type label below name (e.g., "Retreat Center")<br>
+        <strong>2.4</strong> Add island badge + location row (reuse <code>IslandBadge</code> from ProfileDetail)<br>
+        <strong>2.5</strong> Add top-2 color-coded modality chips to hero<br>
+        <strong>2.6</strong> Add footer strip with Share buttons + "Last updated" timestamp<br>
+        <strong>2.7</strong> Reuse <code>islandHeaderGradient()</code> and <code>ISLAND_CONFIG</code> from ProfileDetail
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Phase 3: CenterDetail Content Enhancements</h3>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">File: <code>src/pages/CenterDetail.tsx</code></p>
+      <div style="font-size: 14px; line-height: 2;">
+        <strong>3.1</strong> Services section: switch from bullet dots to color-coded modality chips (2-column grid)<br>
+        <strong>3.2</strong> Hours section: add open/closed status indicator banner above the table<br>
+        <strong>3.3</strong> Hours section: derive "Open now · Closes at X PM" from current day/time vs. working_hours<br>
+        <strong>3.4</strong> Amenities: add emoji icons per amenity type (map <code>AMENITY_LABELS</code> → icons)<br>
+        <strong>3.5</strong> Gallery: upgrade to Pinterest-style grid (first image spans 2 cols + 2 rows)<br>
+        <strong>3.6</strong> Sidebar: add social links section (matching ProfileDetail)<br>
+        <strong>3.7</strong> Sidebar: add "Claim this listing" card for unclaimed centers<br>
+        <strong>3.8</strong> Sidebar: add compact hours widget with open/closed status
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Phase 4: Shared Utilities Extraction</h3>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">New file: <code>src/lib/cardUtils.ts</code></p>
+      <div style="font-size: 14px; line-height: 2;">
+        <strong>4.1</strong> Extract modality color sets + <code>modalityBadgeClass()</code><br>
+        <strong>4.2</strong> Extract <code>tierCardClasses()</code><br>
+        <strong>4.3</strong> Extract island config + <code>IslandPill</code> / <code>IslandBadge</code> components<br>
+        <strong>4.4</strong> Extract <code>AvatarFallback</code> + gradient pairs<br>
+        <strong>4.5</strong> Extract <code>isRecentlyUpdated()</code><br>
+        <strong>4.6</strong> Create <code>isOpenNow(hours)</code> utility for open/closed status<br>
+        <strong>4.7</strong> Update ProviderCard + ProfileDetail to import from shared utils<br>
+        <strong>4.8</strong> Update CenterCard + CenterDetail to import from shared utils
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Phase 5: Verification</h3>
+      <div style="font-size: 14px; line-height: 2;">
+        <strong>5.1</strong> Build passes cleanly (<code>npm run build</code>)<br>
+        <strong>5.2</strong> Visual QA: compare CenterCard vs ProviderCard side-by-side in directory<br>
+        <strong>5.3</strong> Visual QA: compare CenterDetail vs ProfileDetail layout parity<br>
+        <strong>5.4</strong> Check responsive behavior at mobile / tablet / desktop breakpoints<br>
+        <strong>5.5</strong> Verify all tier styles (free, premium, featured) render correctly<br>
+        <strong>5.6</strong> Verify multi-location centers show Locations tab + location cards<br>
+        <strong>5.7</strong> Verify events and testimonials tabs still function for premium/featured
+      </div>
+    </div>
+
+    <!-- Estimated effort -->
+    <div style="background: #fef3c7; border: 1px solid #fcd34d; border-radius: 10px; padding: 16px 20px; margin-top: 24px;">
+      <strong style="color: #92400e;">Estimated effort:</strong>
+      <span style="color: #78350f;"> ~3-4 hours. Phase 4 (shared utils extraction) is the largest refactor but reduces future maintenance. Phases 1-3 can be done incrementally.</span>
+    </div>
+
+    <!-- File impact -->
+    <div style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Files Impacted</h3>
+      <div style="font-size: 14px; line-height: 2; font-family: monospace;">
+        <span style="color: var(--primary); font-weight: 600;">MODIFY</span> src/components/CenterCard.tsx<br>
+        <span style="color: var(--primary); font-weight: 600;">MODIFY</span> src/pages/CenterDetail.tsx<br>
+        <span style="color: #059669; font-weight: 600;">CREATE</span> src/lib/cardUtils.ts<br>
+        <span style="color: var(--terra); font-weight: 600;">REFACTOR</span> src/components/ProviderCard.tsx (import from shared)<br>
+        <span style="color: var(--terra); font-weight: 600;">REFACTOR</span> src/pages/ProfileDetail.tsx (import from shared)
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    document.querySelectorAll('.preview-nav button').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  function switchTab(btn, tabName) {
+    // Update buttons
+    btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    // Update content
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById('tab-' + tabName).style.display = 'block';
+  }
+
+  // ── Gallery Carousel (detail page) ──────────────────────────
+  let galleryIdx = 0;
+  const galleryTotal = 5;
+
+  function galleryNav(dir) {
+    event.stopPropagation();
+    galleryIdx += dir;
+    if (galleryIdx < 0) galleryIdx = galleryTotal - 1;
+    if (galleryIdx >= galleryTotal) galleryIdx = 0;
+
+    document.getElementById('gallery-track').style.transform = `translateX(-${galleryIdx * 100}%)`;
+    document.getElementById('gallery-counter').textContent = `${galleryIdx + 1} / ${galleryTotal}`;
+    document.querySelectorAll('#gallery-dots .gdot').forEach((d, i) => {
+      d.classList.toggle('active', i === galleryIdx);
+    });
+  }
+
+  // ── Photo Carousel (card) ─────────────────────────────────────
+  const carouselState = {};
+
+  function carouselNav(carouselId, dir) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    const wrap = document.getElementById(carouselId);
+    const track = wrap.querySelector('.carousel-track');
+    const images = track.querySelectorAll('img');
+    const dots = wrap.parentElement.querySelector('.carousel-dots') ||
+                 document.getElementById('dots-' + carouselId.split('-')[1]);
+    const total = images.length;
+
+    if (!carouselState[carouselId]) carouselState[carouselId] = 0;
+    let idx = carouselState[carouselId] + dir;
+    if (idx < 0) idx = total - 1;
+    if (idx >= total) idx = 0;
+    carouselState[carouselId] = idx;
+
+    track.style.transform = `translateX(-${idx * 100}%)`;
+
+    // Update dots
+    if (dots) {
+      dots.querySelectorAll('.dot').forEach((d, i) => {
+        d.classList.toggle('active', i === idx);
+      });
+    }
+  }
+</script>
+</body>
+</html>

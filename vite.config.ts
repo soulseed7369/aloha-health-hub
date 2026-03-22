@@ -33,10 +33,7 @@ export default defineConfig(({ mode }) => ({
           // Extract vendor libraries that are imported by multiple entry points
           // to keep them shared across chunks rather than bundled in admin
           if (id.includes("node_modules")) {
-            // Ensure recharts goes to its own chunk so it's shared, not bundled in admin
-            if (id.includes("recharts") || id.includes("d3-")) return "charts";
-
-            // Ensure DOMPurify is separated to reduce admin size
+            // DOMPurify separated to reduce admin chunk size
             if (id.includes("dompurify")) return "dompurify";
           }
 

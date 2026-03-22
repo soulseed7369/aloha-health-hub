@@ -119,13 +119,7 @@ export interface RetreatEvent {
   price?: string;
 }
 
-export const mockRetreats: Retreat[] = [
-  { id: "r1", name: "Mauna Lani Wellness Retreat", image: "https://images.unsplash.com/photo-1540555700478-4be289fbec6d?w=600&h=400&fit=crop", location: "Kohala Coast", type: "Yoga & Meditation Retreat", rating: 4.9, lat: 19.9382, lng: -155.8608 },
-  { id: "r2", name: "Volcano Healing Sanctuary", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600&h=400&fit=crop", location: "Volcano Village", type: "Holistic Healing Center", rating: 4.8, lat: 19.4414, lng: -155.2343 },
-  { id: "r3", name: "Kona Spirit Center", image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=400&fit=crop", location: "Kailua-Kona", type: "Wellness & Spa Center", rating: 4.7, lat: 19.6400, lng: -155.9969 },
-  { id: "r4", name: "Hilo Bay Retreat House", image: "https://images.unsplash.com/photo-1600618528240-fb9fc964b853?w=600&h=400&fit=crop", location: "Hilo", type: "Meditation Retreat", rating: 4.6, lat: 19.7241, lng: -155.0868 },
-  { id: "r5", name: "Waipio Jungle Spa", image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=600&h=400&fit=crop", location: "Waipio Valley", type: "Nature Spa & Retreat", rating: 4.9, lat: 20.1200, lng: -155.5900 },
-];
+// mockRetreats removed — unused (tree-shaken but cleaning up for clarity)
 
 export const mockPractitioners: Practitioner[] = [
   { id: "p1", name: "Dr. Leilani Kamaka", image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=300&h=300&fit=crop", modality: "Naturopathic Medicine", location: "Kailua-Kona", rating: 4.9, verified: true, acceptingClients: true, lat: 19.6400, lng: -155.9969 },
@@ -143,47 +137,7 @@ export const mockCenters: Center[] = [
   { id: "c4", name: "Kohala Spa & Wellness", image: "https://images.unsplash.com/photo-1540555700478-4be289fbec6d?w=600&h=400&fit=crop", modality: "Luxury Spa", location: "Kohala Coast", rating: 4.9, lat: 19.9382, lng: -155.8608, services: ["Massage", "Facials", "Hydrotherapy"] },
 ];
 
-export const mockRetreatEvents: RetreatEvent[] = [
-  {
-    id: "re1",
-    title: "7-Day Silent Mountain & Ocean Meditation Retreat",
-    image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=500&fit=crop",
-    location: "Kohala Coast, Hawai'i Island",
-    area: "Kohala Coast",
-    type: "Meditation",
-    startDate: "2026-10-10",
-    endDate: "2026-10-17",
-    durationDays: 7,
-    feature: "Ocean-view meditation pavilion",
-    price: "$2,800",
-  },
-  {
-    id: "re2",
-    title: "5-Day Clean-Label & Plant-Based Culinary Wellness Reset",
-    image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&h=500&fit=crop",
-    location: "Kawaihae, Hawai'i Island",
-    area: "Kawaihae",
-    type: "Culinary",
-    startDate: "2026-11-01",
-    endDate: "2026-11-05",
-    durationDays: 5,
-    feature: "Farm-to-table kitchen workshops",
-    price: "$1,950",
-  },
-  {
-    id: "re3",
-    title: "Weekend Nervous System Regulation & Yoga Immersion",
-    image: "https://images.unsplash.com/photo-1545389336-cf090694435e?w=800&h=500&fit=crop",
-    location: "Puna, Hawai'i Island",
-    area: "Puna",
-    type: "Yoga",
-    startDate: "2026-12-04",
-    endDate: "2026-12-06",
-    durationDays: 3,
-    feature: "Rainforest setting with hot springs access",
-    price: "$895",
-  },
-];
+// mockRetreatEvents removed — unused (tree-shaken but cleaning up for clarity)
 
 export const mockArticles: Article[] = [
   { id: "a1", slug: "rise-of-lomilomi", title: "The Rise of Lomilomi: Honoring Hawaiian Healing Traditions", image: "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=800&h=500&fit=crop", excerpt: "How Big Island practitioners are preserving and evolving the sacred art of traditional Hawaiian massage.", author: "Sarah Kealoha", date: "Feb 18, 2026", category: "Traditions" },
@@ -194,10 +148,7 @@ export const mockArticles: Article[] = [
   { id: "a6", slug: "integrative-medicine-hilo", title: "Integrative Medicine Finds a Home in Hilo", image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=500&fit=crop", excerpt: "A new wave of practitioners is blending Western and Eastern medicine on the Big Island's windward side.", author: "Maya Chen", date: "Jan 14, 2026", category: "Medicine" },
 ];
 
-export const mockProviders: Provider[] = [
-  ...mockPractitioners.map(p => ({ id: p.id, name: p.name, image: p.image, type: "practitioner" as const, modality: p.modality, location: p.location, rating: p.rating, lat: p.lat, lng: p.lng })),
-  ...mockCenters.map(c => ({ id: c.id, name: c.name, image: c.image, type: "center" as const, modality: c.modality, location: c.location, rating: c.rating, lat: c.lat, lng: c.lng })),
-];
+// mockProviders removed — unused (tree-shaken but cleaning up for clarity)
 
 export const profileData = {
   id: "p1",
