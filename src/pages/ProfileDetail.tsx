@@ -599,7 +599,7 @@ const ProfileDetail = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Share:</span>
+                  <span className="text-xs text-muted-foreground">Share this listing:</span>
                   <ShareButtons title={`Check out ${p.name} on Hawaiʻi Wellness`} compact />
                 </div>
               )}
@@ -843,12 +843,6 @@ const ProfileDetail = () => {
                   </CardContent>
                 </Card>
               )}
-
-              {/* Share this listing */}
-              <div className="flex items-center gap-2 pt-2">
-                <span className="text-xs text-muted-foreground">Share this listing:</span>
-                <ShareButtons title={`Check out ${p.name} on Hawaiʻi Wellness`} compact />
-              </div>
 
               {/* Profile last updated timestamp */}
               {p.updatedAt && (

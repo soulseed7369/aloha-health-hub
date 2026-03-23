@@ -67,9 +67,9 @@ export function useSimilarPractitioners(
       const modalitySet = new Set(modalities);
 
       // Only include practitioners with at least 1 shared modality.
-      // Primary sort: overlap count descending (most similar first).
-      // Secondary sort: tier rank descending (featured > premium > free).
-      // This ensures featured listings appear first among practitioners with equal modality overlap.
+      // Primary sort: tier rank descending (featured > premium > free).
+      // Secondary sort: overlap count descending (most similar first).
+      // This ensures featured listings get the most visibility as cross-promotion.
       const TIER_RANK: Record<string, number> = { featured: 3, premium: 2, free: 1 };
       const scored = all
         .map(p => ({
@@ -78,9 +78,9 @@ export function useSimilarPractitioners(
           tierRank: TIER_RANK[p.tier ?? 'free'] ?? 1,
         }))
         .filter(s => s.overlap > 0)
-        .sort((a, b) => b.overlap - a.overlap || b.tierRank - a.tierRank);
+        .sort((a, b) => b.tierRank - a.tierRank || b.overlap - a.overlap);
 
-      return scored.slice(0, 3).map(s => s.provider);
+      return scored.slice(0, 4).map(s => s.provider);
     },
     staleTime: 1000 * 60 * 5,
   });
