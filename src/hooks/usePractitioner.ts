@@ -44,6 +44,8 @@ export interface PractitionerProfile {
     x?: string;
     substack?: string;
   } | null;
+  workingHours: Record<string, Array<{ open: string; close: string }> | null> | null;
+  servicesList: Array<{ name: string; description?: string; price?: string }>;
   bookingEnabled: boolean;
   messagingEnabled: boolean;
   discoveryCallEnabled: boolean;
@@ -91,6 +93,8 @@ function rowToProfile(row: PractitionerRow): PractitionerProfile {
     responseTime: row.response_time ?? null,
     testimonials: row.testimonials ?? [],
     socialLinks: row.social_links ?? null,
+    workingHours: row.working_hours ?? null,
+    servicesList: (row as any).services_list ?? [],
     bookingEnabled: row.booking_enabled ?? false,
     messagingEnabled: row.messaging_enabled ?? false,
     discoveryCallEnabled: row.discovery_call_enabled ?? false,
@@ -141,6 +145,8 @@ export function usePractitioner(id: string | undefined) {
           responseTime: null,
           testimonials: [],
           socialLinks: null,
+          workingHours: null,
+          servicesList: [],
           bookingEnabled: false,
           messagingEnabled: false,
           discoveryCallEnabled: false,

@@ -168,14 +168,15 @@ export interface PractitionerRow {
     date: string;
   }>;
   working_hours: {
-    mon?: { open: string; close: string } | null;
-    tue?: { open: string; close: string } | null;
-    wed?: { open: string; close: string } | null;
-    thu?: { open: string; close: string } | null;
-    fri?: { open: string; close: string } | null;
-    sat?: { open: string; close: string } | null;
-    sun?: { open: string; close: string } | null;
+    mon?: Array<{ open: string; close: string }> | null;
+    tue?: Array<{ open: string; close: string }> | null;
+    wed?: Array<{ open: string; close: string }> | null;
+    thu?: Array<{ open: string; close: string }> | null;
+    fri?: Array<{ open: string; close: string }> | null;
+    sat?: Array<{ open: string; close: string }> | null;
+    sun?: Array<{ open: string; close: string }> | null;
   };
+  services_list: Array<{ name: string; description?: string; price?: string }>;
   retreat_links: string[];
   response_time: string | null;  // e.g. 'within_hours' | 'within_day' | 'within_2_3_days' | 'within_week'
   // Offerings & Events feature (migration 20260317000001)
@@ -234,13 +235,13 @@ export interface CenterRow {
     date: string;
   }>;
   working_hours: {
-    mon?: { open: string; close: string } | null;
-    tue?: { open: string; close: string } | null;
-    wed?: { open: string; close: string } | null;
-    thu?: { open: string; close: string } | null;
-    fri?: { open: string; close: string } | null;
-    sat?: { open: string; close: string } | null;
-    sun?: { open: string; close: string } | null;
+    mon?: Array<{ open: string; close: string }> | null;
+    tue?: Array<{ open: string; close: string }> | null;
+    wed?: Array<{ open: string; close: string }> | null;
+    thu?: Array<{ open: string; close: string }> | null;
+    fri?: Array<{ open: string; close: string }> | null;
+    sat?: Array<{ open: string; close: string }> | null;
+    sun?: Array<{ open: string; close: string }> | null;
   };
   // Search rebuild sprint — populated by pipeline/scripts/31_rebuild_search_docs.py
   profile_completeness: number | null;
@@ -272,13 +273,13 @@ export type ArticleInsert = Omit<ArticleRow, 'id' | 'created_at' | 'updated_at'>
 // ─── CenterLocation ───────────────────────────────────────────────────────────
 
 export type WorkingHours = {
-  mon?: { open: string; close: string } | null;
-  tue?: { open: string; close: string } | null;
-  wed?: { open: string; close: string } | null;
-  thu?: { open: string; close: string } | null;
-  fri?: { open: string; close: string } | null;
-  sat?: { open: string; close: string } | null;
-  sun?: { open: string; close: string } | null;
+  mon?: Array<{ open: string; close: string }> | null;
+  tue?: Array<{ open: string; close: string }> | null;
+  wed?: Array<{ open: string; close: string }> | null;
+  thu?: Array<{ open: string; close: string }> | null;
+  fri?: Array<{ open: string; close: string }> | null;
+  sat?: Array<{ open: string; close: string }> | null;
+  sun?: Array<{ open: string; close: string }> | null;
 };
 
 export interface CenterLocationRow {

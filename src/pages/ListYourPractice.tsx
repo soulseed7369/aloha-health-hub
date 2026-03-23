@@ -29,7 +29,7 @@ const PRAC_PREMIUM_FEATURES = [
   "Photo gallery (up to 5 photos)",
   "Working hours display",
   "Offerings, classes & events",
-  "Booking calendar embed",
+  "Direct booking link",
   "Profile views & contact click counts",
   "Priority listing placement",
 ];
@@ -67,7 +67,7 @@ const CENTER_PREMIUM_FEATURES = [
   "Social media links",
   "Working hours per location",
   "Amenities display",
-  "Booking calendar embed",
+  "Direct booking link",
   "Up to 3 locations",
   "Profile views & contact click counts",
   "Priority listing placement",

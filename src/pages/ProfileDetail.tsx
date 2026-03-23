@@ -80,29 +80,43 @@ const DAY_LABELS: Record<string, string> = {
   fri: "Friday", sat: "Saturday", sun: "Sunday",
 };
 
-function WorkingHours({ hours }: { hours: Record<string, { open: string; close: string } | null> }) {
+function WorkingHours({ hours }: { hours: Record<string, Array<{ open: string; close: string }> | null> }) {
   const days = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+  const SHORT_DAYS: Record<string, string> = {
+    mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu",
+    fri: "Fri", sat: "Sat", sun: "Sun",
+  };
+
+  function formatTime(t: string) {
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return m ? `${h12}:${m.toString().padStart(2,'0')} ${ampm}` : `${h12} ${ampm}`;
+  }
+
   return (
-    <div>
-      <h2 className="mb-3 font-display text-xl font-bold flex items-center gap-2">
-        <Clock className="h-5 w-5 text-muted-foreground" />
-        Hours
-      </h2>
-      <ul className="grid gap-0 text-sm">
-        {days.map((day) => {
-          const slot = hours[day];
-          return (
-            <li key={day} className="flex justify-between gap-4 py-1.5 border-b border-border/40 last:border-0">
-              <span className="font-medium w-24">{DAY_LABELS[day]}</span>
-              {slot ? (
-                <span className="text-muted-foreground">{slot.open} – {slot.close}</span>
-              ) : (
-                <span className="text-muted-foreground/50 italic">Closed</span>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+    <div className="text-xs">
+      {days.map((day) => {
+        const slots = hours[day];
+        const hasSlots = slots && slots.length > 0;
+        return (
+          <div key={day} className="flex justify-between gap-2 py-1 border-b border-border/30 last:border-0">
+            <span className="font-medium text-foreground w-8">{SHORT_DAYS[day]}</span>
+            {hasSlots ? (
+              <span className="text-muted-foreground text-right">
+                {slots.map((s, i) => (
+                  <span key={i}>
+                    {i > 0 && ', '}
+                    {formatTime(s.open)}–{formatTime(s.close)}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              <span className="text-muted-foreground/50 italic">Closed</span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -213,6 +227,7 @@ const ProfileDetail = () => {
   const [reportDetails, setReportDetails] = useState<string>('');
   const [expandedTestimonials, setExpandedTestimonials] = useState<Set<string>>(new Set());
   const [expandedOfferings, setExpandedOfferings] = useState<Set<string>>(new Set());
+  const [showAllModalities, setShowAllModalities] = useState(false);
 
   useTrackView(id, 'practitioner');
   const trackClick = useTrackClick(id, 'practitioner');
@@ -369,9 +384,8 @@ const ProfileDetail = () => {
   })();
 
   // ── Working hours (present if usePractitioner exposes it) ────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const workingHours = (p as any).workingHours as Record<string, { open: string; close: string } | null> | undefined;
-  const hasHours = workingHours && Object.values(workingHours).some(Boolean);
+  const workingHours = p.workingHours;
+  const hasHours = workingHours && Object.values(workingHours).some(v => v && v.length > 0);
 
   // ── FAQ schema — only for featured tier with "whatToExpect" content ─────
   const faqSchema = p.tier === 'featured' && p.whatToExpect ? {
@@ -527,22 +541,56 @@ const ProfileDetail = () => {
                       Accepting New Clients
                     </Badge>
                   )}
-                  {p.services.slice(0, 2).map((s) => (
-                    <span key={s} className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{s}</span>
+                  {p.modalities.slice(0, 5).map((m) => (
+                    <span key={m} className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{m}</span>
+                  ))}
+                  {p.modalities.length > 5 && !showAllModalities && (
+                    <button
+                      onClick={() => setShowAllModalities(true)}
+                      className="inline-flex items-center rounded-md bg-muted/60 px-2.5 py-0.5 text-xs font-medium text-primary hover:bg-muted transition-colors"
+                    >
+                      +{p.modalities.length - 5} more
+                    </button>
+                  )}
+                  {showAllModalities && p.modalities.slice(5).map((m) => (
+                    <span key={m} className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">{m}</span>
                   ))}
                 </div>
               </div>
             </div>
 
-            {/* Share + last-updated footer strip */}
+            {/* Social links + last-updated footer strip */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 bg-background/40 px-5 py-2.5">
-              {isTiered ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Share:</span>
-                  <ShareButtons title={`Check out ${p.name} on Hawaiʻi Wellness`} compact />
+              {isTiered && p.socialLinks && Object.values(p.socialLinks).some(Boolean) ? (
+                <div className="flex items-center gap-2.5">
+                  {p.socialLinks.instagram && (
+                    <a href={p.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Instagram">
+                      <Instagram className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {p.socialLinks.facebook && (
+                    <a href={p.socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Facebook">
+                      <Facebook className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {p.socialLinks.linkedin && (
+                    <a href={p.socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="LinkedIn">
+                      <Linkedin className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                  {p.socialLinks.x && (
+                    <a href={p.socialLinks.x} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="X">
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                    </a>
+                  )}
+                  {p.socialLinks.substack && (
+                    <a href={p.socialLinks.substack} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Substack">
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 17.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/></svg>
+                    </a>
+                  )}
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground">Free listing</span>
+                <span className="text-xs text-muted-foreground">{isTiered ? '' : 'Free listing'}</span>
               )}
               <div className="flex items-center gap-3">
                 {p.createdAt && (
@@ -716,9 +764,26 @@ const ProfileDetail = () => {
                 </div>
               )}
 
-              {/* Working Hours */}
-              {isTiered && hasHours && workingHours && (
-                <WorkingHours hours={workingHours} />
+              {/* Structured services */}
+              {p.servicesList && p.servicesList.length > 0 && (
+                <div>
+                  <h2 className="mb-3 font-display text-xl font-bold">Services</h2>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {p.servicesList.map((svc, i) => (
+                      <div key={i} className="rounded-lg border border-border bg-card p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="text-sm font-semibold">{svc.name}</h3>
+                          {svc.price && (
+                            <span className="flex-shrink-0 text-sm font-medium text-primary">{svc.price}</span>
+                          )}
+                        </div>
+                        {svc.description && (
+                          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{svc.description}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {isTiered && p.gallery.length > 0 && (() => {
@@ -770,6 +835,12 @@ const ProfileDetail = () => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Share this profile */}
+              <div className="flex items-center gap-2 pt-2">
+                <span className="text-xs text-muted-foreground">Share:</span>
+                <ShareButtons title={`Check out ${p.name} on Hawaiʻi Wellness`} compact />
+              </div>
 
               {/* Profile last updated timestamp */}
               {p.updatedAt && (
@@ -1273,46 +1344,20 @@ const ProfileDetail = () => {
                   ) : null;
                 })()}
 
-                {/* Social links */}
-                {isTiered && p.socialLinks && Object.values(p.socialLinks).some(Boolean) && (
-                  <div className="flex flex-wrap gap-3 pt-1 border-t border-border/50">
-                    {p.socialLinks.instagram && (
-                      <a href={p.socialLinks.instagram} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                        <Instagram className="h-4 w-4" /> Instagram
-                      </a>
-                    )}
-                    {p.socialLinks.facebook && (
-                      <a href={p.socialLinks.facebook} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                        <Facebook className="h-4 w-4" /> Facebook
-                      </a>
-                    )}
-                    {p.socialLinks.linkedin && (
-                      <a href={p.socialLinks.linkedin} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                        <Linkedin className="h-4 w-4" /> LinkedIn
-                      </a>
-                    )}
-                    {p.socialLinks.x && (
-                      <a href={p.socialLinks.x} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                        </svg>
-                        X / Twitter
-                      </a>
-                    )}
-                    {p.socialLinks.substack && (
-                      <a href={p.socialLinks.substack} target="_blank" rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-                        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                          <path d="M22.539 8.242H1.46V5.406h21.08v2.836zM1.46 10.812V24L12 17.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/>
-                        </svg>
-                        Substack
-                      </a>
-                    )}
-                  </div>
+                {/* Working hours — compact collapsible */}
+                {isTiered && hasHours && workingHours && (
+                  <details className="group">
+                    <summary className="flex cursor-pointer items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground list-none">
+                      <Clock className="h-3.5 w-3.5" />
+                      <span>Hours</span>
+                      <svg className="ml-auto h-3 w-3 transition-transform group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </summary>
+                    <div className="mt-2">
+                      <WorkingHours hours={workingHours} />
+                    </div>
+                  </details>
                 )}
               </div>
             </CardContent>
