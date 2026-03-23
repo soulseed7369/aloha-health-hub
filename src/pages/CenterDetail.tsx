@@ -460,7 +460,7 @@ export default function CenterDetail() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <h1 className="font-display text-2xl font-bold leading-tight md:text-3xl">{c.name}</h1>
-                  {c.verified && (c.tier === 'premium' || c.tier === 'featured') && (
+                  {(c.tier === 'premium' || c.tier === 'featured') && (
                     <VerifiedBadge />
                   )}
                 </div>

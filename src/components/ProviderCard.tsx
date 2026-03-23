@@ -107,7 +107,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   )}
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1">
-                  {provider.verified && (provider.tier === "premium" || provider.tier === "featured") && (
+                  {(provider.tier === "premium" || provider.tier === "featured") && (
                     <VerifiedBadge size="sm" />
                   )}
                   {isRecentlyUpdated(provider.updatedAt) && (
@@ -231,7 +231,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
           <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
             {provider.name}
           </h3>
-          {provider.verified && (provider.tier === "premium" || provider.tier === "featured") && (
+          {(provider.tier === "premium" || provider.tier === "featured") && (
             <div className="flex justify-center mt-1">
               <VerifiedBadge size="sm" />
             </div>

@@ -532,7 +532,7 @@ const ProfileDetail = () => {
 
                 {/* Status + top modalities */}
                 <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                  {p.verified && (p.tier === 'premium' || p.tier === 'featured') && (
+                  {(p.tier === 'premium' || p.tier === 'featured') && (
                     <VerifiedBadge />
                   )}
                   {p.acceptingClients && (

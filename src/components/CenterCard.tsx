@@ -110,7 +110,7 @@ export function CenterCard({
                   )}
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1">
-                  {center.verified && (center.tier === "premium" || center.tier === "featured") && (
+                  {(center.tier === "premium" || center.tier === "featured") && (
                     <VerifiedBadge size="sm" />
                   )}
                   {isRecentlyUpdated(center.updatedAt) && (
@@ -325,7 +325,7 @@ export function CenterCard({
           <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
             {center.name}
           </h3>
-          {center.verified && (center.tier === "premium" || center.tier === "featured") && (
+          {(center.tier === "premium" || center.tier === "featured") && (
             <div className="flex justify-center mt-1">
               <VerifiedBadge size="sm" />
             </div>
