@@ -30,14 +30,17 @@ export function useHomePractitioners(island: string) {
     queryFn: async () => {
       if (!supabase) return mockPractitioners;
 
-      // Fetch featured + premium + enough free to fill slots, sorted by tier
+      // Fetch featured + premium + enough free to fill slots.
+      // Sort by is_featured first (boolean, reliable) then tier descending.
+      // Note: tier is text so alphabetical desc = premium > free > featured —
+      // the client-side filter below handles correct priority regardless.
       const { data, error } = await supabase
         .from('practitioners')
         .select('*, business:centers!practitioners_business_id_fkey(id,name)')
         .eq('island', island)
         .eq('status', 'published')
-        .order('tier', { ascending: false })  // featured > premium > free
         .order('is_featured', { ascending: false })
+        .order('tier', { ascending: false })
         .order('name')
         .limit(FETCH_CAP);
 
@@ -99,8 +102,8 @@ export function useHomeCenters(island: string) {
         .select('*')
         .eq('island', island)
         .eq('status', 'published')
-        .order('tier', { ascending: false })
         .order('is_featured', { ascending: false })
+        .order('tier', { ascending: false })
         .order('name')
         .limit(FETCH_CAP);
 
