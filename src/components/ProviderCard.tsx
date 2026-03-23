@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { OptimizedImage } from "@/components/OptimizedImage";
-import { MapPin, ExternalLink } from "lucide-react";
+import { MapPin, CheckCircle } from "lucide-react";
 import type { Provider } from "@/data/mockData";
 import { Link } from "react-router-dom";
 import { formatDistance } from "@/lib/geoUtils";
@@ -97,10 +97,15 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  {/* Personal name always primary — never replaced by business name */}
-                  <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight">
-                    {provider.name}
-                  </h3>
+                  {/* Personal name + verified checkmark */}
+                  <div className="flex items-center gap-1">
+                    <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-tight">
+                      {provider.name}
+                    </h3>
+                    {(provider.tier === "premium" || provider.tier === "featured") && (
+                      <CheckCircle className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500" aria-label="Verified" />
+                    )}
+                  </div>
                   {/* Business name always a muted subtitle */}
                   {provider.businessName && (
                     <p className="truncate text-xs text-muted-foreground">{provider.businessName}</p>
@@ -109,9 +114,6 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 <div className="flex flex-shrink-0 items-center gap-1">
                   {provider.tier && provider.tier !== "free" && (
                     <TierBadge tier={provider.tier} />
-                  )}
-                  {(provider.tier === "premium" || provider.tier === "featured") && (
-                    <VerifiedBadge size="sm" />
                   )}
                 </div>
               </div>
@@ -155,7 +157,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   )}
                 </p>
               ) : null}
-              {/* Session type + accepting + Book CTA */}
+              {/* Session type + accepting */}
               <div className="flex flex-wrap items-center gap-1.5">
                 {provider.sessionType && provider.sessionType !== "in_person" && (
                   <span className="text-xs text-muted-foreground">
@@ -170,17 +172,6 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 )}
                 {provider.acceptsNewClients === false && (
                   <span className="text-xs text-muted-foreground/60">Not accepting</span>
-                )}
-                {provider.externalBookingUrl && (
-                  <a
-                    href={provider.externalBookingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    className="ml-auto inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-                  >
-                    Book <ExternalLink className="h-3 w-3" />
-                  </a>
                 )}
               </div>
             </div>
@@ -197,11 +188,10 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
   return (
     <Link to={`/profile/${provider.id}`} className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl">
       <Card className={`relative flex h-80 flex-col overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${tierCardClasses(provider.tier)} ${provider.tier === 'featured' ? 'border-l-4 border-l-amber-400' : ''}`}>
-        {/* Tier + verified badges — top-right, stacked */}
+        {/* Tier badge — top-right */}
         {provider.tier && provider.tier !== "free" && (
-          <div className="absolute right-3 top-3 z-10 flex flex-col items-end gap-1">
+          <div className="absolute right-3 top-3 z-10">
             <TierBadge tier={provider.tier} />
-            <VerifiedBadge size="sm" />
           </div>
         )}
 
@@ -223,10 +213,15 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
 
         {/* Info */}
         <div className="flex flex-1 flex-col px-4 pt-3 pb-4 text-center">
-          {/* Personal name always primary */}
-          <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
-            {provider.name}
-          </h3>
+          {/* Personal name + verified checkmark */}
+          <div className="flex items-center justify-center gap-1">
+            <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
+              {provider.name}
+            </h3>
+            {(provider.tier === "premium" || provider.tier === "featured") && (
+              <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-500" aria-label="Verified" />
+            )}
+          </div>
           {/* Business name always a separate muted subtitle — never replaces personal name */}
           {provider.businessName && (
             <p className="truncate text-xs text-muted-foreground">{provider.businessName}</p>
