@@ -236,7 +236,7 @@ export function SearchBar({
       const query = /^\d{5}$/.test(zipInput.trim()) ? zipInput.trim() : `${zipInput.trim()}, Hawaii`;
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=us&format=json&limit=1`,
-        { headers: { 'Accept-Language': 'en', 'User-Agent': 'AlohaHealthHub/1.0' } }
+        { headers: { 'Accept-Language': 'en', 'User-Agent': 'HawaiiWellness/1.0' } }
       );
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {

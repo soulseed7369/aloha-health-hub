@@ -349,7 +349,7 @@ GRANT EXECUTE ON FUNCTION public.claim_listing(uuid) TO authenticated;
 Open Terminal on your Mac. Run these commands:
 
 ```bash
-cd ~/path/to/aloha-health-hub
+cd ~/path/to/hawaii-wellness
 ```
 
 Then deploy both functions:
@@ -377,7 +377,7 @@ Your project ref is in the Supabase Dashboard URL: `https://supabase.com/dashboa
 ## STEP 5: Push Frontend to Vercel
 
 ```bash
-cd ~/path/to/aloha-health-hub
+cd ~/path/to/hawaii-wellness
 git add -A
 git commit -m "Add email + phone verification system"
 git push origin main

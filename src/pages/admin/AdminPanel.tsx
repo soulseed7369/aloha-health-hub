@@ -477,7 +477,7 @@ const AdminPanel = () => {
     try {
       const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=us`;
       const res = await fetch(url, {
-        headers: { 'User-Agent': 'AlohaHealthHub/1.0 (hello@alohahealthhub.com)' },
+        headers: { 'User-Agent': 'HawaiiWellness/1.0 (aloha@hawaiiwellness.net)' },
       });
       const data = await res.json();
       if (data && data[0]) {

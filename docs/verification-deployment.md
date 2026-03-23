@@ -90,7 +90,7 @@ supabase secrets set \
 ## Step 4: Deploy Edge Functions
 
 ```bash
-cd aloha-health-hub
+cd hawaii-wellness
 
 # Deploy both new Edge Functions
 supabase functions deploy send-verification-code --no-verify-jwt

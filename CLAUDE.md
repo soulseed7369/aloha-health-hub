@@ -10,7 +10,7 @@ This file is read automatically at the start of every session. It captures hard-
 **Operator:** Hawaii Wellness LLC
 **Contact:** aloha@hawaiiwellness.net
 **Stack:** React + TypeScript + Vite · Tailwind CSS + shadcn/ui · Supabase (Postgres + Auth + Storage) · Stripe (subscriptions) · Vercel (hosting)
-**Repo:** github.com/soulseed7369/aloha-health-hub
+**Repo:** github.com/soulseed7369/hawaii-wellness
 
 ---
 

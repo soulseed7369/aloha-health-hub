@@ -277,7 +277,7 @@ Priority: **LOW**
 ## References
 
 **Complete Report:** `/SECURITY_AUDIT_REPORT.md`
-**Project Location:** `/sessions/compassionate-admiring-hopper/mnt/aloha-health-hub`
+**Project Location:** github.com/soulseed7369/hawaii-wellness
 
 ---
 

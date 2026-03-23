@@ -282,7 +282,7 @@ To get this system running:
 ## 7. FILE TREE
 
 ```
-aloha-health-hub/
+hawaii-wellness/
 ├── supabase/
 │   └── migrations/
 │       ├── 20260320000000_claim_centers_support.sql           [NEW]

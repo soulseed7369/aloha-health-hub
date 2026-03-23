@@ -16,7 +16,7 @@ A lead-generation wellness directory for Hawaiʻi — practitioners, spas & well
 
 ```sh
 git clone <YOUR_GIT_URL>
-cd aloha-health-hub
+cd hawaii-wellness
 npm install
 ```
 
@@ -84,7 +84,7 @@ node scripts/ingest.mjs data/samples/normalized.json
 ## Project Structure
 
 ```
-aloha-health-hub/
+hawaii-wellness/
 ├── src/
 │   ├── pages/           # Route-level components
 │   │   ├── Index.tsx          # Homepage (featured carousels)

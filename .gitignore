@@ -25,8 +25,9 @@ dist-ssr
 data/samples/
 data/discovery/
 
-# Pipeline cache (large scraped HTML files)
+# Pipeline cache (large scraped HTML files) and output (intermediate JSONL)
 pipeline/cache/
+pipeline/output/
 
 # Python bytecode
 __pycache__/

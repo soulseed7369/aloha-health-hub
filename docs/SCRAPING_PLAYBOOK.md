@@ -231,6 +231,6 @@ Before each scraping run, verify:
 - [ ] Data is publicly visible without login
 - [ ] No personal data (home addresses, personal emails) collected
 - [ ] Rate limiting applied: ≥ 2 second delay between requests
-- [ ] User-Agent set to identify the bot (e.g. `AlohaHealthHub/1.0 (+https://alohahealthhub.com/bot)`)
+- [ ] User-Agent set to identify the bot (e.g. `HawaiiWellness/1.0 (+https://hawaiiwellness.net/bot)`)
 - [ ] Source URL preserved in `_source_url` for attribution
 - [ ] Batch size ≤ 100 rows per run
