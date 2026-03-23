@@ -765,8 +765,8 @@ const ProfileDetail = () => {
 
               {/* "Get in Touch" removed — redundant with sidebar CTA + booking embed */}
 
-              {/* Structured services — shown before What to Expect */}
-              {p.servicesList && p.servicesList.length > 0 && (
+              {/* Structured services — gated to paid tiers */}
+              {isTiered && p.servicesList && p.servicesList.length > 0 && (
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">Services</h2>
                   <div className="grid gap-3 sm:grid-cols-2">

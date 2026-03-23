@@ -2,13 +2,12 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, CheckCircle, Circle, ArrowRight, Star, Loader2, Globe, Clock, Eye, Search, MessageCircle, Mail, ChevronDown, ChevronUp, Camera, FileText, Heart, Sparkles } from "lucide-react";
+import { User, CheckCircle, Circle, ArrowRight, Star, Loader2, Eye, Search, MessageCircle, Mail, ChevronDown, ChevronUp, Camera, FileText, Heart, Sparkles } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
 import { useMyBillingProfile, useCreateCheckoutSession } from "@/hooks/useStripe";
 import { useAccountType } from "@/hooks/useAccountType";
-import { getEarlyBirdStatus } from "@/lib/websitePackages";
 
 export default function DashboardHome() {
   const navigate = useNavigate();
@@ -60,8 +59,7 @@ export default function DashboardHome() {
 
   const hasProfile = !!practitioner?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';
-  const hasVerifiedContact = !!(practitioner as any)?.email_verified_at || !!(practitioner as any)?.phone_verified_at;
-  const earlyBird = getEarlyBirdStatus(practitioner?.created_at ?? null);
+  const hasChosenPlan = !!billing?.tier; // free, premium, or featured — all count as "chosen"
 
   // ── Profile completeness ──────────────────────────────────────────────────
   const completenessFields = [
@@ -88,32 +86,14 @@ export default function DashboardHome() {
       to: '/dashboard/profile',
     },
     {
-      id: 'verify',
-      label: 'Verify your contact info',
-      description: 'Verify your email or phone to prove you own this listing.',
-      done: hasVerifiedContact,
-      to: '/dashboard/profile',
-    },
-    {
       id: 'plan',
       label: 'Choose a plan',
       description: 'Free gets you listed. Premium & Featured unlock testimonials, analytics, and more.',
-      done: hasPaidPlan,
+      done: hasChosenPlan,
       to: '/dashboard/billing',
     },
   ];
 
-  const actions = [
-    {
-      title: "Practitioner Profile",
-      icon: User,
-      description: "List your individual practice, bio, and modalities.",
-      button: hasProfile ? "Edit Profile" : "Create Profile",
-      to: "/dashboard/profile",
-      color: "bg-terracotta-light text-terracotta",
-      badge: !hasProfile ? "Start here" : null,
-    },
-  ];
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -127,7 +107,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Onboarding checklist — shown until both steps are done */}
-      {!practLoading && (!hasProfile || !hasPaidPlan) && (
+      {!practLoading && (!hasProfile || !hasChosenPlan) && (
         <Card className="border-primary/20 bg-terracotta-light/10">
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center gap-2">
@@ -165,6 +145,29 @@ export default function DashboardHome() {
           </CardContent>
         </Card>
       )}
+
+      {/* Practitioner Profile — primary action card */}
+      <Card className="group relative overflow-hidden transition-shadow hover:shadow-md max-w-md">
+        <CardContent className="flex flex-col items-start gap-4 p-6">
+          <div className="flex w-full items-start justify-between">
+            <div className="rounded-xl p-3 bg-terracotta-light text-terracotta">
+              <User className="h-6 w-6" />
+            </div>
+            {!hasProfile && (
+              <Badge variant="outline" className="text-xs border-primary/30 text-primary">
+                Start here
+              </Badge>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <h3 className="font-display text-lg font-semibold">Practitioner Profile</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">List your individual practice, bio, and modalities.</p>
+          </div>
+          <Button asChild className="mt-auto w-full" variant="outline">
+            <Link to="/dashboard/profile">{hasProfile ? "Edit Profile" : "Create Profile"}</Link>
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Profile completeness — shown only when profile exists but incomplete */}
       {hasProfile && completenessScore < 100 && (
@@ -376,58 +379,7 @@ export default function DashboardHome() {
         </Card>
       )}
 
-      {/* Website packages promo — shown to all providers with a profile */}
-      {hasProfile && (
-        <Card className="border-ocean/20 bg-ocean-light/20 overflow-hidden">
-          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-ocean flex items-center gap-1.5">
-                <Globe className="h-4 w-4 flex-shrink-0" />
-                Need a website for your practice?
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                Custom sites from $499 setup + $19/mo — designed for Hawaii wellness providers.
-                {earlyBird.eligible && (
-                  <span className="ml-1 text-amber-700 font-medium">
-                    <Clock className="inline h-3 w-3 mr-0.5 -mt-0.5" />
-                    Early bird 10% off — {earlyBird.daysRemaining}d {earlyBird.hoursRemaining % 24}h left.
-                  </span>
-                )}
-              </p>
-            </div>
-            <Button asChild size="sm" variant="outline" className="border-ocean/30 text-ocean hover:bg-ocean/10 flex-shrink-0">
-              <Link to="/website-packages">View packages</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Main action cards */}
-      <div className="grid gap-5 sm:grid-cols-1 max-w-md">
-        {actions.map((a) => (
-          <Card key={a.title} className="group relative overflow-hidden transition-shadow hover:shadow-md">
-            <CardContent className="flex flex-col items-start gap-4 p-6">
-              <div className="flex w-full items-start justify-between">
-                <div className={`rounded-xl p-3 ${a.color}`}>
-                  <a.icon className="h-6 w-6" />
-                </div>
-                {a.badge && (
-                  <Badge variant="outline" className="text-xs border-primary/30 text-primary">
-                    {a.badge}
-                  </Badge>
-                )}
-              </div>
-              <div className="space-y-1.5">
-                <h3 className="font-display text-lg font-semibold">{a.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{a.description}</p>
-              </div>
-              <Button asChild className="mt-auto w-full" variant="outline">
-                <Link to={a.to}>{a.button}</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Website packages promo — hidden until ready to launch */}
     </div>
   );
 }
