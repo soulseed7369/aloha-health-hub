@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Mail, AlertCircle, Check } from "lucide-react";
+import { Mail, AlertCircle, Check, ShieldCheck, Send, MessageSquare, Star } from "lucide-react";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
 import { useMyBillingProfile } from "@/hooks/useStripe";
@@ -349,17 +349,20 @@ export default function DashboardTestimonials() {
         <div>
           <h1 className="font-display text-2xl font-bold">Client Testimonials</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Gather verified feedback from real clients.
+            Collect verified testimonials from real clients to build trust on your profile.
           </p>
         </div>
 
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-4">
-            <AlertCircle className="h-10 w-10 text-muted-foreground/50" />
-            <div>
-              <p className="font-medium text-muted-foreground">Upgrade to invite clients</p>
+            <ShieldCheck className="h-10 w-10 text-muted-foreground/50" />
+            <div className="max-w-sm">
+              <p className="font-medium text-muted-foreground">Verified testimonials build trust</p>
               <p className="mt-1 text-sm text-muted-foreground/70">
-                Client testimonials are available on Premium ($39/mo) and Featured ($129/mo) plans.
+                Invite clients by email. They write in their own words through a private link — you can't edit their response, which is what makes it credible. Each testimonial displays a "Verified client" badge on your profile.
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground/70">
+                Available on Premium ({TIER_QUOTAS.premium}/mo) and Featured ({TIER_QUOTAS.featured}/mo) plans.
               </p>
             </div>
             <Button asChild>
@@ -376,9 +379,49 @@ export default function DashboardTestimonials() {
       <div>
         <h1 className="font-display text-2xl font-bold">Client Testimonials</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Invite clients to share their experience and respond to their feedback.
+          Collect verified testimonials from real clients. These carry a "Verified client" badge on your profile — more trusted than anonymous reviews.
         </p>
       </div>
+
+      {/* How it works — process explainer */}
+      {!hasAny && (
+        <Card className="border-teal-200 bg-gradient-to-br from-teal-50/50 to-cyan-50/50">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ShieldCheck className="h-4 w-4 text-teal-700" />
+              How verified testimonials work
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="flex gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-bold text-teal-700">1</div>
+                <div>
+                  <p className="text-sm font-medium">You invite a client</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Enter their email. We send a private link — only they can use it.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-bold text-teal-700">2</div>
+                <div>
+                  <p className="text-sm font-medium">They write in their own words</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Guided prompts or freeform — their choice. You cannot edit what they write.</p>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-100 text-xs font-bold text-teal-700">3</div>
+                <div>
+                  <p className="text-sm font-medium">Published with a verified badge</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Their testimonial goes live on your profile with a "Verified client" badge. You can add a brief response.</p>
+                </div>
+              </div>
+            </div>
+            <p className="mt-4 text-xs text-muted-foreground border-t border-teal-200/50 pt-3">
+              This process ensures every testimonial is written by a real client — not the practitioner. Email addresses are hashed and never stored or displayed, protecting your client's privacy.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Invite Section */}
       {canInvite && (
@@ -386,8 +429,7 @@ export default function DashboardTestimonials() {
           <CardHeader>
             <CardTitle className="text-lg">Invite a Client</CardTitle>
             <CardDescription>
-              We'll create a unique link for your client to share their experience. You won't be
-              able to edit their response.
+              Enter your client's email and we'll send them a private link to share their experience. Their response is published directly — you won't be able to edit it, which is what makes it trusted.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -477,11 +519,11 @@ export default function DashboardTestimonials() {
       {/* Empty state */}
       {!hasAny && canInvite && (
         <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <CardContent className="flex flex-col items-center justify-center py-10 text-center">
             <Mail className="mb-3 h-10 w-10 text-muted-foreground/50" />
-            <p className="font-medium text-muted-foreground">No testimonials yet.</p>
-            <p className="mt-1 text-sm text-muted-foreground/70">
-              Invite your first client to share their experience!
+            <p className="font-medium text-muted-foreground">No testimonials yet</p>
+            <p className="mt-1 text-sm text-muted-foreground/70 max-w-xs">
+              Send your first invite above. Most clients respond within a few days — a short, personal message letting them know to expect the email helps.
             </p>
           </CardContent>
         </Card>
