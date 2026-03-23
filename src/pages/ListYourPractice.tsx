@@ -18,35 +18,34 @@ const FREE_FEATURES = [
   "Name, location & modalities",
   "Contact information & website",
   "Photo upload (1 profile photo)",
-  "About section (250 characters)",
+  "About section (up to 500 characters)",
 ];
 
 const PRAC_PREMIUM_FEATURES = [
   "Everything in Free, plus:",
+  '"Verified Practitioner" badge',
+  "Verified client testimonials",
   "Unlimited bio & 'What to Expect' section",
+  "Structured services display",
   "Social media links on your profile",
-  "Client testimonials display",
   "Photo gallery (up to 5 photos)",
   "Working hours display",
   "Offerings, classes & events",
   "Direct booking link",
   "Profile views & contact click counts",
-  "Priority listing placement",
+  "Priority in similar practitioner results",
 ];
 
 const PRAC_FEATURED_FEATURES = [
   "Everything in Premium, plus:",
+  "Homepage spotlight rotation (per island)",
+  "Top placement in search results",
   "Photo gallery (up to 10 photos)",
+  "Rich directory card with bio preview",
+  "Enhanced Google search visibility",
   "Full analytics dashboard with trends",
   "Search & homepage impression tracking",
   "Monthly analytics report emailed to you",
-  '"Verified Practitioner" badge',
-  "Enhanced Google search visibility",
-  "Rich directory card with bio preview",
-  "Priority in similar practitioner results",
-  "Homepage spotlight rotation",
-  "Top placement in search results",
-  "Limited featured spots per island",
 ];
 
 const CENTER_FREE_FEATURES = [
@@ -54,39 +53,38 @@ const CENTER_FREE_FEATURES = [
   "Center type, location & modalities",
   "Contact information & website",
   "Photo upload (1 profile photo)",
-  "Description (250 characters)",
+  "Description (up to 500 characters)",
   "Single location only",
 ];
 
 const CENTER_PREMIUM_FEATURES = [
   "Everything in Free, plus:",
+  '"Verified Center" badge',
+  "Verified client testimonials",
   "Unlimited description",
+  "Structured services display",
   "Photo gallery (up to 5 photos)",
   "Events & classes calendar",
-  "Client testimonials",
   "Social media links",
   "Working hours per location",
   "Amenities display",
   "Direct booking link",
   "Up to 3 locations",
   "Profile views & contact click counts",
-  "Priority listing placement",
+  "Priority in similar center results",
 ];
 
 const CENTER_FEATURED_FEATURES = [
   "Everything in Premium, plus:",
+  "Homepage spotlight rotation (per island)",
+  "Top placement in search results",
   "Photo gallery (up to 10 photos)",
   "Unlimited locations",
+  "Rich directory card with description preview",
+  "Enhanced Google search visibility",
   "Full analytics dashboard with trends",
   "Search & homepage impression tracking",
   "Monthly analytics report emailed to you",
-  '"Verified Center" badge',
-  "Enhanced Google search visibility",
-  "Rich directory card with description preview",
-  "Priority in similar center results",
-  "Homepage spotlight rotation",
-  "Top placement in search results",
-  "Limited featured spots per island",
 ];
 
 // ─── Pricing data ─────────────────────────────────────────────────────────────
@@ -159,22 +157,14 @@ export default function ListYourPractice() {
         </p>
       </div>
 
-      {/* Kama'aina Rate banner */}
-      <div className="mx-auto max-w-3xl mb-10">
-        <div className="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 px-8 py-8 text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <Sparkles className="h-6 w-6 text-amber-500" />
-            <h2 className="font-display text-2xl font-bold text-amber-900 md:text-3xl">Kamaʻāina Rate</h2>
-            <Sparkles className="h-6 w-6 text-amber-500" />
-          </div>
-          <p className="text-base text-amber-800 max-w-lg mx-auto leading-relaxed">
-            Our earliest supporters get special pricing — <strong>for life</strong>.
-            <br className="hidden sm:block" />
-            Lock in your rate before spots fill up.
+      {/* Kama'aina Rate banner — compact */}
+      <div className="mx-auto max-w-3xl mb-8">
+        <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-3 flex items-center justify-center gap-3 text-center">
+          <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0" />
+          <p className="text-sm text-amber-800">
+            <strong className="font-semibold text-amber-900">Kamaʻāina Rate</strong> — Early supporter pricing locked in <strong>for life</strong>. Limited spots.
           </p>
-          <p className="text-sm text-amber-700 mt-3">
-            Your price never goes up as long as your subscription stays active.
-          </p>
+          <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0" />
         </div>
       </div>
 
@@ -310,8 +300,8 @@ export default function ListYourPractice() {
             </div>
 
             <ul className="space-y-2.5 flex-1">
-              {featuredFeatures.map((f) => (
-                <li key={f} className="flex items-start gap-2 text-sm">
+              {featuredFeatures.map((f, i) => (
+                <li key={f} className={`flex items-start gap-2 text-sm ${i >= 1 && i <= 2 ? 'font-semibold text-amber-900' : ''}`}>
                   <CheckCircle className="h-4 w-4 shrink-0 text-amber-500 mt-0.5" />
                   {f}
                 </li>

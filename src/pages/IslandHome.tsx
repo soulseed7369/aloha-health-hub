@@ -121,7 +121,7 @@ export function IslandHome({ config }: IslandHomeProps) {
     })),
   } : null;
 
-  const { data: practitioners, isLoading: loadingPractitioners, totalCount: practitionerCount } = useHomePractitioners(config.island);
+  const { data: practitioners, isLoading: loadingPractitioners, totalCount: practitionerCount, claimedCount } = useHomePractitioners(config.island);
   const { data: centers, isLoading: loadingCenters, totalCount: centerCount } = useHomeCenters(config.island);
   const { data: articles = [], isLoading: loadingArticles } = useArticles();
 
@@ -511,10 +511,10 @@ export function IslandHome({ config }: IslandHomeProps) {
       {/* ── List Your Practice CTA ─────────────────────────────────────────── */}
       <section className="bg-primary py-14 text-primary-foreground" aria-label="List your practice">
         <div className="container text-center">
-          {/* Trust signal */}
-          {practitioners.length > 0 && (
+          {/* Trust signal — only show when 25+ practitioners have claimed listings */}
+          {claimedCount >= 25 && (
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-primary-foreground/90">
-              <span className="font-bold text-white">{practitioners.length}+</span> practitioners already listed on {config.displayName}
+              <span className="font-bold text-white">{claimedCount}+</span> practitioners have joined on {config.displayName}
             </div>
           )}
           <h2 className="mb-3 font-display text-2xl font-bold md:text-3xl">

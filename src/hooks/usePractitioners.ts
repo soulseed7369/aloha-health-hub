@@ -69,16 +69,26 @@ export function useSimilarPractitioners(
       // Only include practitioners with at least 1 shared modality.
       // Primary sort: tier rank descending (featured > premium > free).
       // Secondary sort: overlap count descending (most similar first).
-      // This ensures featured listings get the most visibility as cross-promotion.
+      // Tertiary: free-tier listings are randomized so the same 4 don't always appear.
+      // Paid tiers stay deterministic — they're paying for consistent visibility.
       const TIER_RANK: Record<string, number> = { featured: 3, premium: 2, free: 1 };
       const scored = all
         .map(p => ({
           provider: p,
           overlap: (p.modalities ?? []).filter(m => modalitySet.has(m)).length,
           tierRank: TIER_RANK[p.tier ?? 'free'] ?? 1,
+          rand: Math.random(), // tiebreaker for free tier
         }))
         .filter(s => s.overlap > 0)
-        .sort((a, b) => b.tierRank - a.tierRank || b.overlap - a.overlap);
+        .sort((a, b) => {
+          // Paid tiers always first
+          if (a.tierRank !== b.tierRank) return b.tierRank - a.tierRank;
+          // Within same tier, higher overlap wins
+          if (a.overlap !== b.overlap) return b.overlap - a.overlap;
+          // For free tier with same overlap, randomize
+          if (a.tierRank === 1) return a.rand - b.rand;
+          return 0;
+        });
 
       return scored.slice(0, 4).map(s => s.provider);
     },

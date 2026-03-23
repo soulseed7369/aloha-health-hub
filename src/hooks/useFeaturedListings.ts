@@ -85,10 +85,30 @@ export function useHomePractitioners(island: string) {
     staleTime: 1000 * 60 * 5,
   });
 
+  // Count of practitioners with a claimed (owned) listing — used for social proof
+  const claimedQuery = useQuery<number>({
+    queryKey: ['practitioners-claimed-count', island],
+    queryFn: async () => {
+      if (!supabase) return 0;
+
+      const { count, error } = await supabase
+        .from('practitioners')
+        .select('id', { count: 'exact', head: true })
+        .eq('island', island)
+        .eq('status', 'published')
+        .not('owner_id', 'is', null);
+
+      if (error) throw error;
+      return count ?? 0;
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+
   return {
     data: listingsQuery.data ?? [],
     isLoading: listingsQuery.isLoading,
     totalCount: countQuery.data ?? 0,
+    claimedCount: claimedQuery.data ?? 0,
   };
 }
 
