@@ -465,7 +465,7 @@ export default function DashboardTestimonials() {
               </div>
             </div>
             <p className="mt-4 text-xs text-muted-foreground border-t border-teal-200/50 pt-3">
-              This process ensures every testimonial is written by a real client — not the practitioner. Email addresses are hashed and never stored or displayed, protecting your client's privacy.
+              This process ensures every testimonial is written by a real client — not a bot and not the practitioner.
             </p>
           </CardContent>
         </Card>
