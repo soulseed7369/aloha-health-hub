@@ -598,10 +598,13 @@ const ProfileDetail = () => {
                   )}
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground">{isTiered ? '' : 'Free listing'}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Share:</span>
+                  <ShareButtons title={`Check out ${p.name} on Hawaiʻi Wellness`} compact />
+                </div>
               )}
               <div className="flex items-center gap-3">
-                {p.createdAt && (
+                {isClaimed && p.createdAt && (
                   <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <CheckCircle className="h-3.5 w-3.5" />
                     Member since {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
@@ -704,8 +707,8 @@ const ProfileDetail = () => {
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">About</h2>
                   <p className="whitespace-pre-line leading-relaxed text-muted-foreground">
-                    {isTiered ? p.about : p.about.slice(0, 250)}
-                    {!isTiered && p.about.length > 250 && '…'}
+                    {isTiered ? p.about : p.about.slice(0, 500)}
+                    {!isTiered && p.about.length > 500 && '…'}
                   </p>
                 </div>
               )}
@@ -1278,8 +1281,8 @@ const ProfileDetail = () => {
         {/* Right Sidebar — only on About tab */}
         {activeTab === 'about' && (
         <div className="space-y-4 lg:sticky lg:top-20 lg:self-start">
-          {/* Primary CTA — top of sidebar (desktop) */}
-          {p.externalBookingUrl ? (
+          {/* Primary CTA — top of sidebar (desktop). Booking CTA only for paid tiers. */}
+          {isTiered && p.externalBookingUrl ? (
             <Button className="w-full gap-2" size="lg" asChild>
               <a href={p.externalBookingUrl} target="_blank" rel="noopener noreferrer">
                 {p.bookingLabel || 'Book a Session'}
@@ -1434,9 +1437,9 @@ const ProfileDetail = () => {
         </Dialog>
       </div>
 
-      {/* Mobile sticky CTA — always visible on mobile */}
+      {/* Mobile sticky CTA — always visible on mobile. Booking CTA only for paid tiers. */}
       <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/95 p-3 backdrop-blur-sm lg:hidden">
-        {p.externalBookingUrl ? (
+        {isTiered && p.externalBookingUrl ? (
           <Button className="w-full gap-2" size="lg" asChild>
             <a href={p.externalBookingUrl} onClick={() => trackClick('booking')} target="_blank" rel="noopener noreferrer">
               {p.bookingLabel || 'Book a Session'}
