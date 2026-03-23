@@ -223,8 +223,8 @@ export default function TestimonialSubmit() {
     );
   }
 
-  // ── Already submitted ──
-  if (submitted && data.testimonial.invite_status !== 'pending') {
+  // ── Already submitted / just submitted ──
+  if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
         <Card className="max-w-md w-full border-primary/20 bg-primary/5">
@@ -232,18 +232,16 @@ export default function TestimonialSubmit() {
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div>
-                <CardTitle>Already Submitted</CardTitle>
+                <CardTitle>Thank You!</CardTitle>
               </div>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Your testimonial has already been submitted. Thank you for sharing your experience!
+              Your testimonial has been submitted. Thank you for sharing your experience!
             </p>
             <p className="text-sm text-muted-foreground">
-              {data.testimonial.published_at
-                ? "Your testimonial is now visible on the practitioner's profile."
-                : "Your testimonial is being reviewed and will appear on the profile shortly."}
+              Your testimonial is now visible on the practitioner's profile.
             </p>
             <Button
               variant="outline"

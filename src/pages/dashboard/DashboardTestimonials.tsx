@@ -13,7 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Mail, AlertCircle, Check, ShieldCheck, Send, MessageSquare, Star, Copy, Pencil, Loader2, ExternalLink } from "lucide-react";
+import { Mail, AlertCircle, Check, ShieldCheck, Send, MessageSquare, Star, Pencil, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
 import { useMyBillingProfile } from "@/hooks/useStripe";
@@ -61,7 +61,9 @@ export default function DashboardTestimonials() {
 
   // Form state for edit request dialog
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [editUrl, setEditUrl] = useState('');
+  const [editDialogMode, setEditDialogMode] = useState<'reason' | 'sent'>('reason');
+  const [editReason, setEditReason] = useState('');
+  const [editResultMessage, setEditResultMessage] = useState('');
   const [editingTestimonialId, setEditingTestimonialId] = useState<string | null>(null);
 
   const isLoading = practitionerLoading || billingLoading || invitesLoading;
@@ -139,16 +141,27 @@ export default function DashboardTestimonials() {
     }
   };
 
-  const handleRequestEdit = async (testimonialId: string) => {
+  const openEditDialog = (testimonialId: string) => {
+    setEditingTestimonialId(testimonialId);
+    setEditReason('');
+    setEditDialogMode('reason');
+    setEditResultMessage('');
+    setEditDialogOpen(true);
+  };
+
+  const handleRequestEdit = async () => {
+    if (!editingTestimonialId) return;
     try {
-      setEditingTestimonialId(testimonialId);
-      const result = await requestEdit.mutateAsync({ testimonialId });
-      setEditUrl(result.editUrl);
-      setEditDialogOpen(true);
+      const result = await requestEdit.mutateAsync({
+        testimonialId: editingTestimonialId,
+        reason: editReason.trim() || undefined,
+      });
+      setEditResultMessage(result.message);
+      setEditDialogMode('sent');
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to request edit';
       toast.error(msg);
-    } finally {
+      setEditDialogOpen(false);
       setEditingTestimonialId(null);
     }
   };
@@ -285,15 +298,10 @@ export default function DashboardTestimonials() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleRequestEdit(testimonial.id)}
-                    disabled={editingTestimonialId === testimonial.id}
+                    onClick={() => openEditDialog(testimonial.id)}
                     className="gap-1.5"
                   >
-                    {editingTestimonialId === testimonial.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Pencil className="h-3.5 w-3.5" />
-                    )}
+                    <Pencil className="h-3.5 w-3.5" />
                     Request Edit
                   </Button>
                 )}
@@ -569,40 +577,75 @@ export default function DashboardTestimonials() {
         </Card>
       )}
 
-      {/* Edit URL Dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      {/* Request Edit Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open);
+        if (!open) setEditingTestimonialId(null);
+      }}>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Link Ready</DialogTitle>
-            <DialogDescription>
-              The testimonial has been reset to draft. Share this link with your client so they can revise their response.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Input
-                readOnly
-                value={editUrl}
-                className="text-sm font-mono"
-                onClick={(e) => (e.target as HTMLInputElement).select()}
-              />
-              <Button
-                size="sm"
-                variant="outline"
-                className="shrink-0 gap-1.5"
-                onClick={() => {
-                  navigator.clipboard.writeText(editUrl);
-                  toast.success('Link copied!');
-                }}
-              >
-                <Copy className="h-3.5 w-3.5" />
-                Copy
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              This link expires in 14 days. Your client will see their previous response pre-filled and can make corrections.
-            </p>
-          </div>
+          {editDialogMode === 'reason' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>Request Testimonial Edit</DialogTitle>
+                <DialogDescription>
+                  We'll email your client a link to revise their testimonial. Their previous response will be pre-filled so they can make corrections.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-reason">What needs to be changed? (optional)</Label>
+                  <Textarea
+                    id="edit-reason"
+                    placeholder='e.g., "Could you fix the spelling of my name?" or "The date mentioned is incorrect."'
+                    value={editReason}
+                    onChange={(e) => setEditReason(e.target.value.slice(0, 500))}
+                    className="min-h-[80px] text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    This note will be included in the email to your client.
+                  </p>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleRequestEdit}
+                    disabled={requestEdit.isPending}
+                    className="gap-1.5"
+                  >
+                    {requestEdit.isPending ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Send className="h-3.5 w-3.5" />
+                    )}
+                    Send Edit Request
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle>Edit Request Sent</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                  <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                  <p className="text-sm">{editResultMessage}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  The testimonial has been temporarily unpublished while your client makes changes. It will go live again once they resubmit. The link expires in 14 days.
+                </p>
+                <Button className="w-full" onClick={() => {
+                  setEditDialogOpen(false);
+                  setEditingTestimonialId(null);
+                }}>
+                  Done
+                </Button>
+              </div>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

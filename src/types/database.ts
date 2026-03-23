@@ -109,6 +109,9 @@ export interface VerifiedTestimonialRow {
   published_at: string | null;
   flagged_at: string | null;
   flag_reason: string | null;
+  invited_email: string | null;
+  newsletter_consent: boolean;
+  edit_reason: string | null;
   created_at: string;
   updated_at: string;
 }

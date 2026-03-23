@@ -191,6 +191,7 @@ Deno.serve(async (req) => {
       .insert({
         practitioner_id: practitionerId,
         invited_email_hash: emailHash,
+        invited_email: clientEmail.toLowerCase().trim(),
         invite_status: 'pending',
       })
       .select('invite_token')

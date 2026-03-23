@@ -203,11 +203,13 @@ export function useRespondToTestimonial() {
 
 interface RequestTestimonialEditPayload {
   testimonialId: string;
+  reason?: string;
 }
 
 interface RequestTestimonialEditResponse {
   success: true;
   editUrl: string;
+  emailSent: boolean;
   message: string;
 }
 
