@@ -50,6 +50,7 @@ export default function TestimonialSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Determine which text field to use for word count
   const textContent = useGuidedPrompts ? promptWhatBrought + ' ' + promptWhatChanged : freeformText;
@@ -62,6 +63,49 @@ export default function TestimonialSubmit() {
       if (data.testimonial.invite_status === 'submitted' || data.testimonial.invite_status === 'published') {
         setSubmitted(true);
       }
+    }
+  }, [data]);
+
+  // Pre-fill form when testimonial is being edited (status = 'pending' with existing content)
+  useEffect(() => {
+    if (!data?.testimonial) return;
+
+    const testimonial = data.testimonial;
+
+    // Check if this is an edit (status is 'pending' and has existing text content)
+    const hasPromptContent = testimonial.prompt_what_brought || testimonial.prompt_sessions || testimonial.prompt_what_changed;
+    const hasFreefromContent = testimonial.full_text;
+
+    if (!hasPromptContent && !hasFreefromContent) return;
+
+    setIsEditMode(true);
+
+    // Pre-fill client display name and island
+    if (testimonial.client_display_name) {
+      setFirstName(testimonial.client_display_name);
+      setDisplayNameMode('first-name');
+    }
+
+    if (testimonial.client_island) {
+      setIsland(testimonial.client_island);
+    }
+
+    // Pre-fill guided mode if prompt fields exist
+    if (hasPromptContent) {
+      setUseGuidedPrompts(true);
+      if (testimonial.prompt_what_brought) {
+        setPromptWhatBrought(testimonial.prompt_what_brought);
+      }
+      if (testimonial.prompt_sessions) {
+        setPromptSessions(testimonial.prompt_sessions as SessionCount);
+      }
+      if (testimonial.prompt_what_changed) {
+        setPromptWhatChanged(testimonial.prompt_what_changed);
+      }
+    } else if (hasFreefromContent) {
+      // Pre-fill freeform mode
+      setUseGuidedPrompts(false);
+      setFreeformText(testimonial.full_text);
     }
   }, [data]);
 
@@ -239,6 +283,16 @@ export default function TestimonialSubmit() {
         {/* Form card */}
         <Card className="shadow-lg">
           <CardContent className="pt-6">
+            {/* Edit mode banner */}
+            {isEditMode && (
+              <div className="mb-6 flex items-start gap-3 p-3 rounded-lg bg-primary/10 border border-primary/30">
+                <AlertCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                <p className="text-sm text-primary">
+                  Your previous response has been loaded. Make your changes and submit again.
+                </p>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Display name options */}
               <div className="space-y-3">

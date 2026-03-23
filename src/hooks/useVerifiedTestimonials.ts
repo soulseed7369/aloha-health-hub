@@ -200,3 +200,57 @@ export function useRespondToTestimonial() {
     },
   });
 }
+
+interface RequestTestimonialEditPayload {
+  testimonialId: string;
+}
+
+interface RequestTestimonialEditResponse {
+  success: true;
+  editUrl: string;
+  message: string;
+}
+
+/**
+ * Request an edit link for a testimonial.
+ * Calls the request-testimonial-edit Edge Function to generate an edit URL.
+ */
+export function useRequestTestimonialEdit() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation<RequestTestimonialEditResponse, Error, RequestTestimonialEditPayload>({
+    mutationFn: async (payload: RequestTestimonialEditPayload) => {
+      if (!supabase || !user) throw new Error('Not authenticated');
+
+      // Refresh session to ensure valid token
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) throw new Error('Session expired — please sign in again');
+
+      // Use supabase.functions.invoke — handles apikey, auth, and CORS correctly
+      const { data, error } = await supabase.functions.invoke(
+        'request-testimonial-edit',
+        { body: payload }
+      );
+
+      if (error) {
+        throw new Error(error.message || 'Failed to request testimonial edit');
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate all testimonial-related queries to refetch
+      queryClient.invalidateQueries({
+        queryKey: ['my-testimonial-invites'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['verified-testimonials'],
+      });
+    },
+  });
+}
