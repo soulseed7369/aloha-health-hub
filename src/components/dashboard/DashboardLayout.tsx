@@ -71,10 +71,11 @@ export function DashboardLayout() {
 
   let sidebarLinks = baseLinks;
   if (isPremiumOrHigher && !accountTypeLoading && !billingLoading) {
-    // Insert analytics link before billing
+    // Insert premium-only links (testimonials, analytics) before billing
     sidebarLinks = baseLinks.flatMap(link => {
       if (link.to === '/dashboard/billing') {
         return [
+          { label: "Client Testimonials", to: "/dashboard/testimonials", icon: Quote },
           { label: "Analytics", to: "/dashboard/analytics", icon: BarChart3 },
           link,
         ];

@@ -47,6 +47,7 @@ const DashboardProfile  = lazyWithRetry(() => import("./pages/dashboard/Dashboar
 const DashboardCenters  = lazyWithRetry(() => import("./pages/dashboard/DashboardCenters"));
 const DashboardOfferings    = lazyWithRetry(() => import("./pages/dashboard/DashboardOfferings"));
 const DashboardClasses      = lazyWithRetry(() => import("./pages/dashboard/DashboardClasses"));
+const DashboardTestimonials = lazyWithRetry(() => import("./pages/dashboard/DashboardTestimonials"));
 const DashboardBilling      = lazyWithRetry(() => import("./pages/dashboard/DashboardBilling"));
 const DashboardAnalytics    = lazyWithRetry(() => import("./pages/dashboard/DashboardAnalytics"));
 const DashboardSettings     = lazyWithRetry(() => import("./pages/dashboard/DashboardSettings"));
@@ -124,7 +125,7 @@ const App = () => (
                   <Route path="centers"  element={<DashboardCenters />} />
                   <Route path="offerings"   element={<DashboardOfferings />} />
                   <Route path="classes"     element={<DashboardClasses />} />
-                  {/* Testimonials route removed — feature not ready for soft launch */}
+                  <Route path="testimonials" element={<DashboardTestimonials />} />
                   <Route path="analytics"   element={<DashboardAnalytics />} />
                   <Route path="billing"     element={<DashboardBilling />} />
                   <Route path="settings" element={<DashboardSettings />} />
