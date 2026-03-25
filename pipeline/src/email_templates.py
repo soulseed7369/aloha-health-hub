@@ -80,7 +80,7 @@ def phase1_claim(contact: dict) -> tuple:
 
     text_body = f"""Hi {name},
 
-I'm Marcus — I built Hawai'i Wellness (hawaiiwellness.net), a directory I created to help people across the islands find trusted wellness practitioners. It's the only directory dedicated entirely to wellness in Hawai'i, covering everything from lomilomi and yoga to acupuncture, somatic therapy, and beyond.
+I'm Marcus — I built Hawai'i Wellness (hawaiiwellness.net), the only directory dedicated entirely to wellness in Hawai'i, covering everything from lomilomi and yoga to acupuncture, somatic therapy, and beyond.
 
 Your {modality} practice{city_str} is already listed and showing up in searches. Right now your listing is unclaimed, which means you can't update your info, add photos, or know when someone's found you.
 
@@ -91,26 +91,58 @@ Would love to have you as a full part of what we're building here.
 
 Aloha,
 Marcus
-Hawai'i Wellness — hawaiiwellness.net"""
+Hawai'i Wellness — hawaiiwellness.net
 
-    html_body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b; line-height: 1.6;">
-  <p>Hi {name},</p>
+---
+Hawai'i Wellness · PO Box 44368, Kamuela, HI 96743
+You're receiving this because your practice appears in our wellness directory.
+Not interested? Just reply and I'll remove you."""
 
-  <p>I'm Marcus — I built <a href="{SITE_URL}" style="color: #0369a1;">Hawai'i Wellness</a>, a directory I created to help people across the islands find trusted wellness practitioners. It's the only directory dedicated entirely to wellness in Hawai'i, covering everything from lomilomi and yoga to acupuncture, somatic therapy, and beyond.</p>
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Preheader: shown in inbox preview before email is opened -->
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Your listing on Hawai'i Wellness is unclaimed — take 2 minutes to make it yours for free.&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌</div>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
 
-  <p>Your {modality} practice{city_str} is already listed and showing up in searches. Right now your listing is unclaimed, which means you can't update your info, add photos, or know when someone's found you.</p>
+  <!-- Logo header -->
+  <div style="background: #f0f9ff; padding: 24px 32px; text-align: center; border-bottom: 1px solid #e0f2fe;">
+    <a href="{SITE_URL}" style="text-decoration: none;">
+      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="180" style="height: auto; display: inline-block;" />
+    </a>
+  </div>
 
-  <p>Claiming takes about 2 minutes and it's completely free:</p>
+  <!-- Body -->
+  <div style="padding: 32px; color: #1e293b; line-height: 1.7;">
+    <p style="margin-top:0;">Hi {name},</p>
 
-  <p style="margin: 24px 0;">
-    <a href="{claim_link}" style="background: #0369a1; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Your Listing</a>
-  </p>
+    <p>I'm Marcus — I built <a href="{SITE_URL}" style="color: #0369a1;">Hawai'i Wellness</a>, the only directory dedicated entirely to wellness in Hawai'i, covering everything from lomilomi and yoga to acupuncture, somatic therapy, and beyond.</p>
 
-  <p>Would love to have you as a full part of what we're building here.</p>
+    <p>Your {modality} practice{city_str} is already listed and showing up in searches. Right now your listing is unclaimed, which means you can't update your info, add photos, or know when someone's found you.</p>
 
-  <p>Aloha,<br>Marcus<br>
-  <span style="color: #64748b; font-size: 14px;"><a href="{SITE_URL}" style="color: #64748b;">Hawai'i Wellness</a></span></p>
-</div>"""
+    <p>Claiming takes about 2 minutes and it's completely free:</p>
+
+    <p style="margin: 28px 0;">
+      <a href="{claim_link}" style="background: #0369a1; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">View Your Listing</a>
+    </p>
+
+    <p>Would love to have you as a full part of what we're building here.</p>
+
+    <p style="margin-bottom:0;">Aloha,<br><strong>Marcus</strong><br>
+    <a href="{SITE_URL}" style="color: #0369a1; text-decoration: none;">Hawai'i Wellness</a></p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+    <p style="margin: 0 0 4px 0;"><a href="{SITE_URL}" style="color: #94a3b8;">Hawai'i Wellness</a> · PO Box 44368, Kamuela, HI 96743</p>
+    <p style="margin: 0;">You're receiving this because your practice appears in our wellness directory.<br>Not interested? Just reply and I'll remove you.</p>
+  </div>
+
+</div>
+</body>
+</html>"""
 
     return subject, html_body, text_body
 
