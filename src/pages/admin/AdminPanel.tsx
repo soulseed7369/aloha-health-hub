@@ -17,7 +17,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { Plus, Trash2, Eye, EyeOff, Loader2, Upload, X, ImagePlus, Pencil, ChevronLeft, ChevronRight, ArrowLeftRight, CheckCircle, XCircle, Flag, Users, Star, Crown, MapPin as MapPinIcon, ClipboardList } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Loader2, Upload, X, ImagePlus, Pencil, ChevronLeft, ChevronRight, ArrowLeftRight, CheckCircle, XCircle, Flag, Users, Star, Crown, MapPin as MapPinIcon, ClipboardList, UserX } from 'lucide-react';
 import {
   AdminQueryParams,
   useAllPractitioners,
@@ -1051,6 +1051,34 @@ const AdminPanel = () => {
   };
 
   // ── Claims handlers ───────────────────────────────────────────────────────
+
+  const [resetOwnerBusy, setResetOwnerBusy] = useState<string | null>(null);
+
+  const handleResetOwner = async (listingId: string, listingType: 'practitioner' | 'center') => {
+    if (!supabase) return;
+    setResetOwnerBusy(listingId);
+    try {
+      const table = listingType === 'center' ? 'centers' : 'practitioners';
+      const { error } = await supabase
+        .from(table)
+        .update({ owner_id: null })
+        .eq('id', listingId);
+      if (error) throw error;
+      toast.success('Ownership cleared — listing is now unclaimed');
+      // Update the local editing state so UI reflects the change
+      if (listingType === 'practitioner' && editingPractitioner) {
+        setEditingPractitioner({ ...editingPractitioner, owner_id: null } as any);
+      }
+      if (listingType === 'center' && editingCenter) {
+        setEditingCenter({ ...editingCenter, owner_id: null } as any);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to reset ownership');
+    } finally {
+      setResetOwnerBusy(null);
+    }
+  };
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="container mx-auto py-8 max-w-4xl">
@@ -2043,6 +2071,36 @@ const AdminPanel = () => {
                 </div>
               </div>
 
+              {/* Claim / Ownership management */}
+              <div className="p-3 rounded-md border border-amber-200 bg-amber-50/50">
+                <p className="text-xs font-medium text-amber-700 mb-2">Listing Ownership</p>
+                {(editingPractitioner as any).owner_id ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm">
+                      <span className="text-green-700 font-medium">Claimed</span>
+                      <span className="text-muted-foreground ml-1.5 text-xs">
+                        owner: <code className="bg-white px-1 py-0.5 rounded text-[10px]">{(editingPractitioner as any).owner_id}</code>
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-destructive hover:text-destructive border-destructive/30"
+                      disabled={resetOwnerBusy === editingPractitioner.id}
+                      onClick={() => handleResetOwner(editingPractitioner.id, 'practitioner')}
+                    >
+                      {resetOwnerBusy === editingPractitioner.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <UserX className="h-3.5 w-3.5" />}
+                      Reset Claim
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Unclaimed — no owner assigned</p>
+                )}
+              </div>
+
               <Button type="submit" className="w-full"
                 disabled={updatePractitioner.isPending || editPractitionerUploading}>
                 {(updatePractitioner.isPending || editPractitionerUploading)
@@ -2584,6 +2642,36 @@ const AdminPanel = () => {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Claim / Ownership management */}
+              <div className="p-3 rounded-md border border-amber-200 bg-amber-50/50">
+                <p className="text-xs font-medium text-amber-700 mb-2">Listing Ownership</p>
+                {(editingCenter as any).owner_id ? (
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm">
+                      <span className="text-green-700 font-medium">Claimed</span>
+                      <span className="text-muted-foreground ml-1.5 text-xs">
+                        owner: <code className="bg-white px-1 py-0.5 rounded text-[10px]">{(editingCenter as any).owner_id}</code>
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-destructive hover:text-destructive border-destructive/30"
+                      disabled={resetOwnerBusy === editingCenter.id}
+                      onClick={() => handleResetOwner(editingCenter.id, 'center')}
+                    >
+                      {resetOwnerBusy === editingCenter.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <UserX className="h-3.5 w-3.5" />}
+                      Reset Claim
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Unclaimed — no owner assigned</p>
+                )}
               </div>
 
               <Button type="submit" className="w-full"
