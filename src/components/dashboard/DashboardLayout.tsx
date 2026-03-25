@@ -17,7 +17,6 @@ const practitionerLinks = [
   { label: "My Practitioner Profile", to: "/dashboard/profile",      icon: User },
   { label: "Offerings & Events",      to: "/dashboard/offerings",    icon: Sparkles },
   { label: "Classes",                 to: "/dashboard/classes",      icon: CalendarDays },
-  { label: "Client Testimonials",     to: "/dashboard/testimonials", icon: Quote },
   { label: "Billing & Subscription",  to: "/dashboard/billing",      icon: CreditCard },
   { label: "Account Settings",        to: "/dashboard/settings",     icon: Settings },
 ];

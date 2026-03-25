@@ -1,16 +1,14 @@
 /**
- * usePostAuthRedirect — global fallback for post-authentication redirects.
+ * usePostAuthRedirect — two-layer fallback for post-authentication redirects.
  *
- * Problem: Supabase OAuth sometimes ignores the `redirectTo` parameter and
- * sends the user to the Site URL (`/`) instead of `/auth/callback`. When that
- * happens, AuthCallback never runs, so `pendingClaimId` and other localStorage
- * intents are never consumed.
+ * Layer 1 (code forwarding):
+ *   Supabase sometimes ignores `redirectTo` and sends the user to the Site URL
+ *   (`/`) with `?code=xxx` instead of `/auth/callback?code=xxx`. We intercept
+ *   this and forward to AuthCallback so the code can be exchanged properly.
  *
- * Solution: This hook runs once per auth-state transition (loading → signed-in)
- * on ANY page. If it finds a pending intent in localStorage AND the user just
- * authenticated (wasn't already signed in), it performs the redirect.
- *
- * This is safe to mount globally — it only fires once per session bootstrap.
+ * Layer 2 (intent-based redirect):
+ *   After the session is established on any page, if there's a pending intent
+ *   in localStorage (claim, redirect, plan), redirect the user there.
  */
 
 import { useEffect, useRef } from 'react';
@@ -25,11 +23,23 @@ export function usePostAuthRedirect() {
   const location = useLocation();
   const hasRedirected = useRef(false);
 
+  // ── Layer 1: Forward auth codes that landed on the wrong page ──────────
   useEffect(() => {
-    // Only run once, only after auth has loaded, only if user is signed in
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+
+    // If there's a ?code= param and we're NOT on /auth/callback,
+    // Supabase redirected to the wrong URL. Forward to AuthCallback.
+    if (code && !window.location.pathname.startsWith('/auth/callback')) {
+      window.location.replace(`/auth/callback?code=${encodeURIComponent(code)}`);
+    }
+  }, []); // Run once on mount
+
+  // ── Layer 2: Redirect based on pending localStorage intents ────────────
+  useEffect(() => {
     if (loading || !user || hasRedirected.current) return;
 
-    // Don't interfere if we're already on a page that handles its own redirect logic
+    // Don't interfere if we're already on a page that handles its own redirects
     const path = location.pathname;
     if (
       path.startsWith('/auth') ||

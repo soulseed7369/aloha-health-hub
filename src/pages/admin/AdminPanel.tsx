@@ -865,6 +865,15 @@ const AdminPanel = () => {
                   <Star className="h-2.5 w-2.5" /> Premium
                 </span>
               )}
+              {(p as any).owner_id ? (
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                  <CheckCircle className="h-2.5 w-2.5" /> Claimed
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                  Unclaimed
+                </span>
+              )}
               <Button variant="ghost" size="sm" onClick={() => openEditPractitionerDialog(p)}>
                 <Pencil className="h-4 w-4 text-blue-500" />
               </Button>
@@ -1025,6 +1034,15 @@ const AdminPanel = () => {
             {c.tier === 'premium' && (
               <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                 <Star className="h-2.5 w-2.5" /> Premium
+              </span>
+            )}
+            {(c as any).owner_id ? (
+              <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                <CheckCircle className="h-2.5 w-2.5" /> Claimed
+              </span>
+            ) : (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
+                Unclaimed
               </span>
             )}
             <Button variant="ghost" size="sm" onClick={() => openEditCenterDialog(c)}>
