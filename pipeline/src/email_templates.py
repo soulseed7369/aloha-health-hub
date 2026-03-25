@@ -80,32 +80,36 @@ def phase1_claim(contact: dict) -> tuple:
 
     text_body = f"""Hi {name},
 
-I'm Marcus — I created Hawai'i Wellness, the wellness directory for the Hawaiian islands.
+I'm Marcus — I built Hawai'i Wellness (hawaiiwellness.net), a directory I created to help people across the islands find trusted wellness practitioners. It's the only directory dedicated entirely to wellness in Hawai'i, covering everything from lomilomi and yoga to acupuncture, somatic therapy, and beyond.
 
-Your {modality} practice{city_str} is already listed, and people are finding you. Right now your listing is unclaimed, which means you can't update your info, add photos, or see who's looking at your profile.
+Your {modality} practice{city_str} is already listed and showing up in searches. Right now your listing is unclaimed, which means you can't update your info, add photos, or know when someone's found you.
 
-Claiming takes 2 minutes and it's free:
+Claiming takes about 2 minutes and it's completely free:
 {claim_link}
+
+Would love to have you as a full part of what we're building here.
 
 Aloha,
 Marcus
-Hawaii Wellness"""
+Hawai'i Wellness — hawaiiwellness.net"""
 
     html_body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b; line-height: 1.6;">
   <p>Hi {name},</p>
 
-  <p>I'm Marcus — I created <a href="{SITE_URL}" style="color: #0369a1;">Hawai'i Wellness</a>, the wellness directory for the Hawaiian islands.</p>
+  <p>I'm Marcus — I built <a href="{SITE_URL}" style="color: #0369a1;">Hawai'i Wellness</a>, a directory I created to help people across the islands find trusted wellness practitioners. It's the only directory dedicated entirely to wellness in Hawai'i, covering everything from lomilomi and yoga to acupuncture, somatic therapy, and beyond.</p>
 
-  <p>Your {modality} practice{city_str} is already listed, and people are finding you. Right now your listing is unclaimed, which means you can't update your info, add photos, or see who's looking at your profile.</p>
+  <p>Your {modality} practice{city_str} is already listed and showing up in searches. Right now your listing is unclaimed, which means you can't update your info, add photos, or know when someone's found you.</p>
 
-  <p>Claiming takes 2 minutes and it's free:</p>
+  <p>Claiming takes about 2 minutes and it's completely free:</p>
 
   <p style="margin: 24px 0;">
     <a href="{claim_link}" style="background: #0369a1; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Your Listing</a>
   </p>
 
+  <p>Would love to have you as a full part of what we're building here.</p>
+
   <p>Aloha,<br>Marcus<br>
-  <span style="color: #64748b; font-size: 14px;">Hawaii Wellness</span></p>
+  <span style="color: #64748b; font-size: 14px;"><a href="{SITE_URL}" style="color: #64748b;">Hawai'i Wellness</a></span></p>
 </div>"""
 
     return subject, html_body, text_body
