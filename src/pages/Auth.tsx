@@ -104,8 +104,12 @@ export default function Auth() {
     try {
       // Persist account type + claim context through the OAuth redirect
       localStorage.setItem('pendingAccountType', selectedAccountType);
-      if (claimId) localStorage.setItem('pendingClaimId', claimId);
-      if (redirectTo) localStorage.setItem('pendingRedirect', redirectTo);
+      if (claimId) {
+        localStorage.setItem('pendingClaimId', claimId);
+      }
+      // Always set a redirect target so post-auth guard knows where to send the user,
+      // even if Supabase redirects to the Site URL instead of /auth/callback.
+      localStorage.setItem('pendingRedirect', redirectTo || '/dashboard');
 
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
@@ -132,7 +136,7 @@ export default function Auth() {
       // Store account type + claim context before auth, will be picked up in callback
       localStorage.setItem('pendingAccountType', selectedAccountType);
       if (claimId) localStorage.setItem('pendingClaimId', claimId);
-      if (redirectTo) localStorage.setItem('pendingRedirect', redirectTo);
+      localStorage.setItem('pendingRedirect', redirectTo || '/dashboard');
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -161,7 +165,7 @@ export default function Auth() {
         // Store account type + claim context before signup
         localStorage.setItem('pendingAccountType', selectedAccountType);
         if (claimId) localStorage.setItem('pendingClaimId', claimId);
-        if (redirectTo) localStorage.setItem('pendingRedirect', redirectTo);
+        localStorage.setItem('pendingRedirect', redirectTo || '/dashboard');
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
@@ -176,7 +180,7 @@ export default function Auth() {
         // Use localStorage to avoid race condition with stale `user` from AuthContext
         localStorage.setItem('pendingAccountType', selectedAccountType);
         if (claimId) localStorage.setItem('pendingClaimId', claimId);
-        if (redirectTo) localStorage.setItem('pendingRedirect', redirectTo);
+        localStorage.setItem('pendingRedirect', redirectTo || '/dashboard');
         // navigation handled by useEffect above
       }
     } catch (err: unknown) {

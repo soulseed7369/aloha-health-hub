@@ -1,28 +1,29 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { isAdmin } from '@/lib/admin';
 import { Leaf, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { AccountType } from '@/hooks/useAccountType';
+import type { Session } from '@supabase/supabase-js';
 
 /**
- * Handles the Supabase magic-link / email-confirm / phone-OTP callback.
+ * Handles the post-auth callback for all Supabase auth flows:
  *
- * Supports two Supabase auth flow configurations:
+ * - PKCE flow: URL contains ?code=xxxx — auto-detection (detectSessionInUrl)
+ *   exchanges it for a session automatically.
+ * - Implicit flow: URL hash contains #access_token=xxx — auto-detection
+ *   processes the hash automatically.
+ * - Already signed in: user navigated here directly while already logged in.
  *
- * 1. PKCE flow (default in v2): URL contains ?code=xxxx — we call
- *    exchangeCodeForSession() to turn it into a session.
- *
- * 2. Implicit flow (legacy / some project configs): URL hash contains
- *    #access_token=xxx&refresh_token=xxx — Supabase JS processes the hash
- *    automatically; we just wait for the session via onAuthStateChange.
- *
- * After either path resolves we save the pending account type and redirect.
+ * We do NOT manually call exchangeCodeForSession — that races with
+ * auto-detection and causes intermittent "code already used" failures.
+ * Instead we wait for the session to appear via onAuthStateChange or getSession.
  */
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const handled = useRef(false);
 
   useEffect(() => {
     if (!supabase) {
@@ -30,54 +31,52 @@ export default function AuthCallback() {
       return;
     }
 
-    const code = new URLSearchParams(window.location.search).get('code');
+    const finish = async (session: Session) => {
+      if (handled.current) return;
+      handled.current = true;
+      await finalise(session.user?.id);
+    };
 
-    // ── PKCE flow ─────────────────────────────────────────────────────────────
-    if (code) {
-      supabase.auth
-        .exchangeCodeForSession(code)
-        .then(async ({ data, error: exchangeError }) => {
-          if (exchangeError) {
-            // Surface a clear message — most common cause is an expired link
-            setError(exchangeError.message || 'Sign-in link is invalid or has expired. Please request a new one.');
-            return;
-          }
-          await finalise(data.session?.user?.id);
-        });
-      return;
-    }
+    // 1. Listen for SIGNED_IN event (fires when auto-detection completes)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION')) {
+          subscription.unsubscribe();
+          await finish(session);
+        }
+      },
+    );
 
-    // ── Implicit flow / hash-based token ─────────────────────────────────────
-    // Supabase JS auto-processes #access_token=… hashes before we can read them,
-    // so by the time this effect runs the session may already be set.
-    // We listen for the first SIGNED_IN event (fires within milliseconds).
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        subscription.unsubscribe();
-        await finalise(session.user?.id);
-      }
-      // If no SIGNED_IN fires, check whether we already have an active session
-      // (e.g. user navigated to /auth/callback directly while already logged in)
-    });
-
-    // Fallback: if already signed in right now, proceed immediately
+    // 2. Check if session already exists (auto-detection may have completed
+    //    before this effect runs, or user is already logged in)
     supabase.auth.getSession().then(async ({ data }) => {
       if (data.session) {
         subscription.unsubscribe();
-        await finalise(data.session.user?.id);
-        return;
+        await finish(data.session);
       }
-      // Give the implicit-flow listener a few seconds; if nothing fires, send
-      // them to /auth with an explanation
-      const timer = setTimeout(() => {
-        subscription.unsubscribe();
-        setError('Could not verify your sign-in. The link may have expired — please request a new one.');
-      }, 8000);
-      // Store timer reference so the cleanup can cancel it
-      return () => clearTimeout(timer);
     });
 
-    return () => subscription.unsubscribe();
+    // 3. Timeout — if nothing fires within 10 seconds, show an error.
+    //    One final getSession check before giving up.
+    const timer = setTimeout(async () => {
+      if (handled.current) return;
+      const { data } = await supabase!.auth.getSession();
+      if (data.session) {
+        subscription.unsubscribe();
+        await finish(data.session);
+        return;
+      }
+      handled.current = true;
+      subscription.unsubscribe();
+      setError(
+        'Could not verify your sign-in. The link may have expired — please request a new one.',
+      );
+    }, 10_000);
+
+    return () => {
+      clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // ── Shared post-auth logic ──────────────────────────────────────────────────
@@ -103,36 +102,34 @@ export default function AuthCallback() {
     const userEmail = sessionData.session?.user?.email;
 
     // Determine the target route
-    // Priority: pendingClaimId > pendingRedirect > pendingPlan > isAdmin > default dashboard
+    // Priority: pendingClaimId > isAdmin > pendingRedirect > pendingPlan > default dashboard
     let target = '/dashboard';
 
-    // Check for pending claim FIRST (set before OAuth redirect)
-    // Claiming takes precedence over role-based redirects
+    // Read and clear ALL pending intents upfront to prevent stale values
     const pendingClaimId = localStorage.getItem('pendingClaimId');
+    const pendingRedirect = localStorage.getItem('pendingRedirect');
+    const pendingPlan = localStorage.getItem('pendingPlan');
     localStorage.removeItem('pendingClaimId');
+    localStorage.removeItem('pendingRedirect');
+    // pendingPlan is NOT removed here — DashboardHome still needs it for auto-checkout
+
     const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (pendingClaimId && UUID_RE.test(pendingClaimId)) {
       target = `/claim/${pendingClaimId}`;
     } else if (isAdmin(userEmail)) {
       target = '/admin';
+    } else if (pendingRedirect && typeof pendingRedirect === 'string' && pendingRedirect.startsWith('/')) {
+      target = pendingRedirect;
     } else {
-      // Check for pending redirect (set before OAuth redirect)
-      const pendingRedirect = localStorage.getItem('pendingRedirect');
-      localStorage.removeItem('pendingRedirect');
-      if (pendingRedirect && typeof pendingRedirect === 'string' && pendingRedirect.startsWith('/')) {
-        target = pendingRedirect;
-      } else {
-        const pending = localStorage.getItem('pendingPlan');
-        const validPlans = [
-          'free',
-          'price_1TCo3PAmznBlrx8spOgZD1VC',
-          'price_1TErgTAmznBlrx8scCN6CsNa',
-          'price_1TErf1AmznBlrx8suRd3ARgM',
-          'price_1TEszAAmznBlrx8sDwkodC8z',
-        ];
-        if (pending && validPlans.includes(pending) && pending !== 'free') {
-          target = '/dashboard/billing';
-        }
+      const validPlans = [
+        'free',
+        'price_1TCo3PAmznBlrx8spOgZD1VC',
+        'price_1TErgTAmznBlrx8scCN6CsNa',
+        'price_1TErf1AmznBlrx8suRd3ARgM',
+        'price_1TEszAAmznBlrx8sDwkodC8z',
+      ];
+      if (pendingPlan && validPlans.includes(pendingPlan) && pendingPlan !== 'free') {
+        target = '/dashboard/billing';
       }
     }
 

@@ -1,10 +1,10 @@
 /**
  * usePostAuthRedirect — two-layer fallback for post-authentication redirects.
  *
- * Layer 1 (code forwarding):
+ * Layer 1 (token forwarding):
  *   Supabase sometimes ignores `redirectTo` and sends the user to the Site URL
- *   (`/`) with `?code=xxx` instead of `/auth/callback?code=xxx`. We intercept
- *   this and forward to AuthCallback so the code can be exchanged properly.
+ *   (`/`) with `?code=xxx` or `#access_token=xxx` instead of `/auth/callback`.
+ *   We intercept and forward to AuthCallback so the tokens can be processed.
  *
  * Layer 2 (intent-based redirect):
  *   After the session is established on any page, if there's a pending intent
@@ -23,19 +23,28 @@ export function usePostAuthRedirect() {
   const location = useLocation();
   const hasRedirected = useRef(false);
 
-  // ── Layer 1: Forward auth codes that landed on the wrong page ──────────
+  // ── Layer 1: Forward auth tokens that landed on the wrong page ────────────
   useEffect(() => {
+    // Already on the callback page — nothing to forward
+    if (window.location.pathname.startsWith('/auth/callback')) return;
+
+    // Check for PKCE code in query params
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-
-    // If there's a ?code= param and we're NOT on /auth/callback,
-    // Supabase redirected to the wrong URL. Forward to AuthCallback.
-    if (code && !window.location.pathname.startsWith('/auth/callback')) {
+    if (code) {
       window.location.replace(`/auth/callback?code=${encodeURIComponent(code)}`);
+      return;
+    }
+
+    // Check for implicit-flow tokens in hash fragment
+    const hash = window.location.hash;
+    if (hash && (hash.includes('access_token=') || hash.includes('refresh_token='))) {
+      window.location.replace(`/auth/callback${hash}`);
+      return;
     }
   }, []); // Run once on mount
 
-  // ── Layer 2: Redirect based on pending localStorage intents ────────────
+  // ── Layer 2: Redirect based on pending localStorage intents ────────────────
   useEffect(() => {
     if (loading || !user || hasRedirected.current) return;
 
