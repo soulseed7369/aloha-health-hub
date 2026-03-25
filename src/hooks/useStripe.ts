@@ -39,8 +39,8 @@ export function useCreateCheckoutSession() {
         {
           body: {
             priceId,
-            successUrl: successUrl ?? `${window.location.origin}/dashboard/billing?success=1`,
-            cancelUrl:  cancelUrl  ?? `${window.location.origin}/dashboard/billing`,
+            successUrl: successUrl ?? `${window.location.origin.replace('://www.', '://')}/dashboard/billing?success=1`,
+            cancelUrl:  cancelUrl  ?? `${window.location.origin.replace('://www.', '://')}/dashboard/billing`,
           },
           // Explicitly pass the freshly-refreshed token.
           headers: {
