@@ -31,7 +31,7 @@ export default function DashboardHome() {
   useEffect(() => {
     const pending = localStorage.getItem('pendingPlan');
     // Validate pendingPlan is one of the expected values to prevent abuse
-    const validPlans = ['free', 'price_1TCo3PAmznBlrx8spOgZD1VC', 'price_1T7loEAmznBlrx8s5j92qxX8', 'price_1TCA70AmznBlrx8sSVyl2HtA', 'price_1TCA7KAmznBlrx8s2IOtOThI'];
+    const validPlans = ['free', 'price_1TCo3PAmznBlrx8spOgZD1VC', 'price_1TErgTAmznBlrx8scCN6CsNa', 'price_1TErf1AmznBlrx8suRd3ARgM', 'price_1TEszAAmznBlrx8sDwkodC8z'];
     if (!pending || !validPlans.includes(pending) || pending === 'free') {
       localStorage.removeItem('pendingPlan');
       return;

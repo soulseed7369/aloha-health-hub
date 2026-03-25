@@ -19,9 +19,9 @@ const CORS_HEADERS = {
 
 const VALID_PRICE_IDS = [
   'price_1TCo3PAmznBlrx8spOgZD1VC', // Practitioner Premium $39/mo
-  'price_1T7loEAmznBlrx8s5j92qxX8', // Practitioner Featured $129/mo
-  'price_1TCA70AmznBlrx8sSVyl2HtA', // Center Premium $79/mo
-  'price_1TCA7KAmznBlrx8s2IOtOThI', // Center Featured $199/mo
+  'price_1TErgTAmznBlrx8scCN6CsNa', // Practitioner Featured $69/mo
+  'price_1TErf1AmznBlrx8suRd3ARgM', // Center Premium $69/mo
+  'price_1TEszAAmznBlrx8sDwkodC8z', // Center Featured $109/mo
 ];
 
 // ── Decode JWT payload without verification ──────────────────────────────────
@@ -112,9 +112,9 @@ Deno.serve(async (req) => {
     // so checkout falls through to full price gracefully.
     const KAMAAINA_COUPONS: Record<string, string> = {
       'price_1TCo3PAmznBlrx8spOgZD1VC': 'BBcPxrKU',  // Practitioner Premium — $10 off · first 20 (Kamaʻāina Rate)
-      'price_1T7loEAmznBlrx8s5j92qxX8': 'UeVQl6gU',  // Practitioner Featured — first 5
-      'price_1TCA70AmznBlrx8sSVyl2HtA': 'VePaXQxy',  // Center Premium — first 5
-      'price_1TCA7KAmznBlrx8s2IOtOThI': 'nxaOxE61',  // Center Featured — first 5
+      'price_1TErgTAmznBlrx8scCN6CsNa': 'UeVQl6gU',  // Practitioner Featured — first 5
+      'price_1TErf1AmznBlrx8suRd3ARgM': 'VePaXQxy',  // Center Premium — first 5
+      'price_1TEszAAmznBlrx8sDwkodC8z': 'nxaOxE61',  // Center Featured — first 5
     };
     const kamaalainaCoupon = KAMAAINA_COUPONS[priceId] ?? null;
 

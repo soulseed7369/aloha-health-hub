@@ -14,13 +14,13 @@ export const STRIPE_PRICES = {
   /** Practitioner Premium: $39/mo (kamaaina $29/mo) */
   PREMIUM_MONTHLY:         'price_1TCo3PAmznBlrx8spOgZD1VC',
   /** Practitioner Featured: $69/mo (kamaaina $49/mo) */
-  FEATURED_MONTHLY:        'price_1T7loEAmznBlrx8s5j92qxX8',
+  FEATURED_MONTHLY:        'price_1TErgTAmznBlrx8scCN6CsNa',
 
   // ── Wellness Centers ─────────────────────────────────────────────────────
   /** Center Premium: $69/mo (kamaaina $49/mo) */
-  CENTER_PREMIUM_MONTHLY:  'price_1TCA70AmznBlrx8sSVyl2HtA',
-  /** Center Featured: $129/mo (kamaaina $99/mo) */
-  CENTER_FEATURED_MONTHLY: 'price_1TCA7KAmznBlrx8s2IOtOThI',
+  CENTER_PREMIUM_MONTHLY:  'price_1TErf1AmznBlrx8suRd3ARgM',
+  /** Center Featured: $109/mo (kamaaina $79/mo) */
+  CENTER_FEATURED_MONTHLY: 'price_1TEszAAmznBlrx8sDwkodC8z',
 } as const;
 
 export type StripePriceId = typeof STRIPE_PRICES[keyof typeof STRIPE_PRICES];

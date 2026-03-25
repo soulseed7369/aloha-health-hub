@@ -87,7 +87,7 @@ const PRICING = {
   },
   center: {
     premium:  { price: 69,  kamaaina: 49,  spots: 25, priceId: STRIPE_PRICES.CENTER_PREMIUM_MONTHLY },
-    featured: { price: 129, kamaaina: 99,  spots: 10, priceId: STRIPE_PRICES.CENTER_FEATURED_MONTHLY },
+    featured: { price: 109, kamaaina: 79,  spots: 10, priceId: STRIPE_PRICES.CENTER_FEATURED_MONTHLY },
   },
 } as const;
 

@@ -35,11 +35,11 @@ const supabase = createClient(
 // Covers both practitioner and center price IDs (same tier names, different prices).
 const PRICE_TIER_MAP: Record<string, 'premium' | 'featured'> = {
   // Practitioners
-  'price_1TCo3PAmznBlrx8spOgZD1VC': 'premium',   // $39/mo
-  'price_1T7loEAmznBlrx8s5j92qxX8': 'featured',  // $129/mo
+  'price_1TCo3PAmznBlrx8spOgZD1VC': 'premium',   // Practitioner $39/mo
+  'price_1TErgTAmznBlrx8scCN6CsNa': 'featured',  // Practitioner $69/mo
   // Wellness Centers
-  'price_1TCA70AmznBlrx8sSVyl2HtA': 'premium',   // $79/mo
-  'price_1TCA7KAmznBlrx8s2IOtOThI': 'featured',  // $199/mo
+  'price_1TErf1AmznBlrx8suRd3ARgM': 'premium',   // Center $69/mo
+  'price_1TEszAAmznBlrx8sDwkodC8z': 'featured',  // Center $109/mo
 };
 
 Deno.serve(async (req) => {
