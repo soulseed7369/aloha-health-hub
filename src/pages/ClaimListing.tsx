@@ -206,7 +206,7 @@ export default function ClaimListing() {
         email: listing.email,
         options: {
           shouldCreateUser: false,
-          emailRedirectTo: `${window.location.origin}/claim/${listing.id}`,
+          emailRedirectTo: `${window.location.origin.replace('://www.', '://')}/claim/${listing.id}`,
         },
       });
       if (err) { setError(err.message); return; }

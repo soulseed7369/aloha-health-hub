@@ -114,7 +114,7 @@ export default function Auth() {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin.replace('://www.', '://')}/auth/callback`,
         },
       });
       if (oauthError) throw oauthError;
@@ -140,7 +140,7 @@ export default function Auth() {
       const { error: otpError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin.replace('://www.', '://')}/auth/callback`,
           shouldCreateUser: true,
         },
       });
@@ -169,7 +169,7 @@ export default function Auth() {
         const { error: signUpError } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+          options: { emailRedirectTo: `${window.location.origin.replace('://www.', '://')}/auth/callback` },
         });
         if (signUpError) throw signUpError;
         setMagicSent(true);
