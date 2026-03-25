@@ -2,7 +2,7 @@
  * useStripe.ts
  * Client-side hooks for Stripe Checkout integration.
  */
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { STRIPE_PRICES, VALID_PRICE_IDS, PROMO_ACTIVE } from '@/lib/stripe';
 
@@ -205,5 +205,51 @@ export const CENTER_PLAN_OPTIONS = [
 
 // Legacy alias — default to practitioner plans
 export const PLAN_OPTIONS = PRACTITIONER_PLAN_OPTIONS;
+
+// ── Cancel subscription ───────────────────────────────────────────────────────
+
+export interface CancelResult {
+  success: boolean;
+  cancel_at: string; // ISO timestamp — when access ends
+}
+
+export function useCancelSubscription() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (): Promise<CancelResult> => {
+      if (!supabase) throw new Error('Supabase not configured');
+
+      const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+      const session = refreshData?.session;
+      if (refreshErr || !session) throw new Error('Please sign in again to continue.');
+
+      const { data, error } = await supabase.functions.invoke('cancel-subscription', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (error) {
+        let message = error.message || 'Failed to cancel subscription';
+        try {
+          const context = (error as any).context as Response | undefined;
+          if (context) {
+            const text = await context.text();
+            if (text) {
+              try { message = JSON.parse(text).error || text; } catch { message = text; }
+            }
+          }
+        } catch { /* ignore */ }
+        throw new Error(message);
+      }
+
+      if (!data?.success) throw new Error('Cancellation failed — please try again.');
+      return data as CancelResult;
+    },
+    onSuccess: () => {
+      // Refresh billing profile so UI immediately shows "Cancels on [date]"
+      queryClient.invalidateQueries({ queryKey: ['my-billing-profile'] });
+    },
+  });
+}
 
 export { VALID_PRICE_IDS, PROMO_ACTIVE };

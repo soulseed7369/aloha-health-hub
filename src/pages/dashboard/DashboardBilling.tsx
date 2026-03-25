@@ -1,13 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CreditCard, CheckCircle, Star, Crown, Loader2, PartyPopper } from "lucide-react";
+import { CreditCard, CheckCircle, Star, Crown, Loader2, PartyPopper, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { useMyBillingProfile, useCreateCheckoutSession, PRACTITIONER_PLAN_OPTIONS, CENTER_PLAN_OPTIONS } from "@/hooks/useStripe";
+import { useMyBillingProfile, useCreateCheckoutSession, useCancelSubscription, PRACTITIONER_PLAN_OPTIONS, CENTER_PLAN_OPTIONS } from "@/hooks/useStripe";
 import { STRIPE_PRICES } from "@/lib/stripe";
 import { useAccountType } from "@/hooks/useAccountType";
 
@@ -20,10 +20,12 @@ const TIER_META = {
 export default function DashboardBilling() {
   const [searchParams] = useSearchParams();
   const successParam = searchParams.get("success");
+  const [confirmCancel, setConfirmCancel] = useState(false);
 
   const { data: billing, isLoading } = useMyBillingProfile();
   const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
   const checkout = useCreateCheckoutSession();
+  const cancel = useCancelSubscription();
 
   // Select the appropriate plan options based on account type
   const planOptions = accountType === 'center' ? CENTER_PLAN_OPTIONS : PRACTITIONER_PLAN_OPTIONS;
@@ -42,6 +44,22 @@ export default function DashboardBilling() {
       { priceId },
       { onError: (e: Error) => toast.error(e.message) },
     );
+  }
+
+  function handleCancelConfirm() {
+    cancel.mutate(undefined, {
+      onSuccess: (data) => {
+        const endDate = new Date(data.cancel_at).toLocaleDateString("en-US", {
+          month: "long", day: "numeric", year: "numeric",
+        });
+        toast.success(`Subscription canceled. You'll have access until ${endDate}.`);
+        setConfirmCancel(false);
+      },
+      onError: (e: Error) => {
+        toast.error(e.message);
+        setConfirmCancel(false);
+      },
+    });
   }
 
   const currentTier = billing?.tier ?? "free";
@@ -85,12 +103,13 @@ export default function DashboardBilling() {
                     {tierMeta.label}
                   </span>
                 </div>
-                {billing?.subscription_status && billing.subscription_status !== "active" && (
-                  <p className="text-sm text-amber-600 capitalize">{billing.subscription_status}</p>
+                {billing?.subscription_status === "cancel_at_period_end" && (
+                  <p className="text-sm text-amber-600 font-medium">Cancels at period end</p>
                 )}
                 {billing?.subscription_period_end && (
                   <p className="text-sm text-muted-foreground">
-                    Renews {new Date(billing.subscription_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                    {billing.subscription_status === "cancel_at_period_end" ? "Access until" : "Renews"}{" "}
+                    {new Date(billing.subscription_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                   </p>
                 )}
               </div>
@@ -263,9 +282,56 @@ export default function DashboardBilling() {
               </p>
             </div>
           </div>
-          {billing?.stripe_customer_id && (
-            <p className="mt-3 text-xs text-muted-foreground">
-              To update your payment method or cancel, please contact support.
+          {/* Cancel subscription */}
+          {billing?.tier !== "free" && billing?.subscription_status !== "cancel_at_period_end" && (
+            <div className="mt-4 border-t pt-4">
+              {!confirmCancel ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => setConfirmCancel(true)}
+                >
+                  Cancel subscription
+                </Button>
+              ) : (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-destructive">Cancel your subscription?</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You'll keep {billing?.tier} access until the end of your current billing period. After that, your listing reverts to the free plan.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={handleCancelConfirm}
+                      disabled={cancel.isPending}
+                    >
+                      {cancel.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+                      Yes, cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmCancel(false)}
+                      disabled={cancel.isPending}
+                    >
+                      Keep subscription
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          {billing?.subscription_status === "cancel_at_period_end" && billing?.subscription_period_end && (
+            <p className="mt-3 text-xs text-amber-600">
+              Your subscription is canceled. Access continues until{" "}
+              {new Date(billing.subscription_period_end).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}.
             </p>
           )}
         </CardContent>

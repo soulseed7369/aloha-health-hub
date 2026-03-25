@@ -116,10 +116,14 @@ Deno.serve(async (req) => {
         const userId = await getUserByCustomerId(customerId);
         if (!userId) break;
 
+        // Preserve cancel_at_period_end status so the UI shows "Cancels on [date]"
+        // rather than overwriting back to 'active'.
+        const subStatus = sub.cancel_at_period_end ? 'cancel_at_period_end' : sub.status;
+
         await upsertProfile(userId, {
           tier,
           stripe_price_id:         priceId,
-          subscription_status:     sub.status,
+          subscription_status:     subStatus,
           subscription_period_end: new Date(sub.current_period_end * 1000).toISOString(),
         });
 
