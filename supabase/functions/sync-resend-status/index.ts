@@ -219,13 +219,11 @@ async function updateCampaignOutreach(
   else if (newEmailStatus === 'clicked') {
     updatePayload.email_1_clicked_at = now;
   }
-  // Handle opened emails
+  // Handle opened emails — always record the timestamp, advance status if still at email_1_sent
   else if (newEmailStatus === 'opened') {
-    if (currentOutreachStatus === 'email_1_sent') {
+    updatePayload.email_1_opened_at = now;
+    if (currentOutreachStatus === 'email_1_sent' || currentOutreachStatus === 'delivered') {
       updatePayload.status = 'email_1_opened';
-      updatePayload.email_1_opened_at = now;
-    } else if (currentOutreachStatus === 'delivered') {
-      updatePayload.email_1_opened_at = now;
     }
   }
   // Handle delivered emails
@@ -269,7 +267,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Parse request body ──────────────────────────────────────────────────
-    let sinceHours = 48; // default
+    let sinceHours = 720; // default — 30 days
     if (req.method === 'POST') {
       try {
         const body = await req.json();

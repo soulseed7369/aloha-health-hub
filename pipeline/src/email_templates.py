@@ -110,7 +110,7 @@ Not interested? Just reply and I'll remove you."""
   <!-- Logo header -->
   <div style="background: #f0f9ff; padding: 24px 32px; text-align: center; border-bottom: 1px solid #e0f2fe;">
     <a href="{SITE_URL}" style="text-decoration: none;">
-      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="180" style="height: auto; display: inline-block;" />
+      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="120" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </a>
   </div>
 
@@ -341,7 +341,7 @@ Not interested? Just reply and I'll remove you."""
   <!-- Logo header -->
   <div style="background: #f0f9ff; padding: 24px 32px; text-align: center; border-bottom: 1px solid #e0f2fe;">
     <a href="{SITE_URL}" style="text-decoration: none;">
-      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="180" style="height: auto; display: inline-block;" />
+      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="120" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </a>
   </div>
 

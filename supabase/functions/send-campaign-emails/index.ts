@@ -130,7 +130,7 @@ function renderPhase1Claim(contact: CampaignContact): EmailTemplate {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; line-height: 1.6; }
     .container { max-width: 600px; margin: 0 auto; }
     .header { background-color: #f5f5f5; padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
-    .logo { max-width: 200px; height: auto; }
+    .logo { width: 120px; max-width: 120px; height: auto; display: block; margin: 0 auto; }
     .content { padding: 30px 20px; }
     .cta-button {
       display: inline-block;
@@ -149,7 +149,7 @@ function renderPhase1Claim(contact: CampaignContact): EmailTemplate {
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" class="logo" />
+      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" width="120" class="logo" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </div>
     <div class="content">
       <p>Aloha ${name},</p>
@@ -224,7 +224,7 @@ function renderPhase2TrackA(contact: CampaignContact): EmailTemplate {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; line-height: 1.6; }
     .container { max-width: 600px; margin: 0 auto; }
     .header { background-color: #f5f5f5; padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
-    .logo { max-width: 200px; height: auto; }
+    .logo { width: 120px; max-width: 120px; height: auto; display: block; margin: 0 auto; }
     .content { padding: 30px 20px; }
     .cta-button {
       display: inline-block;
@@ -243,7 +243,7 @@ function renderPhase2TrackA(contact: CampaignContact): EmailTemplate {
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" class="logo" />
+      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" width="120" class="logo" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </div>
     <div class="content">
       <p>Aloha ${name},</p>
@@ -300,7 +300,7 @@ function renderPhase2TrackB(contact: CampaignContact): EmailTemplate {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; line-height: 1.6; }
     .container { max-width: 600px; margin: 0 auto; }
     .header { background-color: #f5f5f5; padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
-    .logo { max-width: 200px; height: auto; }
+    .logo { width: 120px; max-width: 120px; height: auto; display: block; margin: 0 auto; }
     .content { padding: 30px 20px; }
     .cta-button {
       display: inline-block;
@@ -319,7 +319,7 @@ function renderPhase2TrackB(contact: CampaignContact): EmailTemplate {
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" class="logo" />
+      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" width="120" class="logo" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </div>
     <div class="content">
       <p>Aloha ${name},</p>
@@ -376,7 +376,7 @@ function renderPhase2TrackC(contact: CampaignContact): EmailTemplate {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; line-height: 1.6; }
     .container { max-width: 600px; margin: 0 auto; }
     .header { background-color: #f5f5f5; padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
-    .logo { max-width: 200px; height: auto; }
+    .logo { width: 120px; max-width: 120px; height: auto; display: block; margin: 0 auto; }
     .content { padding: 30px 20px; }
     .cta-button {
       display: inline-block;
@@ -395,7 +395,7 @@ function renderPhase2TrackC(contact: CampaignContact): EmailTemplate {
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" class="logo" />
+      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" width="120" class="logo" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </div>
     <div class="content">
       <p>Aloha ${name},</p>
@@ -461,7 +461,7 @@ function renderPhase1bClaim(contact: CampaignContact): EmailTemplate {
 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
   <div style="background:#f0f9ff;padding:24px 32px;text-align:center;border-bottom:1px solid #e0f2fe;">
     <a href="${SITE_URL}" style="text-decoration:none;">
-      <img src="${SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="180" style="height:auto;display:inline-block;" />
+      <img src="${SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="120" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </a>
   </div>
   <div style="padding:32px;color:#1e293b;line-height:1.7;">
@@ -521,7 +521,7 @@ function renderFollowUp(contact: CampaignContact): EmailTemplate {
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #333; line-height: 1.6; }
     .container { max-width: 600px; margin: 0 auto; }
     .header { background-color: #f5f5f5; padding: 20px; text-align: center; border-bottom: 1px solid #eee; }
-    .logo { max-width: 200px; height: auto; }
+    .logo { width: 120px; max-width: 120px; height: auto; display: block; margin: 0 auto; }
     .content { padding: 30px 20px; }
     .cta-button {
       display: inline-block;
@@ -540,7 +540,7 @@ function renderFollowUp(contact: CampaignContact): EmailTemplate {
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" class="logo" />
+      <img src="https://www.hawaiiwellness.net/hawaii-wellness-logo.png" alt="Hawaii Wellness" width="120" class="logo" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
     </div>
     <div class="content">
       <p>Aloha ${name},</p>
