@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hawaiʻi Wellness Campaign Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0f4c5c 0%, #1a6b7d 100%);
+            color: white;
+            padding: 20px 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .header-controls {
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .last-updated {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .refresh-countdown {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        main {
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .secret-banner {
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #92400e;
+        }
+
+        .secret-banner.hidden {
+            display: none;
+        }
+
+        .secret-banner-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .secret-banner input {
+            padding: 6px 10px;
+            border: 1px solid #fcd34d;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .secret-banner button {
+            background-color: #f59e0b;
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .secret-banner button:hover {
+            background-color: #d97706;
+        }
+
+        .secret-chip {
+            background: rgba(15, 76, 92, 0.1);
+            color: #0f4c5c;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f4c5c;
+            line-height: 1;
+        }
+
+        .kpi-subtext {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1a1a1a;
+            border-bottom: 2px solid #0f4c5c;
+            padding-bottom: 8px;
+        }
+
+        .status-breakdown {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .status-item {
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            background: #f9f9f9;
+            border-left: 4px solid #ccc;
+        }
+
+        .status-item.not-contacted {
+            border-left-color: #9ca3af;
+        }
+
+        .status-item.email-sent {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .status-item.email-opened {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+
+        .status-item.email-2-sent {
+            border-left-color: #06b6d4;
+            background: #ecf9ff;
+        }
+
+        .status-item.in-progress {
+            border-left-color: #a855f7;
+            background: #f5f3ff;
+        }
+
+        .status-item.claimed {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .status-item.upgraded {
+            border-left-color: #059669;
+            background: #ecfdf5;
+        }
+
+        .status-item.lost {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .status-count {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f4c5c;
+            margin-bottom: 4px;
+        }
+
+        .status-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .send-emails-panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .send-emails-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .send-emails-config {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #0f4c5c;
+            box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.1);
+        }
+
+        .form-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 400;
+            cursor: pointer;
+        }
+
+        .send-emails-preview {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .preview-box {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .preview-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .preview-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f4c5c;
+        }
+
+        .send-emails-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background-color: #0f4c5c;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #0a3a48;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #333;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+
+        .warning-icon {
+            display: inline-block;
+            color: #f59e0b;
+        }
+
+        .results-panel {
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-panel.active {
+            display: block;
+        }
+
+        .results-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .result-stat {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            border-left: 4px solid #d1d5db;
+        }
+
+        .result-stat.sent {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .result-stat.failed {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .result-stat.skipped {
+            border-left-color: #9ca3af;
+            background: #f3f4f6;
+        }
+
+        .result-stat.dry-run {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .result-stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f4c5c;
+            margin-bottom: 4px;
+        }
+
+        .result-stat-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .results-table-wrapper {
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .results-table thead {
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+            position: sticky;
+            top: 0;
+        }
+
+        .results-table th {
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        .results-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .results-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .result-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-badge.sent {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .result-badge.failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .result-badge.skipped {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .result-badge.dry-run {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .result-error {
+            font-size: 12px;
+            color: #991b1b;
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-heading {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-body {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .modal-actions button {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-cancel {
+            background: #e5e7eb;
+            color: #333;
+            border: 1px solid #d1d5db;
+        }
+
+        .modal-cancel:hover {
+            background: #d1d5db;
+        }
+
+        .modal-confirm {
+            background: #0f4c5c;
+            color: white;
+        }
+
+        .modal-confirm:hover {
+            background: #0a3a48;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border-left: 4px solid #0f4c5c;
+            padding: 16px 20px;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 3000;
+            max-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .contact-table-wrapper {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .table-controls {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #0f4c5c;
+            box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.1);
+        }
+
+        .status-filter {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .status-filter:focus {
+            outline: none;
+            border-color: #0f4c5c;
+            box-shadow: 0 0 0 3px rgba(15, 76, 92, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background: #f9fafb;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        th:hover {
+            background: #f3f4f6;
+        }
+
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.5;
+            font-size: 12px;
+        }
+
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        td {
+            padding: 12px 16px;
+            vertical-align: top;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .badge.not-contacted {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .badge.email-queued {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.email-sent {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .badge.email-opened {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge.email-2-sent {
+            background: #cffafe;
+            color: #0c4a6e;
+        }
+
+        .badge.in-progress {
+            background: #f3e8ff;
+            color: #6b21a8;
+        }
+
+        .badge.claimed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.upgraded {
+            background: #ccfbf1;
+            color: #065f46;
+        }
+
+        .badge.lost {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .checkmark {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .empty-mark {
+            color: #d1d5db;
+        }
+
+        .notes-cell {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .expanded-row {
+            background: #f9fafb;
+        }
+
+        .expanded-row td {
+            padding: 20px 16px;
+        }
+
+        .notes-content {
+            padding: 12px;
+            background: white;
+            border-left: 4px solid #0f4c5c;
+            border-radius: 4px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .pagination {
+            padding: 16px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pagination-info {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pagination-controls button {
+            padding: 6px 12px;
+            background: #e5e7eb;
+            color: #333;
+            border: 1px solid #d1d5db;
+            font-size: 13px;
+        }
+
+        .pagination-controls button:hover {
+            background: #d1d5db;
+        }
+
+        .pagination-controls button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .loading-spinner {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .loading-spinner-icon {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #0f4c5c;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #dc2626;
+        }
+
+        .error-message button {
+            background: #dc2626;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .no-data {
+            padding: 40px;
+            text-align: center;
+            color: #999;
+        }
+
+        @media (max-width: 1024px) {
+            .status-breakdown {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .table-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-input,
+            .status-filter {
+                width: 100%;
+            }
+
+            th,
+            td {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .notes-cell {
+                max-width: 100px;
+            }
+
+            .send-emails-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            header {
+                padding: 16px 20px;
+            }
+
+            header h1 {
+                font-size: 20px;
+            }
+
+            .header-controls {
+                position: static;
+                margin-top: 12px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            main {
+                padding: 20px;
+            }
+
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 12px;
+            }
+
+            th,
+            td {
+                padding: 6px 8px;
+            }
+
+            .notes-cell {
+                max-width: 50px;
+            }
+
+            .pagination {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .pagination-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .send-emails-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Hawaiʻi Wellness Campaign Dashboard</h1>
+        <div class="subtitle">Big Island · Phase 1</div>
+        <div class="header-controls">
+            <div class="last-updated">Last updated: <span id="lastUpdated">--:--</span></div>
+            <div class="refresh-countdown">Next refresh: <span id="countdown">5m</span></div>
+            <button id="syncBtn" onclick="syncStatus()" style="display: none;">
+                <span id="syncSpinner" class="spinner" style="display: none;"></span>
+                Sync Opens/Clicks
+            </button>
+            <button id="refreshBtn" onclick="refreshData()">
+                <span id="refreshSpinner" class="spinner" style="display: none;"></span>
+                Refresh Now
+            </button>
+        </div>
+    </header>
+
+    <main>
+        <div id="secretBanner" class="secret-banner">
+            <div class="secret-banner-content">
+                <span>Enter campaign secret to enable sending</span>
+                <input type="password" id="secretInput" placeholder="Enter secret" value="220fbcc0-da1e-4c91-bbb3-562b450e5c76">
+                <button onclick="saveSecret()">Save</button>
+            </div>
+        </div>
+
+        <div id="errorMessage"></div>
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Outreach</div>
+                <div class="kpi-value" id="totalOutreach">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Emails Sent</div>
+                <div class="kpi-value" id="emailsSent">-</div>
+                <div class="kpi-subtext" id="emailsSentPct">- of total</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Email 1 Open Rate</div>
+                <div class="kpi-value" id="openRate">-</div>
+                <div class="kpi-subtext" id="openCount">- opened</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Email 1 Click Rate</div>
+                <div class="kpi-value" id="clickRate">-</div>
+                <div class="kpi-subtext" id="clickCount">- clicked</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Email 2 Sent</div>
+                <div class="kpi-value" id="email2Sent">-</div>
+                <div class="kpi-subtext" id="email2SentPct">- of total</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Claims</div>
+                <div class="kpi-value" id="claims">-</div>
+                <div class="kpi-subtext" id="claimsPct">- of sent</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Upgrades (Paid)</div>
+                <div class="kpi-value" id="upgrades">-</div>
+                <div class="kpi-subtext" id="upgradesPct">- of claims</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Bad Contacts</div>
+                <div class="kpi-value" id="badContacts">-</div>
+                <div class="kpi-subtext" id="badContactsPct">- of sent</div>
+            </div>
+        </div>
+
+        <!-- Status Breakdown -->
+        <div class="section">
+            <h2 class="section-title">Status Breakdown</h2>
+            <div class="status-breakdown">
+                <div class="status-grid" id="statusGrid"></div>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Emails Panel -->
+        <div class="section">
+            <h2 class="section-title">Send Campaign Emails</h2>
+            <div class="send-emails-panel">
+                <div class="send-emails-grid">
+                    <div class="send-emails-config">
+                        <div class="form-group">
+                            <label>Send to contacts with status:</label>
+                            <select id="sendStatusFilter">
+                                <option value="not_contacted">Not Contacted</option>
+                                <option value="email_1_sent">Email 1 Sent</option>
+                                <option value="email_1_opened">Email 1 Opened (Follow-up)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Template:</label>
+                            <select id="templateSelect">
+                                <option value="auto">Auto (based on segment)</option>
+                                <option value="phase1_claim">Phase 1 Claim</option>
+                                <option value="follow_up">Follow-up</option>
+                                <option value="phase2_track_a">Phase 2 Track A</option>
+                                <option value="phase2_track_b">Phase 2 Track B</option>
+                                <option value="phase2_track_c">Phase 2 Track C</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Max to send:</label>
+                            <input type="number" id="sendLimit" min="1" max="100" value="50">
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="dryRunCheckbox">
+                                Dry run (preview only, no emails sent)
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="send-emails-preview">
+                        <div class="preview-box">
+                            <div class="preview-label">Contacts Matching Filters</div>
+                            <div class="preview-value" id="matchingContactCount">0</div>
+                        </div>
+                        <div style="flex: 1;"></div>
+                    </div>
+                </div>
+
+                <div class="send-emails-actions">
+                    <button class="btn-primary" onclick="previewSendEmails()" id="previewBtn">
+                        Preview (Dry Run)
+                    </button>
+                    <button class="btn-primary" onclick="confirmSendEmails()" id="sendBtn" style="display: none;">
+                        <span class="warning-icon">⚠️</span>
+                        <span id="sendBtnText">Send 0 Emails</span>
+                    </button>
+                </div>
+
+                <div id="resultsPanel" class="results-panel">
+                    <div class="results-summary" id="resultsSummary"></div>
+                    <div class="results-table-wrapper">
+                        <table class="results-table" id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Status</th>
+                                    <th>Template</th>
+                                    <th>Subject</th>
+                                    <th>Error</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resultsBody"></tbody>
+                        </table>
+                    </div>
+                    <div style="margin-top: 16px;">
+                        <button class="btn-secondary" onclick="clearResults()">Clear Results</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Table -->
+        <div class="section">
+            <h2 class="section-title">Contact Details</h2>
+            <div class="contact-table-wrapper">
+                <div class="table-controls">
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by name or email...">
+                    <select id="statusFilter" class="status-filter">
+                        <option value="">All Statuses</option>
+                        <option value="not_contacted">Not Contacted</option>
+                        <option value="email_queued">Email Queued</option>
+                        <option value="email_1_sent">Email 1 Sent</option>
+                        <option value="email_1_opened">Email 1 Opened</option>
+                        <option value="email_2_sent">Email 2 Sent</option>
+                        <option value="replied">Replied</option>
+                        <option value="call_scheduled">Call Scheduled</option>
+                        <option value="called">Called</option>
+                        <option value="sms_sent">SMS Sent</option>
+                        <option value="claimed">Claimed</option>
+                        <option value="upgraded">Upgraded</option>
+                        <option value="bad_contact">Bad Contact</option>
+                        <option value="no_response">No Response</option>
+                        <option value="not_interested">Not Interested</option>
+                        <option value="bundle_sold">Bundle Sold</option>
+                    </select>
+                </div>
+                <div id="tableContent"></div>
+            </div>
+        </div>
+    </main>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <div class="loading-spinner-icon"></div>
+            <div>Loading campaign data...</div>
+        </div>
+    </div>
+
+    <div id="confirmModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-heading">
+                <span>⚠️</span>
+                <span>Are you sure?</span>
+            </div>
+            <div class="modal-body" id="confirmMessage"></div>
+            <div class="modal-actions">
+                <button class="modal-cancel" onclick="cancelSend()">Cancel</button>
+                <button class="modal-confirm" onclick="executeSend()">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const SUPABASE_URL = 'https://sccksxvjckllxlvyuotv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjY2tzeHZqY2tsbHhsdnl1b3R2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5NzkyNDksImV4cCI6MjA4NzU1NTI0OX0.Sw1MCdLKj88tz3JQXfow4bHrjfA2OAF2nYc8s0U6cIk';
+        const EDGE_BASE = 'https://sccksxvjckllxlvyuotv.supabase.co/functions/v1';
+        const REFRESH_INTERVAL = 5 * 60 * 1000; // 5 minutes
+
+        // State
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const rowsPerPage = 50;
+        let sortColumn = null;
+        let sortDirection = 'asc';
+        let refreshTimer = null;
+        let countdownTimer = null;
+        let statusChart = null;
+        let campaignSecret = '';
+        let pendingSendData = null;
+
+        // Status badge mapping
+        const statusColorMap = {
+            'not_contacted': 'not-contacted',
+            'email_queued': 'email-queued',
+            'email_1_sent': 'email-sent',
+            'email_1_opened': 'email-opened',
+            'email_2_sent': 'email-2-sent',
+            'replied': 'in-progress',
+            'call_scheduled': 'in-progress',
+            'called': 'in-progress',
+            'sms_sent': 'in-progress',
+            'claimed': 'claimed',
+            'upgraded': 'upgraded',
+            'bad_contact': 'lost',
+            'no_response': 'lost',
+            'not_interested': 'lost',
+            'bundle_sold': 'upgraded'
+        };
+
+        // Secret management
+        function saveSecret() {
+            const secret = document.getElementById('secretInput').value.trim();
+            if (!secret) {
+                showError('Please enter a campaign secret');
+                return;
+            }
+            campaignSecret = secret;
+            updateSecretBanner();
+            document.getElementById('syncBtn').style.display = 'inline-block';
+            showToast('Secret saved successfully');
+        }
+
+        function updateSecretBanner() {
+            const banner = document.getElementById('secretBanner');
+            if (campaignSecret) {
+                banner.innerHTML = `<div class="secret-chip">🔑 Secret saved</div>`;
+            }
+        }
+
+        // Send emails preview
+        function updateMatchingContactCount() {
+            const status = document.getElementById('sendStatusFilter').value;
+            const limit = parseInt(document.getElementById('sendLimit').value) || 50;
+            const matching = allData.filter(c => c.status === status);
+            const count = Math.min(matching.length, limit);
+            document.getElementById('matchingContactCount').textContent = matching.length;
+            document.getElementById('sendBtnText').textContent = `Send ${count} Emails`;
+        }
+
+        async function previewSendEmails() {
+            if (!campaignSecret) {
+                showError('Please set campaign secret first');
+                return;
+            }
+            await sendEmails(true);
+        }
+
+        function confirmSendEmails() {
+            const status = document.getElementById('sendStatusFilter').value;
+            const matching = allData.filter(c => c.status === status);
+            const limit = parseInt(document.getElementById('sendLimit').value) || 50;
+            const count = Math.min(matching.length, limit);
+
+            document.getElementById('confirmMessage').textContent =
+                `You're about to send to ${count} real contacts. This action cannot be undone.`;
+            document.getElementById('confirmModal').classList.add('active');
+
+            pendingSendData = { status, limit, count };
+        }
+
+        function cancelSend() {
+            document.getElementById('confirmModal').classList.remove('active');
+            pendingSendData = null;
+        }
+
+        async function executeSend() {
+            document.getElementById('confirmModal').classList.remove('active');
+            if (pendingSendData) {
+                await sendEmails(false);
+                pendingSendData = null;
+            }
+        }
+
+        async function sendEmails(dryRun) {
+            const status = document.getElementById('sendStatusFilter').value;
+            const template = document.getElementById('templateSelect').value;
+            const limit = parseInt(document.getElementById('sendLimit').value) || 50;
+
+            try {
+                showLoading(true);
+                const resp = await fetch(`${EDGE_BASE}/send-campaign-emails`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Campaign-Secret': campaignSecret,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({
+                        filters: {
+                            status: status,
+                            island: 'big_island',
+                            limit: limit
+                        },
+                        dryRun: dryRun,
+                        template: template !== 'auto' ? template : undefined
+                    })
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+
+                const result = await resp.json();
+                displaySendResults(result);
+
+                if (!dryRun) {
+                    showToast(`Sent: ${result.sent || 0} | Failed: ${result.failed || 0}`);
+                    setTimeout(() => fetchData(), 1000);
+                }
+            } catch (error) {
+                showError(`Failed to send emails: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displaySendResults(result) {
+            const panel = document.getElementById('resultsPanel');
+            panel.classList.add('active');
+
+            const sent = result.results.filter(r => r.status === 'sent').length;
+            const failed = result.results.filter(r => r.status === 'failed').length;
+            const skipped = result.results.filter(r => r.status === 'skipped').length;
+            const dryRun = result.results.filter(r => r.status === 'dry_run').length;
+
+            document.getElementById('resultsSummary').innerHTML = `
+                <div class="result-stat sent">
+                    <div class="result-stat-value">${sent}</div>
+                    <div class="result-stat-label">Sent</div>
+                </div>
+                <div class="result-stat failed">
+                    <div class="result-stat-value">${failed}</div>
+                    <div class="result-stat-label">Failed</div>
+                </div>
+                <div class="result-stat skipped">
+                    <div class="result-stat-value">${skipped}</div>
+                    <div class="result-stat-label">Skipped</div>
+                </div>
+                <div class="result-stat dry-run">
+                    <div class="result-stat-value">${dryRun}</div>
+                    <div class="result-stat-label">Dry Run</div>
+                </div>
+            `;
+
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            result.results.forEach(r => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${escapeHtml(r.name || '-')}</td>
+                    <td>${escapeHtml(r.email || '-')}</td>
+                    <td><span class="result-badge ${r.status}">${r.status.toUpperCase()}</span></td>
+                    <td>${escapeHtml(r.template || '-')}</td>
+                    <td>${escapeHtml(r.subject || '-')}</td>
+                    <td>${r.error ? `<div class="result-error">${escapeHtml(r.error)}</div>` : '-'}</td>
+                `;
+            });
+        }
+
+        function clearResults() {
+            document.getElementById('resultsPanel').classList.remove('active');
+            document.getElementById('resultsBody').innerHTML = '';
+            document.getElementById('resultsSummary').innerHTML = '';
+        }
+
+        async function syncStatus() {
+            if (!campaignSecret) {
+                showError('Please set campaign secret first');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                const syncBtn = document.getElementById('syncBtn');
+                const syncSpinner = document.getElementById('syncSpinner');
+                syncBtn.disabled = true;
+                syncSpinner.style.display = 'inline-block';
+
+                const resp = await fetch(`${EDGE_BASE}/sync-resend-status`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Campaign-Secret': campaignSecret,
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({ sinceHours: 48 })
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`HTTP ${resp.status}`);
+                }
+
+                const result = await resp.json();
+                const updated = result.updated || 0;
+                const opened = result.opened || 0;
+                const clicked = result.clicked || 0;
+                const bounced = result.bounced || 0;
+
+                showToast(`Synced: ${updated} updated (${opened} opened, ${clicked} clicked, ${bounced} bounced)`);
+                setTimeout(() => fetchData(), 1000);
+            } catch (error) {
+                showError(`Failed to sync status: ${error.message}`);
+            } finally {
+                showLoading(false);
+                const syncBtn = document.getElementById('syncBtn');
+                const syncSpinner = document.getElementById('syncSpinner');
+                syncBtn.disabled = false;
+                syncSpinner.style.display = 'none';
+            }
+        }
+
+        // Fetch data from Supabase
+        async function fetchData() {
+            showLoading(true);
+            clearError();
+
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/campaign_outreach?select=*&island=eq.big_island&order=created_at.desc&limit=1000`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_ANON_KEY,
+                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                        }
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                allData = await response.json();
+                filteredData = [...allData];
+
+                updateDashboard();
+                updateMatchingContactCount();
+                updateLastUpdatedTime();
+                scheduleRefresh();
+
+                // Auto-sync on page load if secret is set
+                if (campaignSecret && !pendingSendData) {
+                    setTimeout(() => syncStatus(), 2000);
+                }
+
+            } catch (error) {
+                showError(`Failed to load data: ${error.message}`);
+                console.error('Fetch error:', error);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Update dashboard with current data
+        function updateDashboard() {
+            updateKPIs();
+            updateStatusBreakdown();
+            updateContactTable();
+        }
+
+        // Calculate and display KPIs
+        function updateKPIs() {
+            const total = allData.length;
+            const emailsSent = allData.filter(r => r.email_1_sent_at).length;
+            const opened = allData.filter(r => r.email_1_opened_at).length;
+            const clicked = allData.filter(r => r.email_1_clicked_at).length;
+            const email2Sent = allData.filter(r => r.email_2_sent_at).length;
+            const claimed = allData.filter(r => r.status === 'claimed' || r.status === 'upgraded').length;
+            const upgraded = allData.filter(r => r.status === 'upgraded').length;
+            const badContacts = allData.filter(r => r.status === 'bad_contact').length;
+
+            const openRate = emailsSent > 0 ? Math.round((opened / emailsSent) * 100) : 0;
+            const clickRate = emailsSent > 0 ? Math.round((clicked / emailsSent) * 100) : 0;
+
+            document.getElementById('totalOutreach').textContent = total.toLocaleString();
+            document.getElementById('emailsSent').textContent = emailsSent.toLocaleString();
+            document.getElementById('emailsSentPct').textContent = `${Math.round((emailsSent / total) * 100)}% of total`;
+            document.getElementById('openRate').textContent = `${openRate}%`;
+            document.getElementById('openCount').textContent = `${opened} opened`;
+            document.getElementById('clickRate').textContent = `${clickRate}%`;
+            document.getElementById('clickCount').textContent = `${clicked} clicked`;
+            document.getElementById('email2Sent').textContent = email2Sent.toLocaleString();
+            document.getElementById('email2SentPct').textContent = `${Math.round((email2Sent / total) * 100)}% of total`;
+            document.getElementById('claims').textContent = claimed.toLocaleString();
+            document.getElementById('claimsPct').textContent = `${emailsSent > 0 ? Math.round((claimed / emailsSent) * 100) : 0}% of sent`;
+            document.getElementById('upgrades').textContent = upgraded.toLocaleString();
+            document.getElementById('upgradesPct').textContent = `${claimed > 0 ? Math.round((upgraded / claimed) * 100) : 0}% of claims`;
+            document.getElementById('badContacts').textContent = badContacts.toLocaleString();
+            document.getElementById('badContactsPct').textContent = `${emailsSent > 0 ? Math.round((badContacts / emailsSent) * 100) : 0}% of sent`;
+        }
+
+        // Update status breakdown
+        function updateStatusBreakdown() {
+            const statuses = {
+                'not-yet-contacted': allData.filter(r => r.status === 'not_contacted' || r.status === 'email_queued').length,
+                'email-1-sent': allData.filter(r => r.status === 'email_1_sent').length,
+                'email-1-opened': allData.filter(r => r.status === 'email_1_opened').length,
+                'email-2-sent': allData.filter(r => r.status === 'email_2_sent').length,
+                'in-progress': allData.filter(r => ['replied', 'call_scheduled', 'called', 'sms_sent'].includes(r.status)).length,
+                'claimed': allData.filter(r => r.status === 'claimed').length,
+                'upgraded': allData.filter(r => r.status === 'upgraded' || r.status === 'bundle_sold').length,
+                'lost': allData.filter(r => ['no_response', 'not_interested', 'bad_contact'].includes(r.status)).length
+            };
+
+            const statusLabels = {
+                'not-yet-contacted': 'Not Yet Contacted',
+                'email-1-sent': 'Email 1 Sent',
+                'email-1-opened': 'Email 1 Opened',
+                'email-2-sent': 'Email 2 Sent',
+                'in-progress': 'Replied/In Progress',
+                'claimed': 'Claimed',
+                'upgraded': 'Upgraded (Paid)',
+                'lost': 'No Response/Lost'
+            };
+
+            // Update status grid
+            const statusGrid = document.getElementById('statusGrid');
+            statusGrid.innerHTML = '';
+            for (const [key, count] of Object.entries(statuses)) {
+                const div = document.createElement('div');
+                div.className = `status-item ${key}`;
+                div.innerHTML = `
+                    <div class="status-count">${count}</div>
+                    <div class="status-label">${statusLabels[key]}</div>
+                `;
+                statusGrid.appendChild(div);
+            }
+
+            // Update chart
+            updateStatusChart(statuses, statusLabels);
+        }
+
+        // Update status chart
+        function updateStatusChart(statuses, statusLabels) {
+            const ctx = document.getElementById('statusChart').getContext('2d');
+            const colors = {
+                'not-yet-contacted': '#9ca3af',
+                'email-1-sent': '#3b82f6',
+                'email-1-opened': '#f59e0b',
+                'email-2-sent': '#06b6d4',
+                'in-progress': '#a855f7',
+                'claimed': '#10b981',
+                'upgraded': '#059669',
+                'lost': '#ef4444'
+            };
+
+            if (statusChart) {
+                statusChart.destroy();
+            }
+
+            statusChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statuses).map(key => statusLabels[key]),
+                    datasets: [{
+                        data: Object.values(statuses),
+                        backgroundColor: Object.keys(statuses).map(key => colors[key]),
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 12 },
+                                padding: 15,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update contact table
+        function updateContactTable() {
+            const tableContent = document.getElementById('tableContent');
+
+            if (filteredData.length === 0) {
+                tableContent.innerHTML = '<div class="no-data">No contacts found</div>';
+                return;
+            }
+
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = start + rowsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            let html = '<table><thead><tr>';
+            html += '<th class="sortable" data-column="name">Name</th>';
+            html += '<th class="sortable" data-column="city">City</th>';
+            html += '<th class="sortable" data-column="listing_type">Type</th>';
+            html += '<th class="sortable" data-column="status">Status</th>';
+            html += '<th class="sortable" data-column="segment">Segment</th>';
+            html += '<th>Email Sent</th>';
+            html += '<th>Opened</th>';
+            html += '<th>Clicked</th>';
+            html += '<th>Claimed</th>';
+            html += '<th>Notes</th>';
+            html += '</tr></thead><tbody>';
+
+            pageData.forEach((contact, idx) => {
+                const contactId = `contact-${start + idx}`;
+                const statusClass = statusColorMap[contact.status] || 'not-contacted';
+
+                html += `<tr onclick="toggleExpanded('${contactId}')">
+                    <td>${escapeHtml(contact.name || '-')}</td>
+                    <td>${escapeHtml(contact.city || '-')}</td>
+                    <td>${contact.listing_type ? contact.listing_type.charAt(0).toUpperCase() + contact.listing_type.slice(1) : '-'}</td>
+                    <td><span class="badge ${statusClass}">${contact.status ? contact.status.replace(/_/g, ' ') : '-'}</span></td>
+                    <td>${escapeHtml(contact.segment || '-')}</td>
+                    <td>${contact.email_1_sent_at ? '<span class="checkmark">✓</span>' : '<span class="empty-mark">—</span>'}</td>
+                    <td>${contact.email_1_opened_at ? '<span class="checkmark">✓</span>' : '<span class="empty-mark">—</span>'}</td>
+                    <td>${contact.email_1_clicked_at ? '<span class="checkmark">✓</span>' : '<span class="empty-mark">—</span>'}</td>
+                    <td>${(contact.status === 'claimed' || contact.status === 'upgraded' || contact.status === 'bundle_sold' || contact.claimed_at) ? '<span class="checkmark">✓</span>' : '<span class="empty-mark">—</span>'}</td>
+                    <td class="notes-cell">${escapeHtml(contact.notes || '-')}</td>
+                </tr>`;
+
+                if (contact.notes) {
+                    html += `<tr id="${contactId}" style="display: none;" class="expanded-row">
+                        <td colspan="10">
+                            <div class="notes-content">
+                                <strong>Full Notes:</strong><br>
+                                ${escapeHtml(contact.notes)}
+                            </div>
+                        </td>
+                    </tr>`;
+                }
+            });
+
+            html += '</tbody></table>';
+
+            tableContent.innerHTML = html;
+
+            // Add sort listeners
+            document.querySelectorAll('th.sortable').forEach(th => {
+                th.addEventListener('click', () => handleSort(th.dataset.column));
+            });
+
+            // Update pagination
+            updatePagination();
+        }
+
+        // Handle sorting
+        function handleSort(column) {
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = 'asc';
+            }
+
+            filteredData.sort((a, b) => {
+                let aVal = a[column] || '';
+                let bVal = b[column] || '';
+
+                if (typeof aVal === 'string') {
+                    aVal = aVal.toLowerCase();
+                    bVal = bVal.toLowerCase();
+                }
+
+                if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+                if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            currentPage = 1;
+            updateContactTable();
+        }
+
+        // Toggle expanded row
+        function toggleExpanded(id) {
+            const row = document.getElementById(id);
+            if (row) {
+                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+            }
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            const start = (currentPage - 1) * rowsPerPage + 1;
+            const end = Math.min(currentPage * rowsPerPage, filteredData.length);
+
+            let html = `<div class="pagination">
+                <div class="pagination-info">Showing ${start} to ${end} of ${filteredData.length} contacts</div>
+                <div class="pagination-controls">
+                    <button onclick="previousPage()" ${currentPage === 1 ? 'disabled' : ''}>← Previous</button>
+                    <button onclick="nextPage()" ${currentPage === totalPages ? 'disabled' : ''}>Next →</button>
+                </div>
+            </div>`;
+
+            const tableContent = document.getElementById('tableContent');
+            const paginationDiv = document.createElement('div');
+            paginationDiv.innerHTML = html;
+            tableContent.appendChild(paginationDiv);
+        }
+
+        // Pagination functions
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                updateContactTable();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        function nextPage() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updateContactTable();
+                window.scrollTo(0, 0);
+            }
+        }
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const status = document.getElementById('statusFilter').value;
+
+            filteredData = allData.filter(contact => {
+                const matchesSearch = !query ||
+                    (contact.name && contact.name.toLowerCase().includes(query)) ||
+                    (contact.email && contact.email.toLowerCase().includes(query));
+
+                const matchesStatus = !status || contact.status === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            currentPage = 1;
+            updateContactTable();
+        });
+
+        document.getElementById('statusFilter').addEventListener('change', (e) => {
+            const status = e.target.value;
+            const query = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredData = allData.filter(contact => {
+                const matchesSearch = !query ||
+                    (contact.name && contact.name.toLowerCase().includes(query)) ||
+                    (contact.email && contact.email.toLowerCase().includes(query));
+
+                const matchesStatus = !status || contact.status === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            currentPage = 1;
+            updateContactTable();
+        });
+
+        // Send email form listeners
+        document.getElementById('sendStatusFilter').addEventListener('change', updateMatchingContactCount);
+        document.getElementById('sendLimit').addEventListener('change', updateMatchingContactCount);
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function updateLastUpdatedTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('lastUpdated').textContent = `${hours}:${minutes}`;
+        }
+
+        function scheduleRefresh() {
+            if (refreshTimer) clearInterval(refreshTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
+
+            let secondsLeft = REFRESH_INTERVAL / 1000;
+
+            function updateCountdown() {
+                if (secondsLeft < 0) return;
+                const minutes = Math.floor(secondsLeft / 60);
+                const seconds = secondsLeft % 60;
+                document.getElementById('countdown').textContent =
+                    minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+                secondsLeft--;
+            }
+
+            updateCountdown();
+            countdownTimer = setInterval(updateCountdown, 1000);
+
+            refreshTimer = setTimeout(() => {
+                fetchData();
+            }, REFRESH_INTERVAL);
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            const btn = document.getElementById('refreshBtn');
+            const spinner = document.getElementById('refreshSpinner');
+
+            if (show) {
+                overlay.classList.add('active');
+                btn.disabled = true;
+                spinner.style.display = 'inline-block';
+            } else {
+                overlay.classList.remove('active');
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.innerHTML = `
+                <div class="error-message">
+                    <strong>Error:</strong> ${message}
+                    <button onclick="document.getElementById('errorMessage').innerHTML = ''">Dismiss</button>
+                </div>
+            `;
+        }
+
+        function clearError() {
+            document.getElementById('errorMessage').innerHTML = '';
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        function refreshData() {
+            fetchData();
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+        });
+    </script>
+</body>
+</html>

@@ -127,11 +127,16 @@ export default function ClaimListing() {
       ] as const) {
         const { data, error: err } = await supabase
           .from(table)
-          .select('id, name, email, phone, owner_id')
+          .select('id, name, email, phone, owner_id, status')
           .eq('id', id)
           .single();
 
         if (!err && data) {
+          if (data.status === 'draft') {
+            setError('This listing isn\'t publicly available yet. Please check back soon.');
+            setStep('error');
+            return;
+          }
           if (data.owner_id) {
             // Already claimed — check if it's ours
             if (data.owner_id === user.id) {
