@@ -101,6 +101,48 @@ Deno.serve(async (req) => {
         });
 
         await syncTierToListings(userId, tier, listingType);
+
+        // Notify aloha@hawaiiwellness.net of new subscriber
+        const resendKey = Deno.env.get('RESEND_API_KEY');
+        if (resendKey) {
+          const { data: userData } = await supabase.auth.admin.getUserById(userId);
+          const userEmail = userData?.user?.email ?? 'unknown';
+
+          // Fetch their listing name for context
+          const { data: listings } = await supabase
+            .from(listingType === 'center' ? 'centers' : 'practitioners')
+            .select('name, island, city')
+            .eq('owner_id', userId)
+            .limit(1);
+          const listing = listings?.[0];
+          const listingName = listing?.name ?? 'unknown listing';
+          const location = [listing?.city, listing?.island?.replace('_', ' ')].filter(Boolean).join(', ');
+
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'Hawaiʻi Wellness <billing@hawaiiwellness.net>',
+              to: ['aloha@hawaiiwellness.net'],
+              subject: `🎉 New ${tier} subscriber — ${listingName}`,
+              html: `
+                <p><strong>New ${tier} subscription!</strong></p>
+                <ul>
+                  <li><strong>Listing:</strong> ${listingName}</li>
+                  <li><strong>Type:</strong> ${listingType}</li>
+                  <li><strong>Location:</strong> ${location || 'unknown'}</li>
+                  <li><strong>Email:</strong> ${userEmail}</li>
+                  <li><strong>Plan:</strong> ${tier} (${priceId})</li>
+                </ul>
+                <p><a href="https://hawaiiwellness.net/admin">View in Admin Panel →</a></p>
+              `,
+            }),
+          }).catch(err => console.error('Failed to send admin notification:', err));
+        }
+
         break;
       }
 

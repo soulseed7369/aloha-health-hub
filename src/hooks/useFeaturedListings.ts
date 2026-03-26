@@ -50,20 +50,22 @@ export function useHomePractitioners(island: string) {
       // If paid listings already fill the display, no need for free
       if (prioritized.length >= DISPLAY_SLOTS) return prioritized;
 
-      // Query 2: Free listings to pad remaining slots
+      // Query 2: Fetch a larger pool of free listings and shuffle so the
+      // same two alphabetically-first listings don't stick every time.
+      const needed = DISPLAY_SLOTS - prioritized.length;
       const { data: freeData, error: freeError } = await supabase
         .from('practitioners')
         .select('*, business:centers!practitioners_business_id_fkey(id,name)')
         .eq('island', island)
         .eq('status', 'published')
         .or('tier.eq.free,tier.is.null')
-        .order('name')
-        .limit(DISPLAY_SLOTS - prioritized.length);
+        .limit(50);
 
       if (freeError) throw freeError;
 
-      const free = (freeData ?? []).map(practitionerRowToProvider);
-      return [...prioritized, ...free];
+      const freeAll = (freeData ?? []).map(practitionerRowToProvider);
+      const freeShuffled = [...freeAll].sort(() => Math.random() - 0.5).slice(0, needed);
+      return [...prioritized, ...freeShuffled];
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -141,20 +143,21 @@ export function useHomeCenters(island: string) {
 
       if (prioritized.length >= DISPLAY_SLOTS) return prioritized;
 
-      // Query 2: Free centers to pad remaining slots
+      // Query 2: Fetch a larger pool and shuffle — same fix as practitioners.
+      const needed = DISPLAY_SLOTS - prioritized.length;
       const { data: freeData, error: freeError } = await supabase
         .from('centers')
         .select('*')
         .eq('island', island)
         .eq('status', 'published')
         .or('tier.eq.free,tier.is.null')
-        .order('name')
-        .limit(DISPLAY_SLOTS - prioritized.length);
+        .limit(50);
 
       if (freeError) throw freeError;
 
-      const free = (freeData ?? []).map(centerRowToCenter);
-      return [...prioritized, ...free];
+      const freeAll = (freeData ?? []).map(centerRowToCenter);
+      const freeShuffled = [...freeAll].sort(() => Math.random() - 0.5).slice(0, needed);
+      return [...prioritized, ...freeShuffled];
     },
     staleTime: 1000 * 60 * 5,
   });
