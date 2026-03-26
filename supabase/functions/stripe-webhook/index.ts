@@ -174,6 +174,11 @@ Deno.serve(async (req) => {
 
         await syncTierToListings(userId, tier, listingType);
 
+        // If the tier is paid, mark campaign_outreach as upgraded
+        if (tier === 'premium' || tier === 'featured') {
+          await markCampaignUpgraded(userId, listingType);
+        }
+
         // Record billing event
         await supabase.from('billing_events').insert({
           user_id: userId,

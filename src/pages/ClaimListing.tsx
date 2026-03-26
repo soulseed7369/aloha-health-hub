@@ -32,7 +32,7 @@ async function markCampaignClaimed(listingId: string): Promise<void> {
       .from('campaign_outreach')
       .update({ status: 'claimed' })
       .eq('listing_id', listingId)
-      .in('status', ['not_contacted', 'email_queued', 'email_1_sent', 'email_1_opened', 'email_1b_sent', 'email_2_sent', 'replied']);
+      .in('status', ['not_contacted', 'email_queued', 'email_1_sent', 'email_1_opened', 'email_1b_sent', 'email_2_sent', 'replied', 'claimed']);
   } catch (e) {
     // Non-critical — don't surface to user
     console.warn('Failed to update campaign_outreach on claim:', e);
