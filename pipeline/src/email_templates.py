@@ -298,6 +298,88 @@ Hawaii Wellness"""
     return subject, html_body, text_body
 
 
+# ─── PHASE 1B: Second touch — still unclaimed ────────────────────────────────
+
+def phase1b_claim(contact: dict) -> tuple:
+    name = contact.get("name", "there")
+    city = contact.get("city", "")
+    island = _island_name(contact.get("island", ""))
+    modality = _primary_modality(contact.get("modalities", []))
+    listing_id = _listing_id(contact)
+    listing_type = contact.get("listing_type", "practitioner")
+    claim_link = _claim_url(listing_id, listing_type)
+
+    city_str = f" in {city}" if city else f" on {island}"
+
+    subject = f"Your {modality} listing{city_str} is getting traffic"
+
+    text_body = f"""Hi {name},
+
+I sent you a note last week about your listing on Hawai'i Wellness. Thought I'd follow up with one thing worth knowing:
+
+Your profile is already showing up in searches — people looking for {modality} on {island} are finding you. But since the listing is unclaimed, you can't see that traffic, update your contact info, or know when someone's been on your page.
+
+Still free, still 2 minutes:
+{claim_link}
+
+No pressure either way.
+
+Aloha,
+Marcus
+Hawai'i Wellness — hawaiiwellness.net
+
+---
+Hawai'i Wellness · PO Box 44368, Kamuela, HI 96743
+Not interested? Just reply and I'll remove you."""
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">People searching for {modality} on {island} are already finding you — but you can't see it yet.&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌</div>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+
+  <!-- Logo header -->
+  <div style="background: #f0f9ff; padding: 24px 32px; text-align: center; border-bottom: 1px solid #e0f2fe;">
+    <a href="{SITE_URL}" style="text-decoration: none;">
+      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="180" style="height: auto; display: inline-block;" />
+    </a>
+  </div>
+
+  <!-- Body -->
+  <div style="padding: 32px; color: #1e293b; line-height: 1.7;">
+    <p style="margin-top:0;">Hi {name},</p>
+
+    <p>I sent you a note last week about your listing on <a href="{SITE_URL}" style="color: #0369a1;">Hawai'i Wellness</a>. Thought I'd follow up with one thing worth knowing:</p>
+
+    <p>Your profile is already showing up in searches — people looking for {modality} on {island} are finding you. But since the listing is unclaimed, you can't see that traffic, update your contact info, or know when someone's been on your page.</p>
+
+    <p>Still free, still 2 minutes:</p>
+
+    <p style="margin: 28px 0;">
+      <a href="{claim_link}" style="background: #0369a1; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">View Your Listing</a>
+    </p>
+
+    <p style="color: #64748b; font-size: 15px;">No pressure either way.</p>
+
+    <p style="margin-bottom:0;">Aloha,<br><strong>Marcus</strong><br>
+    <a href="{SITE_URL}" style="color: #0369a1; text-decoration: none;">Hawai'i Wellness</a></p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+    <p style="margin: 0 0 4px 0;"><a href="{SITE_URL}" style="color: #94a3b8;">Hawai'i Wellness</a> · PO Box 44368, Kamuela, HI 96743</p>
+    <p style="margin: 0;">You're receiving this because your practice appears in our wellness directory.<br>Not interested? Just reply and I'll remove you.</p>
+  </div>
+
+</div>
+</body>
+</html>"""
+
+    return subject, html_body, text_body
+
+
 # ─── FOLLOW-UP (any phase) ───────────────────────────────────────────────────
 
 def follow_up(contact: dict, original_subject: str = "", original_cta_url: str = "") -> tuple:
@@ -348,6 +430,7 @@ Hawaii Wellness"""
 
 TEMPLATE_MAP = {
     "phase1_claim": phase1_claim,
+    "phase1b_claim": phase1b_claim,
     "phase2_track_a": phase2_track_a,
     "phase2_track_b": phase2_track_b,
     "phase2_track_c": phase2_track_c,

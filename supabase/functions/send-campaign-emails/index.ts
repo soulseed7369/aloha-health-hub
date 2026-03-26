@@ -438,6 +438,74 @@ Not interested? Just reply and I'll remove you from future emails.`;
   return { subject, htmlBody, textBody };
 }
 
+function renderPhase1bClaim(contact: CampaignContact): EmailTemplate {
+  const name = contact.name || 'there';
+  const city = contact.city || '';
+  const island = ISLAND_DISPLAY[contact.island] || 'Hawaii';
+  const modalities = contact.modalities || ['wellness'];
+  const modality = modalities.length > 0 ? modalities[0] : 'wellness';
+  const listingId = contact.listing_id;
+  if (!listingId) throw new Error(`Contact ${contact.id} (${contact.name}) has no listing_id`);
+  const kind = contact.listing_type === 'center' ? 'center' : 'profile';
+  const claimLink = `${SITE_URL}/${kind}/${listingId}`;
+  const cityStr = city ? ` in ${city}` : ` on ${island}`;
+
+  const subject = `Your ${modality} listing${cityStr} is getting traffic`;
+
+  const htmlBody = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">People searching for ${modality} on ${island} are already finding you — but you can't see it yet.&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌</div>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;">
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:560px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.06);">
+  <div style="background:#f0f9ff;padding:24px 32px;text-align:center;border-bottom:1px solid #e0f2fe;">
+    <a href="${SITE_URL}" style="text-decoration:none;">
+      <img src="${SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="180" style="height:auto;display:inline-block;" />
+    </a>
+  </div>
+  <div style="padding:32px;color:#1e293b;line-height:1.7;">
+    <p style="margin-top:0;">Hi ${name},</p>
+    <p>I sent you a note last week about your listing on <a href="${SITE_URL}" style="color:#0369a1;">Hawai'i Wellness</a>. Thought I'd follow up with one thing worth knowing:</p>
+    <p>Your profile is already showing up in searches — people looking for ${modality} on ${island} are finding you. But since the listing is unclaimed, you can't see that traffic, update your contact info, or know when someone's been on your page.</p>
+    <p>Still free, still 2 minutes:</p>
+    <p style="margin:28px 0;">
+      <a href="${claimLink}" style="background:#0369a1;color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;">View Your Listing</a>
+    </p>
+    <p style="color:#64748b;font-size:15px;">No pressure either way.</p>
+    <p style="margin-bottom:0;">Aloha,<br><strong>Marcus</strong><br>
+    <a href="${SITE_URL}" style="color:#0369a1;text-decoration:none;">Hawai'i Wellness</a></p>
+  </div>
+  <div style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 32px;text-align:center;color:#94a3b8;font-size:12px;line-height:1.6;">
+    <p style="margin:0 0 4px 0;"><a href="${SITE_URL}" style="color:#94a3b8;">Hawai'i Wellness</a> · PO Box 44368, Kamuela, HI 96743</p>
+    <p style="margin:0;">You're receiving this because your practice appears in our wellness directory.<br>Not interested? Just reply and I'll remove you.</p>
+  </div>
+</div>
+</body>
+</html>`;
+
+  const textBody = `Hi ${name},
+
+I sent you a note last week about your listing on Hawai'i Wellness. Thought I'd follow up with one thing worth knowing:
+
+Your profile is already showing up in searches — people looking for ${modality} on ${island} are finding you. But since the listing is unclaimed, you can't see that traffic, update your contact info, or know when someone's been on your page.
+
+Still free, still 2 minutes:
+${claimLink}
+
+No pressure either way.
+
+Aloha,
+Marcus
+Hawai'i Wellness — hawaiiwellness.net
+
+---
+Hawai'i Wellness · PO Box 44368, Kamuela, HI 96743
+Not interested? Just reply and I'll remove you.`;
+
+  return { subject, htmlBody, textBody };
+}
+
 function renderFollowUp(contact: CampaignContact): EmailTemplate {
   const name = contact.name || 'there';
   const kind = contact.listing_type === 'center' ? 'center' : 'profile';
@@ -520,6 +588,8 @@ function renderTemplate(
   switch (templateName) {
     case 'phase1_claim':
       return renderPhase1Claim(contact);
+    case 'phase1b_claim':
+      return renderPhase1bClaim(contact);
     case 'phase2_track_a':
       return renderPhase2TrackA(contact);
     case 'phase2_track_b':
