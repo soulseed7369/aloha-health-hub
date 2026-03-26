@@ -1,5 +1,5 @@
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Home, User, Building, CalendarDays, Sparkles, CreditCard, Settings, LogOut, Menu, X, ShieldCheck, BarChart3, Quote, ArrowLeftRight, BookOpen, Calendar } from "lucide-react";
+import { Home, User, Building, CalendarDays, Sparkles, CreditCard, Settings, LogOut, Menu, X, ShieldCheck, BarChart3, Quote, ArrowLeftRight, Calendar } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,7 +27,7 @@ const centerLinks = [
   { label: "My Center Profile",       to: "/dashboard/center-profile", icon: User },
   { label: "My Centers & Spas",       to: "/dashboard/centers",      icon: Building },
   { label: "Offerings & Events",      to: "/dashboard/center-offerings", icon: Calendar },
-  { label: "Classes",                 to: "/dashboard/center-classes", icon: BookOpen },
+  { label: "Classes",                 to: "/dashboard/center-classes", icon: CalendarDays },
   { label: "Billing & Subscription",  to: "/dashboard/billing",      icon: CreditCard },
   { label: "Account Settings",        to: "/dashboard/settings",     icon: Settings },
 ];

@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function DashboardCenterClasses() {
   const { data: billing, isLoading } = useMyBillingProfile();
 
-  const isPremiumOrFeatured = billing?.tier === 'premium' || billing?.tier === 'featured';
+  const tier = billing?.tier ?? 'free';
+  const isFeatured = tier === 'featured';
 
   if (isLoading) {
     return (
@@ -20,21 +21,21 @@ export default function DashboardCenterClasses() {
     );
   }
 
-  if (!isPremiumOrFeatured) {
+  if (!isFeatured) {
     return (
       <div className="mx-auto max-w-2xl">
         <Card className="border-border bg-muted/40">
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <Lock className="mb-3 h-10 w-10 text-muted-foreground" />
-            <p className="font-medium text-foreground">Premium Plan Feature</p>
+            <p className="font-medium text-foreground">Featured Plan Feature</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              Classes are available on the Premium plan. Upgrade to list your recurring yoga, breathwork, or sound bath classes.
+              Classes are available on the Featured plan. Upgrade to list your recurring yoga, breathwork, or sound bath classes.
             </p>
             <div className="mt-6">
               <Button asChild variant="outline">
                 <Link to="/list-your-practice">
                   <Crown className="mr-1.5 h-4 w-4 text-primary" />
-                  Upgrade to Premium
+                  Upgrade to Featured
                 </Link>
               </Button>
             </div>
