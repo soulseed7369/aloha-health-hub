@@ -505,8 +505,10 @@ Not interested? Just reply and I'll remove you.`;
 
 function renderFollowUp(contact: CampaignContact): EmailTemplate {
   const name = contact.name || 'there';
+  const listingId = contact.listing_id;
+  if (!listingId) throw new Error(`Contact ${contact.id} (${contact.name}) has no listing_id — cannot build follow-up URL`);
   const kind = contact.listing_type === 'center' ? 'center' : 'profile';
-  const claimLink = `${SITE_URL}/${kind}/${contact.listing_id}`;
+  const claimLink = `${SITE_URL}/${kind}/${listingId}`;
 
   const subject = `Quick follow-up: your listing on Hawaii Wellness`;
 

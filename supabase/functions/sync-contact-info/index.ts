@@ -101,7 +101,11 @@ async function fetchSourceListing(
   listingType: 'practitioner' | 'center',
 ): Promise<SourceListing | null> {
   try {
-    const table = listingType === 'practitioner' ? 'practitioners' : 'centers';
+    if (listingType !== 'practitioner' && listingType !== 'center') {
+    console.warn(`[sync-contact-info] Invalid listing_type "${listingType}" for listing ${listingId} — skipping`);
+    return null;
+  }
+  const table = listingType === 'practitioner' ? 'practitioners' : 'centers';
     const { data, error } = await supabase
       .from(table)
       .select('id, name, email, phone')

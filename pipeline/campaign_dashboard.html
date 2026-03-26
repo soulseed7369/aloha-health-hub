@@ -1089,7 +1089,7 @@
         <div id="secretBanner" class="secret-banner">
             <div class="secret-banner-content">
                 <span>Enter campaign secret to enable sending</span>
-                <input type="password" id="secretInput" placeholder="Enter secret" value="220fbcc0-da1e-4c91-bbb3-562b450e5c76">
+                <input type="password" id="secretInput" placeholder="Paste campaign secret">
                 <button onclick="saveSecret()">Save</button>
             </div>
         </div>
@@ -1874,7 +1874,11 @@
             </div>`;
 
             const tableContent = document.getElementById('tableContent');
+            // Remove existing pagination to avoid duplicating on each page change
+            const existing = tableContent.querySelector('.pagination-wrapper');
+            if (existing) existing.remove();
             const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination-wrapper';
             paginationDiv.innerHTML = html;
             tableContent.appendChild(paginationDiv);
         }
@@ -2020,11 +2024,9 @@
             fetchData();
         }
 
-        // Initialize on page load — fetch data, then auto-sync once if secret is set
+        // Initialize on page load — fetch data only
         window.addEventListener('DOMContentLoaded', () => {
-            fetchData().then(() => {
-                if (campaignSecret) setTimeout(() => syncStatus(), 2000);
-            });
+            fetchData();
         });
     </script>
 </body>
