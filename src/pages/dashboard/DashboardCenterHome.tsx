@@ -1,75 +1,32 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, CheckCircle, Circle, ArrowRight, Star, Loader2, Eye, Search, MessageCircle, Mail, ChevronDown, ChevronUp, Camera, FileText, Heart, Sparkles } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { useMyPractitioner } from "@/hooks/useMyPractitioner";
-import { useMyBillingProfile, useCreateCheckoutSession } from "@/hooks/useStripe";
-import { useAccountType } from "@/hooks/useAccountType";
+import { Building, CheckCircle, Circle, ArrowRight, Star, Eye, Search, MessageCircle, Mail, ChevronDown, ChevronUp, Camera, FileText, Heart, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useMyBillingProfile } from "@/hooks/useStripe";
+import { useMyCenters } from "@/hooks/useMyCenters";
 
-export default function DashboardHome() {
-  const navigate = useNavigate();
-  const { data: practitioner, isLoading: practLoading } = useMyPractitioner();
+export default function DashboardCenterHome() {
+  const { data: centers = [], isLoading: centerLoading } = useMyCenters();
   const { data: billing } = useMyBillingProfile();
-  const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
-  const checkout = useCreateCheckoutSession();
   const [guideOpen, setGuideOpen] = useState(true);
 
-  // Route based on account type on first load
-  useEffect(() => {
-    if (!accountTypeLoading && accountType) {
-      if (accountType === 'center') {
-        navigate('/dashboard/center-home', { replace: true });
-      }
-      // else: stay on this page for practitioners
-    }
-  }, [accountType, accountTypeLoading, navigate]);
-
-  // Resume any pending plan intent stored before auth redirect — run once on mount only
-  useEffect(() => {
-    const pending = localStorage.getItem('pendingPlan');
-    // Validate pendingPlan is one of the expected values to prevent abuse
-    const validPlans = ['free', 'price_1TCo3PAmznBlrx8spOgZD1VC', 'price_1TErgTAmznBlrx8scCN6CsNa', 'price_1TErf1AmznBlrx8suRd3ARgM', 'price_1TEszAAmznBlrx8sDwkodC8z'];
-    if (!pending || !validPlans.includes(pending) || pending === 'free') {
-      localStorage.removeItem('pendingPlan');
-      return;
-    }
-    localStorage.removeItem('pendingPlan');
-    checkout.mutate(
-      { priceId: pending },
-      { onError: (e: Error) => toast.error(e.message) },
-    );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // If accountType is loading or is 'center', show loading spinner instead of practitioner content
-  if (accountTypeLoading || accountType === 'center') {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-          <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
-        </div>
-      </div>
-    );
-  }
-
-  const hasProfile = !!practitioner?.name;
+  const center = centers[0] ?? null;
+  const hasProfile = !!center?.name;
   const hasPaidPlan = billing?.tier === 'premium' || billing?.tier === 'featured';
-  const hasChosenPlan = !!billing?.tier; // free, premium, or featured — all count as "chosen"
+  const hasChosenPlan = !!billing?.tier;
 
   // ── Profile completeness ──────────────────────────────────────────────────
   const completenessFields = [
-    { label: 'Name',       done: !!practitioner?.name?.trim() },
-    { label: 'Bio',        done: !!practitioner?.bio?.trim() },
-    { label: 'Modalities', done: (practitioner?.modalities?.length ?? 0) > 0 },
-    { label: 'Photo',      done: !!practitioner?.avatar_url },
-    { label: 'City',       done: !!practitioner?.city?.trim() },
-    { label: 'Phone',      done: !!practitioner?.phone?.trim() },
-    { label: 'Email',      done: !!practitioner?.email?.trim() },
-    { label: 'Website',    done: !!practitioner?.website_url?.trim() },
+    { label: 'Name',        done: !!center?.name?.trim() },
+    { label: 'Description', done: !!center?.description?.trim() },
+    { label: 'Modalities',  done: (center?.modalities?.length ?? 0) > 0 },
+    { label: 'Photo',       done: !!center?.avatar_url },
+    { label: 'City',        done: !!center?.city?.trim() },
+    { label: 'Phone',       done: !!center?.phone?.trim() },
+    { label: 'Email',       done: !!center?.email?.trim() },
+    { label: 'Website',     done: !!center?.website_url?.trim() },
   ];
   const completenessScore = hasProfile
     ? Math.round(completenessFields.filter(f => f.done).length / completenessFields.length * 100)
@@ -79,26 +36,25 @@ export default function DashboardHome() {
   const steps = [
     {
       id: 'profile',
-      label: 'Complete your profile',
-      description: 'Add your name, modalities, location, and photo.',
+      label: 'Complete your center profile',
+      description: 'Add your center name, description, modalities, location, and photo.',
       done: hasProfile,
-      to: '/dashboard/profile',
+      to: '/dashboard/center-profile',
     },
     {
       id: 'plan',
       label: 'Choose a plan',
-      description: 'Free gets you listed. Premium & Featured unlock testimonials, analytics, and more.',
+      description: 'Free gets you listed. Premium & Featured unlock social links, working hours, and more.',
       done: hasChosenPlan,
       to: '/dashboard/billing',
     },
   ];
 
-
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <div>
         <h1 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
-          Welcome to your Provider Dashboard
+          Welcome to your Center Dashboard
         </h1>
         <p className="mt-2 text-muted-foreground">
           Manage your listing, billing, and account settings.
@@ -106,7 +62,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Onboarding checklist — shown until both steps are done */}
-      {!practLoading && (!hasProfile || !hasChosenPlan) && (
+      {!centerLoading && (!hasProfile || !hasChosenPlan) && (
         <Card className="border-primary/20 bg-terracotta-light/10">
           <CardContent className="p-5 space-y-4">
             <div className="flex items-center gap-2">
@@ -145,12 +101,12 @@ export default function DashboardHome() {
         </Card>
       )}
 
-      {/* Practitioner Profile — primary action card */}
+      {/* Center Profile — primary action card */}
       <Card className="group relative overflow-hidden transition-shadow hover:shadow-md max-w-md">
         <CardContent className="flex flex-col items-start gap-4 p-6">
           <div className="flex w-full items-start justify-between">
             <div className="rounded-xl p-3 bg-terracotta-light text-terracotta">
-              <User className="h-6 w-6" />
+              <Building className="h-6 w-6" />
             </div>
             {!hasProfile && (
               <Badge variant="outline" className="text-xs border-primary/30 text-primary">
@@ -159,11 +115,11 @@ export default function DashboardHome() {
             )}
           </div>
           <div className="space-y-1.5">
-            <h3 className="font-display text-lg font-semibold">Practitioner Profile</h3>
-            <p className="text-sm leading-relaxed text-muted-foreground">List your individual practice, bio, and modalities.</p>
+            <h3 className="font-display text-lg font-semibold">Center Profile</h3>
+            <p className="text-sm leading-relaxed text-muted-foreground">List your center, describe your offerings, and reach wellness seekers across Hawaiʻi.</p>
           </div>
           <Button asChild className="mt-auto w-full" variant="outline">
-            <Link to="/dashboard/profile">{hasProfile ? "Edit Profile" : "Create Profile"}</Link>
+            <Link to="/dashboard/center-profile">{hasProfile ? "Edit Profile" : "Create Profile"}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -189,7 +145,7 @@ export default function DashboardHome() {
                 </p>
               </div>
               <Button asChild size="sm" variant="outline" className="flex-shrink-0 border-sage/40 text-sage hover:bg-sage/10">
-                <Link to="/dashboard/profile">Edit Profile</Link>
+                <Link to="/dashboard/center-profile">Edit Profile</Link>
               </Button>
             </div>
             {/* Progress bar */}
@@ -203,17 +159,7 @@ export default function DashboardHome() {
         </Card>
       )}
 
-      {/* Pending checkout redirect */}
-      {checkout.isPending && (
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Loader2 className="h-5 w-5 animate-spin text-primary" />
-            <p className="text-sm text-primary font-medium">Redirecting to checkout…</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Upgrade nudge for free users with a complete profile */}
+      {/* Upgrade nudge for free users with a profile */}
       {hasProfile && !hasPaidPlan && billing?.tier === 'free' && (
         <Card className="border-amber-200 bg-amber-50/50">
           <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -222,7 +168,7 @@ export default function DashboardHome() {
                 <Star className="h-4 w-4" /> Unlock Premium features
               </p>
               <p className="text-xs text-amber-700 mt-0.5">
-                Add social links, testimonials, working hours, and get priority placement for $29/mo.
+                Add social links, working hours, and get a verified badge on your listing for $39/mo.
               </p>
             </div>
             <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-600 text-white flex-shrink-0">
@@ -232,7 +178,7 @@ export default function DashboardHome() {
         </Card>
       )}
 
-      {/* ── How your listing works — adaptive guide ─────────────────────── */}
+      {/* ── How your listing works ─────────────────────────────────────────── */}
       {hasProfile && (
         <Card className="border-border">
           <CardContent className="p-0">
@@ -259,13 +205,13 @@ export default function DashboardHome() {
                     How people find you
                   </p>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Your listing appears in the directory when someone searches your island or modalities.
-                    It also shows up in the "Similar practitioners" section on other profiles that share your specialties.
-                    A complete profile with a photo and detailed bio ranks higher in results.
+                    Your center appears in the directory when someone searches your island or modalities.
+                    It also shows up in the "Nearby centers" section on practitioner profiles that share your specialties.
+                    A complete profile with photos and a detailed description ranks higher in results.
                   </p>
-                  {practitioner?.id && (
+                  {center?.id && (
                     <Link
-                      to={`/profile/${practitioner.id}`}
+                      to={`/center/${center.id}`}
                       className="inline-flex items-center gap-1 mt-2 text-sm text-primary hover:underline font-medium"
                     >
                       <Eye className="h-3.5 w-3.5" />
@@ -274,7 +220,7 @@ export default function DashboardHome() {
                   )}
                 </div>
 
-                {/* Getting the most out of your listing */}
+                {/* Tips to stand out */}
                 <div>
                   <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5 text-amber-500" />
@@ -282,16 +228,16 @@ export default function DashboardHome() {
                   </p>
                   <div className="space-y-2">
                     {[
-                      { icon: Camera, text: 'Add a clear, friendly photo — listings with photos get significantly more clicks.', done: !!practitioner?.avatar_url },
-                      { icon: FileText, text: 'Write a detailed bio that tells people who you are, what you do, and what to expect.', done: (practitioner?.bio?.length ?? 0) > 50 },
-                      { icon: Heart, text: 'Pick accurate modalities so the right clients find you through search.', done: (practitioner?.modalities?.length ?? 0) >= 2 },
-                      { icon: Mail, text: 'Add your email and phone so people can reach you directly from your listing.', done: !!practitioner?.email && !!practitioner?.phone },
+                      { icon: Camera,   text: 'Add a high-quality photo — centers with photos get significantly more clicks.', done: !!center?.avatar_url },
+                      { icon: FileText, text: 'Write a detailed description that tells people what your center offers and what to expect.', done: (center?.description?.length ?? 0) > 50 },
+                      { icon: Heart,    text: 'Pick accurate modalities so the right clients find you through search.', done: (center?.modalities?.length ?? 0) >= 2 },
+                      { icon: Mail,     text: 'Add your email and phone so people can reach you directly from your listing.', done: !!center?.email && !!center?.phone },
                     ].map((tip, i) => (
                       <div key={i} className="flex items-start gap-2.5">
                         {tip.done
                           ? <CheckCircle className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
                           : <tip.icon className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />}
-                        <p className={`text-sm leading-relaxed ${tip.done ? 'text-muted-foreground line-through' : 'text-muted-foreground'}`}>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
                           {tip.text}
                         </p>
                       </div>
@@ -299,29 +245,29 @@ export default function DashboardHome() {
                   </div>
                   {!hasProfile && (
                     <Button asChild size="sm" variant="outline" className="mt-3">
-                      <Link to="/dashboard/profile">Edit your profile</Link>
+                      <Link to="/dashboard/center-profile">Edit your profile</Link>
                     </Button>
                   )}
                 </div>
 
-                {/* What you can do with your current plan */}
+                {/* What's included on your plan */}
                 <div>
                   <p className="text-sm font-medium text-foreground mb-2 flex items-center gap-1.5">
                     <Star className="h-3.5 w-3.5 text-primary" />
                     {billing?.tier === 'featured' ? 'Your Featured plan includes'
                       : billing?.tier === 'premium' ? 'Your Premium plan includes'
-                      : 'What\'s included on your plan'}
+                      : "What's included on your plan"}
                   </p>
 
                   {billing?.tier === 'featured' ? (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Everything in Premium, plus homepage rotation, a Featured badge on your card, and priority placement at the top of search results on your island.
+                        Everything in Premium, plus homepage rotation, a Featured badge on your listing, priority placement at the top of search results, and access to Offerings & Classes.
                       </p>
                       {[
-                        { text: 'Collect verified testimonials from your clients', to: '/dashboard/testimonials' },
-                        { text: 'Add offerings and class schedules', to: '/dashboard/offerings' },
-                        { text: 'Set your working hours and social links', to: '/dashboard/profile' },
+                        { text: 'Add offerings and events', to: '/dashboard/center-offerings' },
+                        { text: 'Add recurring classes', to: '/dashboard/center-classes' },
+                        { text: 'Set working hours and social links', to: '/dashboard/center-profile' },
                       ].map((item, i) => (
                         <Link key={i} to={item.to} className="flex items-center gap-2 text-sm text-primary hover:underline">
                           <ArrowRight className="h-3 w-3" />
@@ -332,12 +278,11 @@ export default function DashboardHome() {
                   ) : billing?.tier === 'premium' ? (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Your listing shows a verified badge, social links, and working hours. You can also collect verified testimonials from clients and add offerings.
+                        Your listing shows a verified badge, social links, and working hours. Upload up to 5 photos and set your hours so visitors know when you're open.
                       </p>
                       {[
-                        { text: 'Invite clients to leave a verified testimonial', to: '/dashboard/testimonials' },
-                        { text: 'Add offerings and class schedules', to: '/dashboard/offerings' },
-                        { text: 'Set your working hours and social links', to: '/dashboard/profile' },
+                        { text: 'Set working hours and social links', to: '/dashboard/center-profile' },
+                        { text: 'Upload additional photos', to: '/dashboard/center-profile' },
                       ].map((item, i) => (
                         <Link key={i} to={item.to} className="flex items-center gap-2 text-sm text-primary hover:underline">
                           <ArrowRight className="h-3 w-3" />
@@ -348,10 +293,10 @@ export default function DashboardHome() {
                   ) : (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Your free listing includes your name, bio, location, modalities, and contact info. People can find you through search and reach out directly.
+                        Your free listing includes your center name, description, location, modalities, and contact info. People can find you through search and reach out directly.
                       </p>
                       <p className="text-sm text-muted-foreground leading-relaxed">
-                        Want to add testimonials, social links, working hours, and get a verified badge?
+                        Want to add social links, working hours, multiple photos, and get a verified badge?
                       </p>
                       <Link to="/dashboard/billing" className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium">
                         <ArrowRight className="h-3 w-3" />
@@ -377,8 +322,6 @@ export default function DashboardHome() {
           </CardContent>
         </Card>
       )}
-
-      {/* Website packages promo — hidden until ready to launch */}
     </div>
   );
 }

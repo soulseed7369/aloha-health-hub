@@ -48,6 +48,7 @@ const DashboardCenterProfile = lazyWithRetry(() => import("./pages/dashboard/Das
 const DashboardCenters  = lazyWithRetry(() => import("./pages/dashboard/DashboardCenters"));
 const DashboardCenterOfferings = lazyWithRetry(() => import("./pages/dashboard/DashboardCenterOfferings"));
 const DashboardCenterClasses = lazyWithRetry(() => import("./pages/dashboard/DashboardCenterClasses"));
+const DashboardCenterHome   = lazyWithRetry(() => import("./pages/dashboard/DashboardCenterHome"));
 const DashboardOfferings    = lazyWithRetry(() => import("./pages/dashboard/DashboardOfferings"));
 const DashboardClasses      = lazyWithRetry(() => import("./pages/dashboard/DashboardClasses"));
 const DashboardTestimonials = lazyWithRetry(() => import("./pages/dashboard/DashboardTestimonials"));
@@ -127,6 +128,7 @@ const App = () => (
                   <Route path="profile"  element={<DashboardProfile />} />
                   <Route path="center-profile"  element={<DashboardCenterProfile />} />
                   <Route path="centers"  element={<DashboardCenters />} />
+                  <Route path="center-home"      element={<DashboardCenterHome />} />
                   <Route path="center-offerings" element={<DashboardCenterOfferings />} />
                   <Route path="center-classes" element={<DashboardCenterClasses />} />
                   <Route path="offerings"   element={<DashboardOfferings />} />
