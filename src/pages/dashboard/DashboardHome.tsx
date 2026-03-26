@@ -21,7 +21,7 @@ export default function DashboardHome() {
   useEffect(() => {
     if (!accountTypeLoading && accountType) {
       if (accountType === 'center') {
-        navigate('/dashboard/centers', { replace: true });
+        navigate('/dashboard/center-profile', { replace: true });
       }
       // else: stay on this page for practitioners
     }
