@@ -608,7 +608,8 @@ const Directory = () => {
     } else {
       const existingIds = new Set(accumulatedResults.map(r => r.id));
       const fresh = newSearch.results.filter(r => !existingIds.has(r.id));
-      setLastPageSize(fresh.length);
+      // Track the actual page size returned by RPC (before dedup), not after dedup
+      setLastPageSize(newSearch.results.length);
       setAccumulatedResults(prev => [...prev, ...fresh]);
     }
   }, [newSearch.results, newSearch.isLoading, page, accumulatedResults]);
@@ -621,8 +622,12 @@ const Directory = () => {
     // In that case, scroll to top is appropriate
     // If page incremented (0→1, 1→2, etc.), that's a "load more" click — don't scroll
     if (page === 0 && prevPageRef.current > 0) {
-      // Filter changed, reset triggered
-      window.scrollTo(0, 0);
+      // Filter changed, reset triggered — scroll the results container, not the window
+      if (resultsContainerRef.current) {
+        resultsContainerRef.current.scrollTop = 0;
+      } else {
+        window.scrollTo(0, 0);
+      }
     }
     // When page > 0, we intentionally don't scroll to preserve user position
     prevPageRef.current = page;
@@ -917,7 +922,7 @@ const Directory = () => {
         </aside>
 
         {/* List */}
-        <div className={`flex-1 overflow-y-auto p-4 lg:block lg:max-h-[calc(100vh-8rem)] lg:max-w-lg xl:max-w-xl ${showMap ? "hidden" : "block"}`}>
+        <div ref={resultsContainerRef} className={`flex-1 overflow-y-auto p-4 lg:block lg:max-h-[calc(100vh-8rem)] lg:max-w-lg xl:max-w-xl ${showMap ? "hidden" : "block"}`}>
           <div className="mb-3 flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
