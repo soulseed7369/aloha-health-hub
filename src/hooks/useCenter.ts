@@ -44,6 +44,8 @@ export interface CenterProfile {
     substack?: string;
   } | null;
   acceptsNewClients: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 // Empty string so CenterDetail can render initials fallback instead of a stock photo
@@ -62,7 +64,7 @@ function rowToProfile(row: CenterRow): CenterProfile {
     amenities: row.amenities ?? [],
     address: row.address,
     city: row.city,
-    island: row.island,
+    island: row.island ?? 'big_island',
     location: [row.city, row.island].filter(Boolean).join(', '),
     phone: row.phone,
     email: row.email,
@@ -78,6 +80,8 @@ function rowToProfile(row: CenterRow): CenterProfile {
     workingHours: row.working_hours ?? null,
     socialLinks: row.social_links ?? null,
     acceptsNewClients: row.accepts_new_clients ?? null,
+    created_at: row.created_at ?? null,
+    updated_at: row.updated_at ?? null,
   };
 }
 
