@@ -43,6 +43,7 @@ export interface CenterProfile {
     x?: string;
     substack?: string;
   } | null;
+  acceptsNewClients: boolean | null;
 }
 
 // Empty string so CenterDetail can render initials fallback instead of a stock photo
@@ -76,6 +77,7 @@ function rowToProfile(row: CenterRow): CenterProfile {
     testimonials: row.testimonials ?? [],
     workingHours: row.working_hours ?? null,
     socialLinks: row.social_links ?? null,
+    acceptsNewClients: row.accepts_new_clients ?? null,
   };
 }
 
