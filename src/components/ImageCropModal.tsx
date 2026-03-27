@@ -182,9 +182,11 @@ export default function ImageCropModal({ file, onConfirm, isOpen }: ImageCropMod
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas context unavailable');
 
-      // Canvas size = crop size (square)
-      canvas.width = CONTAINER_SIZE;
-      canvas.height = CONTAINER_SIZE;
+      // Canvas size = crop size (square), scaled up by DPR for retina sharpness
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = CONTAINER_SIZE * dpr;
+      canvas.height = CONTAINER_SIZE * dpr;
+      ctx.scale(dpr, dpr);
 
       // Scaled image dimensions
       const scaledWidth = imageNaturalWidth * scale;
@@ -194,7 +196,7 @@ export default function ImageCropModal({ file, onConfirm, isOpen }: ImageCropMod
       const srcX = -offsetX + (scaledWidth - CONTAINER_SIZE) / 2;
       const srcY = -offsetY + (scaledHeight - CONTAINER_SIZE) / 2;
 
-      // Draw the cropped region
+      // Draw the cropped region (coordinates in CSS pixels; DPR scaling handled by ctx.scale)
       ctx.drawImage(
         imageRef.current,
         srcX / scale,

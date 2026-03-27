@@ -47,6 +47,7 @@ export default function MultiPhotoUpload({
   const [cropQueue, setCropQueue] = useState<File[]>([]);
   const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
   const cropQueueRef = useRef<File[]>([]);
+  const totalQueueRef = useRef(0); // total files in this crop session for progress display
 
   // Initialize from props once
   useEffect(() => {
@@ -84,7 +85,8 @@ export default function MultiPhotoUpload({
 
     // Queue files for cropping
     cropQueueRef.current = files;
-    setCropQueue(files);
+    totalQueueRef.current = files.length;
+    setCropQueue([...files]);
 
     // Open crop modal for the first file
     if (files.length > 0) {
@@ -99,7 +101,7 @@ export default function MultiPhotoUpload({
   const processCroppedFile = async (croppedFile: File | null) => {
     // Remove first file from queue
     cropQueueRef.current.shift();
-    setCropQueue(cropQueueRef.current);
+    setCropQueue([...cropQueueRef.current]);
 
     if (croppedFile) {
       // Optimize the cropped file (resize + WebP)
@@ -109,15 +111,14 @@ export default function MultiPhotoUpload({
         const preview = URL.createObjectURL(optimized);
         previewUrls.current.add(preview);
 
-        const newSlot: PhotoSlot = {
-          url: '',
-          preview,
-          file: optimized,
-        };
+        const newSlot: PhotoSlot = { url: '', preview, file: optimized };
 
-        const next = [...slots, newSlot];
-        setSlots(next);
-        emitChange(next, profileIdx);
+        // Use functional updater to avoid stale closure — critical for multi-file uploads
+        setSlots(prev => {
+          const next = [...prev, newSlot];
+          emitChange(next, profileIdx);
+          return next;
+        });
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : 'Failed to process image.');
       } finally {
@@ -127,10 +128,10 @@ export default function MultiPhotoUpload({
 
     // Process next file or close modal
     if (cropQueueRef.current.length > 0) {
-      const nextFile = cropQueueRef.current[0];
-      setCurrentCropFile(nextFile);
-      // Modal stays open
+      setCurrentCropFile(cropQueueRef.current[0]);
+      // Modal stays open for next file
     } else {
+      totalQueueRef.current = 0;
       setCurrentCropFile(null);
       setCropModalOpen(false);
     }
@@ -239,9 +240,9 @@ export default function MultiPhotoUpload({
       </p>
 
       {/* Crop modal for queued files */}
-      {cropQueue.length > 0 && (
+      {cropQueue.length > 0 && totalQueueRef.current > 0 && (
         <div className="text-xs text-muted-foreground mt-2 text-center">
-          Cropping {cropQueue.length} of {cropQueue.length + slots.filter(s => s.file).length}...
+          Cropping photo {totalQueueRef.current - cropQueue.length + 1} of {totalQueueRef.current}…
         </div>
       )}
 
