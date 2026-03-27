@@ -168,7 +168,7 @@ export default function DashboardCenterHome() {
                 <Star className="h-4 w-4" /> Unlock Premium features
               </p>
               <p className="text-xs text-amber-700 mt-0.5">
-                Add social links, working hours, and get a verified badge on your listing for $39/mo.
+                Add social links, working hours, and get a verified badge on your listing for $69/mo ($49/mo with Kamaʻāina rate).
               </p>
             </div>
             <Button asChild size="sm" className="bg-amber-500 hover:bg-amber-600 text-white flex-shrink-0">
