@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useMyCenters, useSaveCenter, uploadCenterPhoto, type CenterFormData } from "@/hooks/useMyCenters";
 import { useMyBillingProfile } from "@/hooks/useStripe";
-import { ContactVerification } from "@/components/ContactVerification";
 import MultiPhotoUpload, { type PhotoSlot } from "@/components/MultiPhotoUpload";
 import { RankedModalities, type ModalityTier } from "@/components/RankedModalities";
 import { isValidVideoUrl } from "@/lib/cardUtils";
@@ -298,15 +297,6 @@ export default function DashboardCenterProfile() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="email">Contact Email (public)</Label>
-                {center?.id && (
-                  <ContactVerification
-                    listingId={center.id}
-                    listingType="center"
-                    channel="email"
-                    value={form.email}
-                    verified={!!center.email_verified_at}
-                  />
-                )}
               </div>
               <Input
                 id="email"
@@ -344,11 +334,11 @@ export default function DashboardCenterProfile() {
         </CardContent>
       </Card>
 
-      {/* Services & Modalities — Ranked by Search Priority */}
+      {/* Healing Modalities — Ranked by Search Priority */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Services & Modalities</CardTitle>
-          <CardDescription>Rank your modalities by search priority — top modalities are searchable based on your tier.</CardDescription>
+          <CardTitle className="text-lg">Healing Modalities</CardTitle>
+          <CardDescription>All your modalities appear on your public profile. Drag to reorder — top modalities are searchable based on your tier.</CardDescription>
         </CardHeader>
         <CardContent>
           <RankedModalities

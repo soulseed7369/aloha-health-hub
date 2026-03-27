@@ -11,7 +11,6 @@ import { ExternalLink, Loader2, Lock, Crown, ShieldCheck, CheckCircle } from "lu
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useMyPractitioner, useSavePractitioner, uploadMyPhoto, type PractitionerFormData } from "@/hooks/useMyPractitioner";
-import { ContactVerification } from "@/components/ContactVerification";
 import { useRequestReview } from "@/hooks/useVerification";
 import MultiPhotoUpload, { type PhotoSlot } from "@/components/MultiPhotoUpload";
 import { isValidVideoUrl } from "@/lib/cardUtils";
@@ -282,15 +281,6 @@ export default function DashboardProfile() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="email">Contact Email (public)</Label>
-                {practitioner?.id && (
-                  <ContactVerification
-                    listingId={practitioner.id}
-                    listingType="practitioner"
-                    channel="email"
-                    value={form.email}
-                    verified={!!(practitioner as any).email_verified_at}
-                  />
-                )}
               </div>
               <Input
                 id="email"
@@ -332,8 +322,8 @@ export default function DashboardProfile() {
       {/* Modalities — Ranked by Search Priority */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Services & Modalities</CardTitle>
-          <CardDescription>Rank your modalities by search priority — top modalities are searchable based on your tier.</CardDescription>
+          <CardTitle className="text-lg">Healing Modalities</CardTitle>
+          <CardDescription>All your modalities appear on your public profile. Drag to reorder — top modalities are searchable based on your tier.</CardDescription>
         </CardHeader>
         <CardContent>
           <RankedModalities

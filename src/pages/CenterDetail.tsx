@@ -659,11 +659,11 @@ export default function CenterDetail() {
                 </div>
               )}
 
-              {/* Services & Modalities — visible on mobile only, sidebar has desktop version */}
+              {/* Healing Modalities — visible on mobile only, sidebar has desktop version */}
               {c.modalities.length > 0 && (
                 <div className="lg:hidden">
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    Services &amp; Modalities
+                    Healing Modalities
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
                     {c.modalities.map((m) => (
