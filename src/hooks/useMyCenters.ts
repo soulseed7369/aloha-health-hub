@@ -149,12 +149,22 @@ export function useSaveCenter() {
 
           // Re-insert with rank-based limit enforcement
           if (modalities.length > 0) {
+            // Refresh session and get fresh token for edge function auth
+            const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+            const session = refreshData?.session;
+            if (refreshErr || !session) {
+              throw new Error('Session refresh failed — please try again');
+            }
+
             const { error: invokeError } = await supabase.functions.invoke('sync-modality-ranks', {
               body: {
                 listing_id: existing.id,
                 listing_type: 'center',
                 modalities,
                 tier,
+              },
+              headers: {
+                Authorization: `Bearer ${session.access_token}`,
               },
             });
             if (invokeError) {
@@ -185,12 +195,22 @@ export function useSaveCenter() {
             const tier = newCenter.tier || 'free';
             const modalities = formData.modalities?.filter(Boolean) ?? [];
             if (modalities.length > 0) {
+              // Refresh session and get fresh token for edge function auth
+              const { data: refreshData, error: refreshErr } = await supabase.auth.refreshSession();
+              const session = refreshData?.session;
+              if (refreshErr || !session) {
+                throw new Error('Session refresh failed — please try again');
+              }
+
               const { error: invokeError } = await supabase.functions.invoke('sync-modality-ranks', {
                 body: {
                   listing_id: newCenter.id,
                   listing_type: 'center',
                   modalities,
                   tier,
+                },
+                headers: {
+                  Authorization: `Bearer ${session.access_token}`,
                 },
               });
               if (invokeError) {

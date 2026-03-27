@@ -482,6 +482,7 @@ const Directory = () => {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [page, setPage] = useState(0);
   const [accumulatedResults, setAccumulatedResults] = useState<DirectoryResult[]>([]);
+  const [lastPageSize, setLastPageSize] = useState(0);
 
   useEffect(() => {
     if (searchParams.get('island')) {
@@ -574,7 +575,7 @@ const Directory = () => {
   const effectiveQuery = searchQuery.trim();
 
   // Reset pagination when any filter changes
-  useEffect(() => { setPage(0); }, [effectiveQuery, island, modality, city, centerType, effectiveSessionType, effectiveAcceptsClients, listingType]);
+  useEffect(() => { setPage(0); setLastPageSize(0); }, [effectiveQuery, island, modality, city, centerType, effectiveSessionType, effectiveAcceptsClients, listingType]);
 
   // ── NEW SEARCH PATH ────────────────────────────────────────────────────────
   // Map listing type to the tab format the hook expects
@@ -600,10 +601,12 @@ const Directory = () => {
     if (newSearch.isLoading) return;
     if (page === 0) {
       setAccumulatedResults(newSearch.results);
+      setLastPageSize(newSearch.results.length);
     } else {
       setAccumulatedResults(prev => {
         const existingIds = new Set(prev.map(r => r.id));
         const fresh = newSearch.results.filter(r => !existingIds.has(r.id));
+        setLastPageSize(fresh.length);
         return [...prev, ...fresh];
       });
     }
@@ -1041,7 +1044,7 @@ const Directory = () => {
                 </div>
               )}
 
-              {USE_NEW_SEARCH && accumulatedResults.length < newTotalCount && (
+              {USE_NEW_SEARCH && lastPageSize === 25 && (
                 <div className="flex justify-center pt-4">
                   <Button
                     variant="outline"
@@ -1055,7 +1058,7 @@ const Directory = () => {
                         Loading…
                       </span>
                     ) : (
-                      `Load more (${newTotalCount - accumulatedResults.length} remaining)`
+                      'Load more results'
                     )}
                   </Button>
                 </div>

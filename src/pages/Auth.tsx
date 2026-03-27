@@ -571,7 +571,7 @@ export default function Auth() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
