@@ -748,22 +748,22 @@ const Directory = () => {
 
   const mapLocations = useMemo<MapLocation[]>(() => {
     if (USE_NEW_SEARCH) {
-      return unifiedResults
+      return accumulatedResults
         .filter(item => {
-          const lat = item.raw.lat ?? 0;
-          const lng = item.raw.lng ?? 0;
+          const lat = item.lat ?? 0;
+          const lng = item.lng ?? 0;
           return lat !== 0 && lng !== 0 && lat !== 19.8968;
         })
         .map(item => ({
-          id: item.raw.id,
-          name: item.raw.name,
-          lat: item.raw.lat!,
-          lng: item.raw.lng!,
-          image: item.provider?.image || item.center?.image || '',
-          modality: item.provider?.modality || item.center?.modality || '',
-          location: item.raw.city || '',
-          listing_type: item.raw.listing_type as 'practitioner' | 'center',
-          tier: item.raw.tier || 'free',
+          id: item.id,
+          name: item.name,
+          lat: item.lat!,
+          lng: item.lng!,
+          image: item.image || '',
+          modality: item.modality || '',
+          location: item.city || '',
+          listing_type: item.listing_type as 'practitioner' | 'center',
+          tier: item.tier || 'free',
         }));
     }
     // Old search fallback — combine both types
@@ -778,7 +778,7 @@ const Directory = () => {
       })),
     ];
     return all.filter(l => l.lat !== 0 && l.lng !== 0 && l.lat !== 19.8968);
-  }, [unifiedResults, oldFilteredPractitioners, oldFilteredCenters]);
+  }, [accumulatedResults, oldFilteredPractitioners, oldFilteredCenters]);
 
   const crossIslandNote = detectedIsland && detectedIsland !== island
     ? `Showing results from ${ISLANDS.find(i => i.value === detectedIsland)?.label} based on your search location.`
@@ -958,7 +958,7 @@ const Directory = () => {
 
           <div className="mb-4 flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground" aria-live="polite" aria-atomic="true">
-              {isLoading ? "Loading…" : `${resultCount} result${resultCount !== 1 ? "s" : ""} found`}
+              {isLoading ? "Loading…" : lastPageSize === 25 && newTotalCount > 0 ? `${resultCount} of ${newTotalCount} result${resultCount !== 1 ? "s" : ""} found` : `${resultCount} result${resultCount !== 1 ? "s" : ""} found`}
             </p>
             {userLocation ? (
               <div className="flex items-center gap-2">
