@@ -16,7 +16,8 @@ export type PriceMode = 'fixed' | 'range' | 'sliding' | 'contact' | 'free';
 
 export interface OfferingRow {
   id: string;
-  practitioner_id: string;
+  practitioner_id: string | null;
+  center_id?: string | null;
   title: string;
   description: string | null;
   offering_type: 'retreat' | 'workshop' | 'immersion' | 'mentorship' | 'ceremony' | 'event';
@@ -43,7 +44,8 @@ export type OfferingInsert = Omit<OfferingRow, 'id' | 'created_at' | 'updated_at
 
 export interface ClassRow {
   id: string;
-  practitioner_id: string;
+  practitioner_id: string | null;
+  center_id?: string | null;
   title: string;
   description: string | null;
   price_mode: PriceMode;

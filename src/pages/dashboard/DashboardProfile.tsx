@@ -78,7 +78,6 @@ const emptyForm: PractitionerFormData = {
   messaging_enabled: true,
   discovery_call_enabled: false,
   discovery_call_url: '',
-  photo_position: 'center',
   video_url: '',
   social_links: {},
   working_hours: {},
@@ -122,7 +121,6 @@ export default function DashboardProfile() {
         messaging_enabled: (practitioner as any).messaging_enabled ?? true,
         discovery_call_enabled: (practitioner as any).discovery_call_enabled ?? false,
         discovery_call_url: (practitioner as any).discovery_call_url ?? '',
-        photo_position: practitioner.photo_position ?? 'center',
         video_url: practitioner.video_url ?? '',
         social_links: (practitioner as any).social_links ?? {},
         working_hours: (() => {
@@ -209,6 +207,15 @@ export default function DashboardProfile() {
         photos: photoUrls,
         profile_photo_index: safeIdx,
       });
+
+      // After successful save, explicitly reset photo state from the saved payload
+      // This ensures the form reinitializes properly when the useEffect runs after the refetch
+      setInitialPhotos(photoUrls);
+      setInitialProfileIdx(safeIdx);
+      setPhotoKey(k => k + 1); // remount MultiPhotoUpload with fresh data
+      setPhotoSlots(finalSlots);
+      setProfilePhotoIndex(safeIdx);
+
       toast.success('Profile saved! It will appear in the directory once reviewed.');
     } catch (err) {
       toast.error('Failed to save profile. Please try again.');
@@ -259,28 +266,6 @@ export default function DashboardProfile() {
               onChange={handlePhotosChange}
               disabled={uploading}
             />
-
-            {/* Photo position picker */}
-            <div className="mt-3 space-y-2">
-              <Label className="text-xs">Photo Focal Point</Label>
-              <div className="flex gap-2">
-                {['top', 'center', 'bottom'].map(pos => (
-                  <button
-                    key={pos}
-                    type="button"
-                    onClick={() => setForm(f => ({ ...f, photo_position: pos }))}
-                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                      form.photo_position === pos
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-border bg-background text-foreground hover:bg-accent'
-                    }`}
-                  >
-                    {pos.charAt(0).toUpperCase() + pos.slice(1)}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">Choose where your photo is centered when displayed in cards and profiles</p>
-            </div>
           </div>
 
           <div className="space-y-2">

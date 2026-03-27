@@ -44,21 +44,26 @@ export async function optimizeImage(file: File): Promise<File> {
     img.onload = () => {
       URL.revokeObjectURL(blobUrl); // prevent memory leak
       try {
-        // Calculate target dimensions (preserve aspect ratio)
+        // First: crop to a centered 1:1 square
         let { width, height } = img;
-        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-          const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
+        const squareSize = Math.min(width, height);
+        const offsetX = (width - squareSize) / 2;
+        const offsetY = (height - squareSize) / 2;
+
+        // Then: resize the square to MAX_DIMENSION if needed
+        let finalSize = squareSize;
+        if (finalSize > MAX_DIMENSION) {
+          finalSize = MAX_DIMENSION;
         }
 
         const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
+        canvas.width = finalSize;
+        canvas.height = finalSize;
         const ctx = canvas.getContext('2d');
         if (!ctx) { resolve(file); return; } // fallback
 
-        ctx.drawImage(img, 0, 0, width, height);
+        // Draw the centered square crop from the original image, scaled to finalSize
+        ctx.drawImage(img, offsetX, offsetY, squareSize, squareSize, 0, 0, finalSize, finalSize);
 
         canvas.toBlob(
           (blob) => {

@@ -44,7 +44,6 @@ export type CenterFormData = {
   modalities?: string[];
   avatar_url?: string | null;
   photos?: string[];
-  photo_position?: string;  // 'top' | 'center' | 'bottom'
   video_url?: string | null;  // YouTube or Vimeo URL
   session_type?: 'in_person' | 'online' | 'both';
   social_links?: { instagram?: string; facebook?: string; linkedin?: string; x?: string; substack?: string } | null;
@@ -112,8 +111,7 @@ export function useSaveCenter() {
         ...(formData.modalities !== undefined && { modalities: formData.modalities.filter(Boolean) }),
         ...(formData.avatar_url !== undefined && { avatar_url: formData.avatar_url }),
         ...(formData.photos !== undefined && { photos: formData.photos }),
-        // Photo focal point and video URL
-        ...(formData.photo_position !== undefined && { photo_position: formData.photo_position ?? 'center' }),
+        // Video URL
         ...(formData.video_url !== undefined && { video_url: formData.video_url?.trim() || null }),
         ...(formData.session_type !== undefined && { session_type: formData.session_type }),
         ...(formData.social_links !== undefined && { social_links: formData.social_links }),

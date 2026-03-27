@@ -43,7 +43,6 @@ export type PractitionerFormData = {
   avatar_url?: string | null;
   photos?: string[];
   profile_photo_index?: number;
-  photo_position?: string;  // 'top' | 'center' | 'bottom'
   video_url?: string | null;  // YouTube or Vimeo URL
   response_time: string;  // '' | 'within_hours' | 'within_day' | 'within_2_3_days' | 'within_week'
   // Privacy & CTA toggles (Offerings & Events feature)
@@ -82,8 +81,7 @@ export function useSavePractitioner() {
         ...(formData.avatar_url !== undefined && { avatar_url: formData.avatar_url }),
         ...(formData.photos !== undefined && { photos: formData.photos }),
         ...(formData.profile_photo_index !== undefined && { profile_photo_index: formData.profile_photo_index }),
-        // Photo focal point and video URL
-        ...(formData.photo_position !== undefined && { photo_position: formData.photo_position ?? 'center' }),
+        // Video URL
         ...(formData.video_url !== undefined && { video_url: formData.video_url?.trim() || null }),
         // Extended fields (added by later migrations — safe if columns exist)
         what_to_expect: formData.what_to_expect?.trim() || null,
