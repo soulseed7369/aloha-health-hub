@@ -38,6 +38,35 @@ const FILTER_MODALITIES = [
 
 // ── Island / city lookup ─────────────────────────────────────────────────────
 
+// Approximate centroids used for distance sorting when user picks a city instead of sharing GPS
+const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
+  // Big Island
+  'Kailua-Kona': { lat: 19.6400, lng: -155.9969 }, 'Hilo': { lat: 19.7297, lng: -155.0900 },
+  'Waimea': { lat: 20.0133, lng: -155.6718 }, 'Pahoa': { lat: 19.4942, lng: -154.9447 },
+  'Captain Cook': { lat: 19.4992, lng: -155.9194 }, 'Keaau': { lat: 19.6261, lng: -155.0497 },
+  'Holualoa': { lat: 19.6228, lng: -155.9317 }, 'Volcano': { lat: 19.4256, lng: -155.2347 },
+  'Waikoloa': { lat: 19.9306, lng: -155.7797 }, 'Hawi': { lat: 20.2428, lng: -155.8330 },
+  'Honokaa': { lat: 20.0817, lng: -155.4719 }, 'Ocean View': { lat: 19.1000, lng: -155.7667 },
+  // Maui
+  'Lahaina': { lat: 20.8783, lng: -156.6825 }, 'Kihei': { lat: 20.7645, lng: -156.4450 },
+  'Wailea': { lat: 20.6881, lng: -156.4414 }, 'Kahului': { lat: 20.8893, lng: -156.4729 },
+  'Wailuku': { lat: 20.8936, lng: -156.5000 }, 'Makawao': { lat: 20.8564, lng: -156.3100 },
+  'Paia': { lat: 20.9108, lng: -156.3703 }, 'Haiku': { lat: 20.9197, lng: -156.3231 },
+  'Kula': { lat: 20.7878, lng: -156.3358 }, 'Hana': { lat: 20.7578, lng: -155.9928 },
+  // Oahu
+  'Honolulu': { lat: 21.3069, lng: -157.8583 }, 'Waikiki': { lat: 21.2793, lng: -157.8294 },
+  'Kailua': { lat: 21.4022, lng: -157.7394 }, 'Kaneohe': { lat: 21.4022, lng: -157.8003 },
+  'Pearl City': { lat: 21.3972, lng: -157.9756 }, 'Kapolei': { lat: 21.3347, lng: -158.0764 },
+  'Haleiwa': { lat: 21.5950, lng: -158.1028 }, 'Mililani': { lat: 21.4511, lng: -158.0147 },
+  'Hawaii Kai': { lat: 21.2919, lng: -157.7000 }, 'Manoa': { lat: 21.3094, lng: -157.8019 },
+  // Kauai
+  'Lihue': { lat: 21.9781, lng: -159.3508 }, 'Kapaa': { lat: 22.0753, lng: -159.3192 },
+  'Hanalei': { lat: 22.2039, lng: -159.5017 }, 'Princeville': { lat: 22.2153, lng: -159.4811 },
+  'Poipu': { lat: 21.8742, lng: -159.4586 }, 'Koloa': { lat: 21.9056, lng: -159.4656 },
+  'Hanapepe': { lat: 21.9092, lng: -159.5950 }, 'Kilauea': { lat: 22.2128, lng: -159.4028 },
+  'Kalaheo': { lat: 21.9244, lng: -159.5281 },
+};
+
 const ISLAND_CITIES: Record<string, string[]> = {
   big_island: ['Kailua-Kona', 'Hilo', 'Waimea', 'Pahoa', 'Captain Cook', 'Keaau', 'Holualoa', 'Volcano', 'Waikoloa', 'Hawi', 'Honokaa', 'Ocean View'],
   oahu: ['Honolulu', 'Waikiki', 'Kailua', 'Kaneohe', 'Pearl City', 'Kapolei', 'Haleiwa', 'Mililani', 'Hawaii Kai', 'Manoa'],
@@ -472,6 +501,22 @@ const Directory = () => {
   const handleIsland = (v: string) => { setIsland(v); updateParam('island', v); };
 
   const [locating, setLocating] = useState(false);
+  const [showCityPicker, setShowCityPicker] = useState(false);
+
+  const handleSetLocationFromCity = useCallback((cityName: string) => {
+    const coords = CITY_COORDS[cityName];
+    if (!coords) return;
+    try { localStorage.setItem('aloha_user_location', JSON.stringify(coords)); } catch { /* ignore */ }
+    setSortByDistance(true);
+    setShowCityPicker(false);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.set('ulat', String(coords.lat));
+      next.set('ulng', String(coords.lng));
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
   const handleSetLocation = useCallback(() => {
     if (!navigator.geolocation) return;
     setLocating(true);
@@ -597,9 +642,16 @@ const Directory = () => {
       list = list.filter(item => item.raw.listing_type !== 'center' || item.center?.centerType === centerType);
     }
 
-    // Sort by distance if enabled, otherwise keep RPC composite-score order
+    // Sort by distance if enabled — featured listings always stay at the top,
+    // then non-featured sorted by distance
     if (sortByDistance && userLocation) {
       list.sort((a, b) => {
+        const aTier = a.provider?.tier ?? a.center?.tier ?? 'free';
+        const bTier = b.provider?.tier ?? b.center?.tier ?? 'free';
+        const aFeatured = aTier === 'featured' ? 0 : 1;
+        const bFeatured = bTier === 'featured' ? 0 : 1;
+        if (aFeatured !== bFeatured) return aFeatured - bFeatured;
+        // Within same tier group, nearest first
         const da = a.provider?.distanceMiles ?? a.center?.distanceMiles ?? Infinity;
         const db = b.provider?.distanceMiles ?? b.center?.distanceMiles ?? Infinity;
         return da - db;
@@ -882,14 +934,38 @@ const Directory = () => {
                 </label>
               )
             ) : (
-              <button
-                onClick={handleSetLocation}
-                disabled={locating}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-              >
-                <Navigation className="h-3.5 w-3.5 shrink-0" />
-                {locating ? 'Locating…' : 'Use my location'}
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSetLocation}
+                  disabled={locating}
+                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+                >
+                  <Navigation className="h-3.5 w-3.5 shrink-0" />
+                  {locating ? 'Locating…' : 'Use my location'}
+                </button>
+                <span className="text-xs text-muted-foreground/50">or</span>
+                {showCityPicker ? (
+                  <select
+                    autoFocus
+                    className="text-xs border rounded px-1.5 py-0.5 bg-background text-foreground"
+                    defaultValue=""
+                    onChange={e => e.target.value && handleSetLocationFromCity(e.target.value)}
+                    onBlur={() => setShowCityPicker(false)}
+                  >
+                    <option value="" disabled>Pick your town</option>
+                    {(ISLAND_CITIES[island === 'all' ? 'big_island' : island] ?? []).map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <button
+                    onClick={() => setShowCityPicker(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    choose your town
+                  </button>
+                )}
+              </div>
             )}
           </div>
 
