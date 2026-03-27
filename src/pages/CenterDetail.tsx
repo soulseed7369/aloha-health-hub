@@ -295,6 +295,7 @@ export default function CenterDetail() {
   const { data: events = [] }          = usePublicCenterEvents(id);
   const [activeTab, setActiveTab] = useState<CenterTabType>('about');
   const [galleryIdx, setGalleryIdx] = useState(0);
+  const [showAllModalities, setShowAllModalities] = useState(false);
 
   useTrackView(id, 'center');
   const trackClick = useTrackClick(id, 'center');
@@ -520,14 +521,25 @@ export default function CenterDetail() {
                   </div>
                 )}
 
-                {/* Top 2 modality chips */}
-                <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                  {c.modalities.slice(0, 2).map((m) => (
-                    <span key={m} className="inline-flex items-center rounded-md bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-                      {m}
-                    </span>
-                  ))}
-                </div>
+                {/* Modality pills — linked, expandable, matches practitioner header */}
+                {c.modalities.length > 0 && (
+                  <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                    {c.modalities.slice(0, 5).map((m) => (
+                      <Link key={m} to={`/directory?island=${encodeURIComponent(c.island ?? 'big_island')}&modality=${encodeURIComponent(m)}`} className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-700 transition-colors">{m}</Link>
+                    ))}
+                    {c.modalities.length > 5 && !showAllModalities && (
+                      <button
+                        onClick={() => setShowAllModalities(true)}
+                        className="inline-flex items-center rounded-full bg-slate-50 border border-slate-200/60 px-2.5 py-0.5 text-xs font-medium text-slate-500 hover:bg-slate-100 transition-colors"
+                      >
+                        +{c.modalities.length - 5} more
+                      </button>
+                    )}
+                    {showAllModalities && c.modalities.slice(5).map((m) => (
+                      <Link key={m} to={`/directory?island=${encodeURIComponent(c.island ?? 'big_island')}&modality=${encodeURIComponent(m)}`} className="inline-flex items-center rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-xs font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-700 transition-colors">{m}</Link>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -932,25 +944,6 @@ export default function CenterDetail() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Services & Modalities — desktop sidebar only (mobile version is in main content) */}
-          {c.modalities.length > 0 && (
-            <div className="hidden lg:block">
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Services &amp; Modalities
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {c.modalities.map((m) => (
-                  <span
-                    key={m}
-                    className="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground"
-                  >
-                    {m}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Book CTA — paid tiers only (matches practitioner behaviour) */}
           {isTiered && c.externalBookingUrl && (
