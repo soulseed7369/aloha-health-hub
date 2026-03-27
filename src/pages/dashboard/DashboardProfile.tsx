@@ -77,6 +77,8 @@ const emptyForm: PractitionerFormData = {
   messaging_enabled: true,
   discovery_call_enabled: false,
   discovery_call_url: '',
+  photo_position: 'center',
+  video_url: '',
   social_links: {},
   working_hours: {},
   services_list: [],
@@ -119,6 +121,8 @@ export default function DashboardProfile() {
         messaging_enabled: (practitioner as any).messaging_enabled ?? true,
         discovery_call_enabled: (practitioner as any).discovery_call_enabled ?? false,
         discovery_call_url: (practitioner as any).discovery_call_url ?? '',
+        photo_position: (practitioner as any).photo_position ?? 'center',
+        video_url: (practitioner as any).video_url ?? '',
         social_links: (practitioner as any).social_links ?? {},
         working_hours: (() => {
           const raw = (practitioner as any).working_hours ?? {};
@@ -254,6 +258,28 @@ export default function DashboardProfile() {
               onChange={handlePhotosChange}
               disabled={uploading}
             />
+
+            {/* Photo position picker */}
+            <div className="mt-3 space-y-2">
+              <Label className="text-xs">Photo Focal Point</Label>
+              <div className="flex gap-2">
+                {['top', 'center', 'bottom'].map(pos => (
+                  <button
+                    key={pos}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, photo_position: pos }))}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                      form.photo_position === pos
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border bg-background text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Choose where your photo is centered when displayed in cards and profiles</p>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -416,6 +442,48 @@ export default function DashboardProfile() {
               </p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Video URL — Featured tier only */}
+      <Card className={tier === 'featured' ? "border-primary/30 bg-terracotta-light/30" : "border-border"}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {tier === 'featured'
+              ? <ExternalLink className="h-4 w-4 text-primary" />
+              : <Lock className="h-4 w-4 text-muted-foreground" />}
+            Video
+            {tier !== 'featured' && (
+              <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                <Crown className="h-3 w-3" /> Featured Only
+              </span>
+            )}
+          </CardTitle>
+          <CardDescription>
+            {tier === 'featured'
+              ? "Add a YouTube or Vimeo video to showcase your services (displayed above your photo gallery)."
+              : "Upgrade to Featured tier to add a promotional video."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {tier === 'featured' ? (
+            <div className="space-y-2">
+              <Input
+                placeholder="YouTube or Vimeo URL (e.g., https://youtube.com/watch?v=dQw4w9WgXcQ)"
+                value={form.video_url || ''}
+                onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Paste the full URL from YouTube or Vimeo. It will be embedded on your profile.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-accent/50 p-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Video embeds are available for Featured tier listings only.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

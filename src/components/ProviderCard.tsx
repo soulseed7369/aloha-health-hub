@@ -54,6 +54,15 @@ const SESSION_TYPE_LABELS: Record<string, string> = {
   both: "In Person & Online",
 };
 
+// Helper to convert photo_position to CSS object-position
+function getObjectPosition(position?: string): string {
+  switch (position) {
+    case 'top': return 'center top';
+    case 'bottom': return 'center bottom';
+    default: return 'center';
+  }
+}
+
 interface ProviderCardProps {
   provider: Provider;
   highlightModality?: string;
@@ -87,6 +96,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 width={72}
                 height={72}
                 className="h-[72px] w-[72px] flex-shrink-0 rounded-lg object-cover"
+                style={{ objectPosition: getObjectPosition(provider.photoPosition) }}
                 loading="lazy"
               />
             ) : (
@@ -204,6 +214,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
               width={80}
               height={80}
               className="h-20 w-20 rounded-full object-cover ring-2 ring-background shadow"
+              style={{ objectPosition: getObjectPosition(provider.photoPosition) }}
               loading="lazy"
             />
           ) : (

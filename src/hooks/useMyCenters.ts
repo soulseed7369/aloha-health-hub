@@ -40,9 +40,12 @@ export type CenterFormData = {
   email: string;
   website_url: string;
   external_website_url: string;
+  accepts_new_clients?: boolean;
   modalities?: string[];
   avatar_url?: string | null;
   photos?: string[];
+  photo_position?: string;  // 'top' | 'center' | 'bottom'
+  video_url?: string | null;  // YouTube or Vimeo URL
   session_type?: 'in_person' | 'online' | 'both';
   social_links?: { instagram?: string; facebook?: string; linkedin?: string; x?: string; substack?: string } | null;
   working_hours?: { [key: string]: Array<{ open: string; close: string }> | null } | null;
@@ -67,6 +70,7 @@ export function useAddCenter() {
         email: formData.email.trim() || null,
         website_url: formData.website_url.trim() || null,
         external_website_url: formData.external_website_url.trim() || null,
+        accepts_new_clients: formData.accepts_new_clients ?? true,
         island: formData.island || 'big_island',
         status: 'draft',
         modalities: formData.modalities?.filter(Boolean) ?? [],
@@ -104,9 +108,13 @@ export function useSaveCenter() {
         email: formData.email.trim() || null,
         website_url: formData.website_url.trim() || null,
         external_website_url: formData.external_website_url.trim() || null,
+        ...(formData.accepts_new_clients !== undefined && { accepts_new_clients: formData.accepts_new_clients }),
         ...(formData.modalities !== undefined && { modalities: formData.modalities.filter(Boolean) }),
         ...(formData.avatar_url !== undefined && { avatar_url: formData.avatar_url }),
         ...(formData.photos !== undefined && { photos: formData.photos }),
+        // Photo focal point and video URL
+        ...(formData.photo_position !== undefined && { photo_position: formData.photo_position ?? 'center' }),
+        ...(formData.video_url !== undefined && { video_url: formData.video_url?.trim() || null }),
         ...(formData.session_type !== undefined && { session_type: formData.session_type }),
         ...(formData.social_links !== undefined && { social_links: formData.social_links }),
         ...(formData.working_hours !== undefined && { working_hours: formData.working_hours }),

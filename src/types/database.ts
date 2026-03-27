@@ -213,6 +213,7 @@ export interface CenterRow {
   email: string | null;
   website_url: string | null;
   external_website_url: string | null;
+  accepts_new_clients: boolean;
   avatar_url: string | null;
   photos: string[];
   modalities: string[];

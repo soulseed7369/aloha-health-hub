@@ -70,8 +70,11 @@ const emptyForm: CenterFormData = {
   email: '',
   website_url: '',
   external_website_url: '',
+  accepts_new_clients: true,
   modalities: [],
   session_type: 'in_person',
+  photo_position: 'center',
+  video_url: '',
   social_links: {},
   working_hours: {},
 };
@@ -107,8 +110,11 @@ export default function DashboardCenterProfile() {
         email: center.email ?? '',
         website_url: center.website_url ?? '',
         external_website_url: center.external_website_url ?? '',
+        accepts_new_clients: center.accepts_new_clients ?? true,
         modalities: center.modalities ?? [],
         session_type: center.session_type ?? 'in_person',
+        photo_position: (center as any).photo_position ?? 'center',
+        video_url: (center as any).video_url ?? '',
         social_links: center.social_links ?? {},
         working_hours: (() => {
           const raw = center.working_hours ?? {};
@@ -274,6 +280,28 @@ export default function DashboardCenterProfile() {
               onChange={handlePhotosChange}
               disabled={uploading}
             />
+
+            {/* Photo position picker */}
+            <div className="mt-3 space-y-2">
+              <Label className="text-xs">Photo Focal Point</Label>
+              <div className="flex gap-2">
+                {['top', 'center', 'bottom'].map(pos => (
+                  <button
+                    key={pos}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, photo_position: pos }))}
+                    className={`px-3 py-1 text-xs rounded-full border transition-colors ${
+                      form.photo_position === pos
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'border-border bg-background text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {pos.charAt(0).toUpperCase() + pos.slice(1)}
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">Choose where your photo is centered when displayed in cards and profiles</p>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -341,6 +369,17 @@ export default function DashboardCenterProfile() {
                 onChange={e => setForm(p => ({ ...p, phone: e.target.value }))}
               />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-lg border border-border p-3">
+            <div>
+              <p className="text-sm font-medium">Accepting New Clients</p>
+              <p className="text-xs text-muted-foreground">Show "Accepting New Clients" badge on your profile</p>
+            </div>
+            <Switch
+              checked={form.accepts_new_clients ?? true}
+              onCheckedChange={v => setForm(p => ({ ...p, accepts_new_clients: v }))}
+            />
           </div>
         </CardContent>
       </Card>
@@ -435,6 +474,48 @@ export default function DashboardCenterProfile() {
               </p>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Video URL — Featured tier only */}
+      <Card className={tier === 'featured' ? "border-primary/30 bg-terracotta-light/30" : "border-border"}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            {tier === 'featured'
+              ? <ExternalLink className="h-4 w-4 text-primary" />
+              : <Lock className="h-4 w-4 text-muted-foreground" />}
+            Video
+            {tier !== 'featured' && (
+              <span className="ml-auto flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
+                <Crown className="h-3 w-3" /> Featured Only
+              </span>
+            )}
+          </CardTitle>
+          <CardDescription>
+            {tier === 'featured'
+              ? "Add a YouTube or Vimeo video to showcase your center (displayed above your photo gallery)."
+              : "Upgrade to Featured tier to add a promotional video."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {tier === 'featured' ? (
+            <div className="space-y-2">
+              <Input
+                placeholder="YouTube or Vimeo URL (e.g., https://youtube.com/watch?v=dQw4w9WgXcQ)"
+                value={form.video_url || ''}
+                onChange={e => setForm(p => ({ ...p, video_url: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground">
+                Paste the full URL from YouTube or Vimeo. It will be embedded on your profile.
+              </p>
+            </div>
+          ) : (
+            <div className="rounded-lg bg-accent/50 p-4 text-center">
+              <p className="text-sm text-muted-foreground">
+                Video embeds are available for Featured tier listings only.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

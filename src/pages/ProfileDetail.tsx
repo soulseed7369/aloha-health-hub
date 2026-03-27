@@ -72,6 +72,34 @@ function IslandBadge({ island }: { island: string }) {
   );
 }
 
+// Helper to convert photo_position to CSS object-position
+function getObjectPosition(position?: string): string {
+  switch (position) {
+    case 'top': return 'center top';
+    case 'bottom': return 'center bottom';
+    default: return 'center';
+  }
+}
+
+// Helper to extract embed URL from YouTube/Vimeo URLs
+function getEmbedUrl(url?: string | null): string | null {
+  if (!url) return null;
+
+  // YouTube: https://youtube.com/watch?v=ID or https://youtu.be/ID
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (youtubeMatch) {
+    return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  }
+
+  // Vimeo: https://vimeo.com/ID
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+
+  return null;
+}
+
 // ShareProfileButton removed — replaced by shared ShareButtons component
 
 // ── Working hours ─────────────────────────────────────────────────────────────
@@ -502,6 +530,7 @@ const ProfileDetail = () => {
                   width={112}
                   height={112}
                   className="h-24 w-24 flex-shrink-0 rounded-full border-4 border-background object-cover shadow-lg sm:h-28 sm:w-28"
+                  style={{ objectPosition: getObjectPosition((p as any).photoPosition) }}
                   loading="eager"
                   fetchPriority="high"
                 />
@@ -794,6 +823,24 @@ const ProfileDetail = () => {
                   <p className="leading-relaxed text-muted-foreground">{p.whatToExpect}</p>
                 </div>
               )}
+
+              {/* Video embed — Featured tier only */}
+              {p.tier === 'featured' && (p as any).videoUrl && (() => {
+                const embedUrl = getEmbedUrl((p as any).videoUrl);
+                return embedUrl ? (
+                  <div>
+                    <h2 className="mb-3 font-display text-xl font-bold">Video</h2>
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border shadow-sm">
+                      <iframe
+                        src={embedUrl}
+                        className="absolute inset-0 w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
               {isTiered && p.gallery.length > 0 && (() => {
                 const maxPhotos = p.tier === 'featured' ? 10 : 5;

@@ -65,6 +65,35 @@ const AMENITY_LABELS: Record<string, string> = {
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
+
+// Helper to convert photo_position to CSS object-position
+function getObjectPosition(position?: string): string {
+  switch (position) {
+    case 'top': return 'center top';
+    case 'bottom': return 'center bottom';
+    default: return 'center';
+  }
+}
+
+// Helper to extract embed URL from YouTube/Vimeo URLs
+function getEmbedUrl(url?: string | null): string | null {
+  if (!url) return null;
+
+  // YouTube: https://youtube.com/watch?v=ID or https://youtu.be/ID
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (youtubeMatch) {
+    return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  }
+
+  // Vimeo: https://vimeo.com/ID
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+
+  return null;
+}
+
 function formatEventDate(dateStr: string | null, timeStr: string | null): string {
   if (!dateStr) return '';
   const d = new Date(`${dateStr}T00:00:00`);
@@ -151,19 +180,37 @@ const DAY_LABELS: Record<string, string> = {
   fri: 'Friday', sat: 'Saturday', sun: 'Sunday',
 };
 
-function WorkingHoursTable({ hours }: { hours: Record<string, { open: string; close: string } | null | undefined> }) {
+function WorkingHoursTable({ hours }: { hours: Record<string, Array<{ open: string; close: string }> | null | undefined> }) {
   const days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+
+  function formatTime(t: string) {
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return m ? `${h12}:${m.toString().padStart(2,'0')} ${ampm}` : `${h12} ${ampm}`;
+  }
+
   return (
     <ul className="space-y-1.5 text-sm">
       {days.map(d => {
-        const slot = hours[d];
+        const slots = hours[d];
+        const hasSlots = slots && slots.length > 0;
         return (
           <li key={d} className="flex items-center justify-between">
             <span className="w-28 text-muted-foreground">{DAY_LABELS[d]}</span>
             <span className="font-medium">
-              {slot
-                ? `${slot.open} – ${slot.close}`
-                : <span className="text-muted-foreground">Closed</span>}
+              {hasSlots ? (
+                <span>
+                  {slots.map((s, i) => (
+                    <span key={i}>
+                      {i > 0 && ', '}
+                      {formatTime(s.open)}–{formatTime(s.close)}
+                    </span>
+                  ))}
+                </span>
+              ) : (
+                <span className="text-muted-foreground">Closed</span>
+              )}
             </span>
           </li>
         );
@@ -447,6 +494,7 @@ export default function CenterDetail() {
                   width={112}
                   height={112}
                   className="h-28 w-28 flex-shrink-0 rounded-xl border-4 border-background object-cover shadow-lg"
+                  style={{ objectPosition: getObjectPosition((c as any).photoPosition) }}
                   loading="eager"
                   fetchPriority="high"
                 />
@@ -651,6 +699,24 @@ export default function CenterDetail() {
                   </div>
                 </div>
               )}
+
+              {/* Video embed — Featured tier only */}
+              {c.tier === 'featured' && (c as any).videoUrl && (() => {
+                const embedUrl = getEmbedUrl((c as any).videoUrl);
+                return embedUrl ? (
+                  <div>
+                    <h2 className="mb-3 font-display text-xl font-bold">Video</h2>
+                    <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border shadow-sm">
+                      <iframe
+                        src={embedUrl}
+                        className="absolute inset-0 w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                ) : null;
+              })()}
 
               {/* Photo gallery carousel */}
               {isTiered && c.photos && c.photos.length > 1 && (() => {
