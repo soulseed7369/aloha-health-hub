@@ -213,9 +213,9 @@ export default function DashboardCenterProfile() {
       setProfilePhotoIndex(safeIdx);
 
       toast.success('Center profile saved! It will appear in the directory once reviewed.');
-    } catch (err) {
-      toast.error('Failed to save profile. Please try again.');
-      if (import.meta.env.DEV) console.error(err);
+    } catch (err: any) {
+      console.error('Center save error:', err);
+      toast.error(`Failed to save: ${err?.message ?? 'unknown error'}`);
     } finally {
       setUploading(false);
     }
