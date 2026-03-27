@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback, Suspense, lazy } from "react";
+import { useState, useMemo, useEffect, useCallback, Suspense, lazy, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -430,6 +430,9 @@ function NoResultsState({ query, island, onClear, suggestions, highlightModality
 const Directory = () => {
   usePageMeta("Find Practitioners & Wellness Centers", "Browse certified practitioners, holistic health centers, and spas across the islands of Hawaiʻi. Filter by modality, location, and more.");
 
+  const resultsContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPositionRef = useRef<number>(0);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQ = searchParams.get('q') || '';
   const urlIsland = searchParams.get('island') || 'big_island';
@@ -611,6 +614,21 @@ const Directory = () => {
       });
     }
   }, [newSearch.results, newSearch.isLoading, page]);
+
+  // Track the previous page value to distinguish between filter change and load more
+  const prevPageRef = useRef<number>(0);
+
+  useEffect(() => {
+    // If page went from >0 to 0, it means filters changed (via the dependency effect at line 581)
+    // In that case, scroll to top is appropriate
+    // If page incremented (0→1, 1→2, etc.), that's a "load more" click — don't scroll
+    if (page === 0 && prevPageRef.current > 0) {
+      // Filter changed, reset triggered
+      window.scrollTo(0, 0);
+    }
+    // When page > 0, we intentionally don't scroll to preserve user position
+    prevPageRef.current = page;
+  }, [page]);
 
   const newTotalCount = newSearch.totalCount ?? 0;
 
@@ -1020,7 +1038,7 @@ const Directory = () => {
               highlightModality={effectiveQuery}
             />
           ) : (
-            <div>
+            <div ref={resultsContainerRef}>
               {/* Results — featured/premium get enhanced cards, free get condensed */}
               <div className="space-y-2">
                 {USE_NEW_SEARCH
