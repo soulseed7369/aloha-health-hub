@@ -7,23 +7,39 @@ ALTER TABLE classes ADD COLUMN IF NOT EXISTS center_id uuid REFERENCES centers(i
 CREATE INDEX IF NOT EXISTS idx_classes_center_id ON classes(center_id);
 
 -- RLS: centers can manage their own offerings
-CREATE POLICY "Centers can manage own offerings"
-  ON offerings FOR ALL
-  USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()))
-  WITH CHECK (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Centers can manage own offerings' AND tablename = 'offerings') THEN
+    CREATE POLICY "Centers can manage own offerings"
+      ON offerings FOR ALL
+      USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()))
+      WITH CHECK (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
+  END IF;
+END $$;
 
 -- RLS: centers can manage their own classes
-CREATE POLICY "Centers can manage own classes"
-  ON classes FOR ALL
-  USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()))
-  WITH CHECK (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Centers can manage own classes' AND tablename = 'classes') THEN
+    CREATE POLICY "Centers can manage own classes"
+      ON classes FOR ALL
+      USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()))
+      WITH CHECK (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
+  END IF;
+END $$;
 
 -- Public can read published center offerings
-CREATE POLICY "Public can read published center offerings"
-  ON offerings FOR SELECT
-  USING (status = 'published' AND center_id IS NOT NULL);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public can read published center offerings' AND tablename = 'offerings') THEN
+    CREATE POLICY "Public can read published center offerings"
+      ON offerings FOR SELECT
+      USING (status = 'published' AND center_id IS NOT NULL);
+  END IF;
+END $$;
 
 -- Public can read published center classes
-CREATE POLICY "Public can read published center classes"
-  ON classes FOR SELECT
-  USING (status = 'published' AND center_id IS NOT NULL);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Public can read published center classes' AND tablename = 'classes') THEN
+    CREATE POLICY "Public can read published center classes"
+      ON classes FOR SELECT
+      USING (status = 'published' AND center_id IS NOT NULL);
+  END IF;
+END $$;
