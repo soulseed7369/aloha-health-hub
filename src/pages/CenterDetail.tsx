@@ -641,8 +641,8 @@ export default function CenterDetail() {
                 <div>
                   <h2 className="mb-3 font-display text-xl font-bold">About</h2>
                   <p className="whitespace-pre-line leading-relaxed text-muted-foreground">
-                    {isTiered ? c.about : c.about.slice(0, 250)}
-                    {!isTiered && c.about.length > 250 && '…'}
+                    {isTiered ? c.about : c.about.slice(0, 500)}
+                    {!isTiered && c.about.length > 500 && '…'}
                   </p>
                 </div>
               )}
