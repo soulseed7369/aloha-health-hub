@@ -659,6 +659,22 @@ export default function CenterDetail() {
                 </div>
               )}
 
+              {/* Claim listing — shown inline after bio for visibility */}
+              {!isClaimed && (
+                <Card className="border-dashed border-muted-foreground/30 bg-muted/30">
+                  <CardContent className="p-4 text-center">
+                    <Flag className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
+                    <p className="mb-1 text-sm font-medium">Is this your center?</p>
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Claim this listing to manage your profile, add photos, and more.
+                    </p>
+                    <Button asChild variant="outline" size="sm" className="w-full">
+                      <Link to={`/auth?claim=${id}`}>Claim this listing</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Healing Modalities — visible on mobile only, sidebar has desktop version */}
               {c.modalities.length > 0 && (
                 <div className="lg:hidden">
@@ -955,21 +971,6 @@ export default function CenterDetail() {
             </Button>
           )}
 
-          {/* Claim listing */}
-          {!isClaimed && (
-            <Card className="border-dashed border-muted-foreground/30 bg-muted/30">
-              <CardContent className="p-4 text-center">
-                <Flag className="mx-auto mb-2 h-5 w-5 text-muted-foreground" />
-                <p className="mb-1 text-sm font-medium">Is this your center?</p>
-                <p className="mb-3 text-xs text-muted-foreground">
-                  Claim this listing to manage your profile, add photos, and more.
-                </p>
-                <Button asChild variant="outline" size="sm" className="w-full">
-                  <Link to={`/auth?claim=${id}`}>Claim this listing</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          )}
 
           <div className="flex justify-center pt-1">
             <FlagListingButton
