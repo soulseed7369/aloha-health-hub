@@ -1,13 +1,16 @@
 -- ============================================================================
--- FIX NAME SEARCH
+-- FIX NAME SEARCH (v2)
 -- Corrects the broken RPC from 20260328000000 (wrong parameter names).
--- Keeps the EXACT same signature as the original search_listings RPC so
--- the frontend doesn't need changes.
+-- Based on the ACTUAL live RPC from 20260311000001_fix_search_relevance.sql.
 --
--- Changes vs original (20260310000007):
---   1. Practitioner trigger now indexes business_name in weight 'A'
---   2. FTS composite weight bumped 0.30 → 0.35 (offset: freshness 0.10 → 0.05)
+-- Changes vs live RPC:
+--   1. Practitioner trigger indexes business_name in weight 'A'
+--   2. FTS composite weight: 0.30 → 0.35 (offset: freshness 0.10 → 0.05)
+--   3. Rebuilds search_document for ALL published listings (the trigger
+--      never fired on pre-existing rows, leaving search_document NULL)
 -- ============================================================================
+
+SET search_path TO public, extensions;
 
 -- ── 1. Update practitioner search trigger to include business_name ────────────
 CREATE OR REPLACE FUNCTION build_practitioner_search_document()
@@ -35,7 +38,7 @@ BEGIN
   NEW.search_document :=
     setweight(to_tsvector('english',
       coalesce(NEW.display_name, NEW.name, '') || ' ' ||
-      coalesce(NEW.business_name, '') || ' ' ||   -- ← added: index business_name
+      coalesce(NEW.business_name, '') || ' ' ||
       coalesce(modality_labels, '') || ' ' ||
       old_modalities
     ), 'A') ||
@@ -54,10 +57,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Rebuild search_document for all published practitioners immediately
+-- ── 2. Rebuild search_document for ALL published listings ────────────────────
+-- The trigger was created in 20260310000002 but never backfilled.
+-- Existing rows have search_document = NULL → FTS returns 0 → invisible.
 UPDATE practitioners SET updated_at = updated_at WHERE status = 'published';
+UPDATE centers SET updated_at = updated_at WHERE status = 'published';
 
--- ── 2. Replace search_listings RPC — same signature, boosted FTS weight ──────
+-- ── 3. Replace search_listings RPC ───────────────────────────────────────────
+-- Same signature + WHERE clause as 20260311000001_fix_search_relevance.sql.
+-- Only change: FTS weight 0.30 → 0.35, freshness 0.10 → 0.05.
 CREATE OR REPLACE FUNCTION search_listings(
   p_query          text     DEFAULT '',
   p_island         text     DEFAULT NULL,
@@ -255,7 +263,7 @@ ranked AS (
       ELSE 0.0
     END::real AS norm_fts_rank,
 
-    -- ← FTS weight 0.30 → 0.35; freshness 0.10 → 0.05 (weights still sum to 1.0)
+    -- ← FTS weight 0.30 → 0.35; freshness 0.10 → 0.05
     (
       0.35 * (CASE WHEN max(s.raw_fts_rank) OVER () > 0
                THEN s.raw_fts_rank / max(s.raw_fts_rank) OVER ()
@@ -317,13 +325,31 @@ SELECT
   w.total_count
 FROM with_labels w
 WHERE
+  -- Browse mode: no query, no taxonomy filters → show all
   (
     (p_query IS NULL OR p_query = '')
     AND p_modalities IS NULL
     AND p_concerns IS NULL
     AND p_approaches IS NULL
   )
-  OR w.final_composite > 0.0
+  -- Taxonomy filter mode: must actually match the requested terms
+  OR (
+    (p_modalities IS NOT NULL OR p_concerns IS NOT NULL OR p_approaches IS NOT NULL)
+    AND (p_query IS NULL OR p_query = '')
+    AND w.raw_taxonomy_score > 0
+  )
+  -- Text search mode: must match FTS or taxonomy
+  OR (
+    p_query IS NOT NULL AND p_query != ''
+    AND (w.raw_fts_rank > 0 OR w.raw_taxonomy_score > 0)
+  )
+  -- Combined: text + taxonomy filters
+  OR (
+    p_query IS NOT NULL AND p_query != ''
+    AND (p_modalities IS NOT NULL OR p_concerns IS NOT NULL OR p_approaches IS NOT NULL)
+    AND (w.raw_fts_rank > 0 OR w.raw_taxonomy_score > 0)
+  )
+
 ORDER BY
   CASE WHEN (p_query IS NULL OR p_query = '') AND p_modalities IS NULL AND p_concerns IS NULL
        THEN CASE w.tier WHEN 'featured' THEN 0 WHEN 'premium' THEN 1 ELSE 2 END
