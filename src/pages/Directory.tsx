@@ -511,6 +511,16 @@ const Directory = () => {
   const [locating, setLocating] = useState(false);
   const [showCityPicker, setShowCityPicker] = useState(false);
 
+  const handleClearLocation = useCallback(() => {
+    try { localStorage.removeItem('aloha_user_location'); } catch { /* ignore */ }
+    setSortByDistance(false);
+    setSearchParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('ulat'); next.delete('ulng');
+      return next;
+    }, { replace: true });
+  }, [setSearchParams]);
+
   const handleSetLocationFromCity = useCallback((cityName: string) => {
     // Look up city coords using current island context
     const islandForLookup = island === 'all' ? 'big_island' : island;
@@ -930,19 +940,28 @@ const Directory = () => {
               {isLoading ? "Loading…" : `${resultCount} result${resultCount !== 1 ? "s" : ""} found`}
             </p>
             {userLocation ? (
-              !isLoading && resultCount > 0 && (
-                <label htmlFor="sortByDistance" className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors select-none">
-                  <Navigation className="h-3.5 w-3.5" />
-                  <input
-                    id="sortByDistance"
-                    type="checkbox"
-                    className="accent-primary"
-                    checked={sortByDistance}
-                    onChange={e => setSortByDistance(e.target.checked)}
-                  />
-                  Nearest first
-                </label>
-              )
+              <div className="flex items-center gap-2">
+                {!isLoading && resultCount > 0 && (
+                  <label htmlFor="sortByDistance" className="flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors select-none">
+                    <Navigation className="h-3.5 w-3.5" />
+                    <input
+                      id="sortByDistance"
+                      type="checkbox"
+                      className="accent-primary"
+                      checked={sortByDistance}
+                      onChange={e => setSortByDistance(e.target.checked)}
+                    />
+                    Nearest first
+                  </label>
+                )}
+                <button
+                  onClick={handleClearLocation}
+                  className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors"
+                  aria-label="Clear location"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <button
