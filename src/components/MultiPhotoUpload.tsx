@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, X, Star, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { optimizeImage } from '@/lib/imageOptimize';
+import ImageCropModal from './ImageCropModal';
 
 export interface PhotoSlot {
   /** Public URL (already uploaded) */
@@ -41,6 +42,12 @@ export default function MultiPhotoUpload({
   // Track all preview blob URLs for proper cleanup on unmount
   const previewUrls = useRef<Set<string>>(new Set());
 
+  // Crop modal state
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
+  const [currentCropFile, setCurrentCropFile] = useState<File | null>(null);
+  const cropQueueRef = useRef<File[]>([]);
+
   // Initialize from props once
   useEffect(() => {
     if (initialized.current) return;
@@ -66,7 +73,7 @@ export default function MultiPhotoUpload({
     onChange(nextSlots, nextIdx);
   }, [onChange]);
 
-  const handleFiles = async (fileList: FileList | null) => {
+  const handleFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const remaining = maxPhotos - slots.length;
     if (remaining <= 0) {
@@ -75,28 +82,57 @@ export default function MultiPhotoUpload({
     }
     const files = Array.from(fileList).slice(0, remaining);
 
-    setOptimizing(true);
-    try {
-      const optimized: PhotoSlot[] = [];
-      for (const f of files) {
-        const opt = await optimizeImage(f);
-        const preview = URL.createObjectURL(opt);
-        previewUrls.current.add(preview); // track for cleanup
-        optimized.push({
-          url: '', // not uploaded yet
+    // Queue files for cropping
+    cropQueueRef.current = files;
+    setCropQueue(files);
+
+    // Open crop modal for the first file
+    if (files.length > 0) {
+      setCurrentCropFile(files[0]);
+      setCropModalOpen(true);
+    }
+
+    // Reset file input so re-selecting same file works
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const processCroppedFile = async (croppedFile: File | null) => {
+    // Remove first file from queue
+    cropQueueRef.current.shift();
+    setCropQueue(cropQueueRef.current);
+
+    if (croppedFile) {
+      // Optimize the cropped file (resize + WebP)
+      try {
+        setOptimizing(true);
+        const optimized = await optimizeImage(croppedFile);
+        const preview = URL.createObjectURL(optimized);
+        previewUrls.current.add(preview);
+
+        const newSlot: PhotoSlot = {
+          url: '',
           preview,
-          file: opt,
-        });
+          file: optimized,
+        };
+
+        const next = [...slots, newSlot];
+        setSlots(next);
+        emitChange(next, profileIdx);
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : 'Failed to process image.');
+      } finally {
+        setOptimizing(false);
       }
-      const next = [...slots, ...optimized];
-      setSlots(next);
-      emitChange(next, profileIdx);
-    } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Failed to process image.');
-    } finally {
-      setOptimizing(false);
-      // Reset file input so re-selecting same file works
-      if (fileRef.current) fileRef.current.value = '';
+    }
+
+    // Process next file or close modal
+    if (cropQueueRef.current.length > 0) {
+      const nextFile = cropQueueRef.current[0];
+      setCurrentCropFile(nextFile);
+      // Modal stays open
+    } else {
+      setCurrentCropFile(null);
+      setCropModalOpen(false);
     }
   };
 
@@ -201,6 +237,19 @@ export default function MultiPhotoUpload({
       <p className="text-xs text-muted-foreground">
         Up to {maxPhotos} photos · JPG, PNG, or WebP · Auto-optimized on upload · Star = profile photo
       </p>
+
+      {/* Crop modal for queued files */}
+      {cropQueue.length > 0 && (
+        <div className="text-xs text-muted-foreground mt-2 text-center">
+          Cropping {cropQueue.length} of {cropQueue.length + slots.filter(s => s.file).length}...
+        </div>
+      )}
+
+      <ImageCropModal
+        file={currentCropFile}
+        isOpen={cropModalOpen}
+        onConfirm={processCroppedFile}
+      />
     </div>
   );
 }
