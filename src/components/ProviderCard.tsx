@@ -108,10 +108,16 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                       <CheckCircle className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500" aria-label="Verified" />
                     )}
                   </div>
-                  {/* Business name always a muted subtitle */}
-                  {provider.businessName && (
-                    <p className="truncate text-xs text-muted-foreground">{provider.businessName}</p>
-                  )}
+                  {/* Type label + business name */}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-emerald-600">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Practitioner
+                    </span>
+                    {provider.businessName && (
+                      <span className="truncate text-[10px] text-muted-foreground">· {provider.businessName}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1">
                   {provider.tier && provider.tier !== "free" && (

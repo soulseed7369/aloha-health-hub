@@ -74,7 +74,7 @@ export function CenterCard({
         className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg"
       >
         <Card
-          className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(center.tier)} ${center.tier === "featured" ? "border-l-4 border-l-amber-400" : ""}`}
+          className={`overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:scale-[1.01] ${tierCardClasses(center.tier)} ${center.tier === "featured" ? "border-l-4 border-l-amber-400" : "border-l-4 border-l-sky-300"}`}
         >
           <div className="flex gap-4 p-4">
             {/* Avatar — 72px, using OptimizedImage */}
@@ -107,12 +107,16 @@ export function CenterCard({
                       <CheckCircle className="h-3.5 w-3.5 flex-shrink-0 text-emerald-500" aria-label="Verified" />
                     )}
                   </div>
-                  {/* Center type badge (teal-colored) */}
-                  {center.centerType && (
-                    <p className="mt-0.5 inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 text-[10px] font-medium text-teal-700 border border-teal-200">
-                      {centerTypeLabel(center.centerType)}
-                    </p>
-                  )}
+                  {/* Type label — always visible "Center" + optional subtype */}
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-sky-600">
+                      <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
+                      Center
+                    </span>
+                    {center.centerType && (
+                      <span className="text-[10px] text-muted-foreground">· {centerTypeLabel(center.centerType)}</span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex flex-shrink-0 items-center gap-1">
                   {center.tier && center.tier !== "free" && (
