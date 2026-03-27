@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Edit2, Lock, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { useMyCenters } from "@/hooks/useMyCenters";
+import { useMyBillingProfile } from "@/hooks/useStripe";
 import { useMyCenterClasses, useSaveCenterClass, useDeleteCenterClass } from "@/hooks/useMyCenterClasses";
 import type { PriceMode, ClassRow } from "@/types/database";
 
@@ -84,6 +85,7 @@ export default function DashboardCenterClasses() {
   const { data: centers = [], isLoading: centersLoading } = useMyCenters();
   const center = centers[0] || null;
   const { data: classes = [], isLoading: classesLoading } = useMyCenterClasses(center?.id ?? null);
+  const { data: billing } = useMyBillingProfile();
   const saveClass = useSaveCenterClass();
   const deleteClass = useDeleteCenterClass();
   const [showDialog, setShowDialog] = useState(false);
@@ -91,7 +93,8 @@ export default function DashboardCenterClasses() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const isLoading = centersLoading || classesLoading;
-  const isFeatured = center?.tier === 'featured';
+  const tier = billing?.tier ?? center?.tier ?? 'free';
+  const isFeatured = tier === 'featured';
 
   const handleChange = (field: keyof ClassFormData, value: any) => {
     setForm((prev) => ({ ...prev, [field]: value }));

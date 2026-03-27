@@ -53,7 +53,7 @@ export function DashboardLayout() {
       onSuccess: () => {
         // Navigate to the appropriate home after switching
         if (newType === 'center') {
-          navigate('/dashboard/centers', { replace: true });
+          navigate('/dashboard/center-home', { replace: true });
         } else {
           navigate('/dashboard', { replace: true });
         }
@@ -172,7 +172,7 @@ export function DashboardLayout() {
               const isActive =
                 link.to === "/dashboard"
                   ? location.pathname === "/dashboard"
-                  : location.pathname.startsWith(link.to);
+                  : location.pathname === link.to || location.pathname.startsWith(link.to + '/');
               return (
                 <Link
                   key={link.to}

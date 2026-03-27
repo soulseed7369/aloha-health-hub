@@ -55,7 +55,7 @@ export function useSaveCenterOffering() {
 
       const payload: OfferingInsert = {
         center_id: formData.center_id,
-        practitioner_id: '' as any, // offerings table still has this column but we don't use it for centers
+        practitioner_id: null as any, // offerings table still has this column but we don't use it for centers
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         offering_type: formData.offering_type,

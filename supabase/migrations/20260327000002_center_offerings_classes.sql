@@ -9,12 +9,14 @@ CREATE INDEX IF NOT EXISTS idx_classes_center_id ON classes(center_id);
 -- RLS: centers can manage their own offerings
 CREATE POLICY "Centers can manage own offerings"
   ON offerings FOR ALL
-  USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
+  USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()))
+  WITH CHECK (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
 
 -- RLS: centers can manage their own classes
 CREATE POLICY "Centers can manage own classes"
   ON classes FOR ALL
-  USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
+  USING (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()))
+  WITH CHECK (center_id IN (SELECT id FROM centers WHERE owner_id = auth.uid()));
 
 -- Public can read published center offerings
 CREATE POLICY "Public can read published center offerings"

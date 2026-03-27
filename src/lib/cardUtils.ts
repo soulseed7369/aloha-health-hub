@@ -163,8 +163,12 @@ export function isValidVideoUrl(url: string | null | undefined): boolean {
 export function getEmbedUrl(url?: string | null): string | null {
   if (!url) return null;
 
-  // YouTube: https://youtube.com/watch?v=ID or https://youtu.be/ID
-  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  // Already an embed URL? Pass through as-is.
+  if (url.includes('youtube.com/embed/')) return url;
+  if (url.includes('player.vimeo.com/video/')) return url;
+
+  // YouTube: watch?v=ID, /shorts/ID, or youtu.be/ID
+  const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/);
   if (youtubeMatch) {
     return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
   }

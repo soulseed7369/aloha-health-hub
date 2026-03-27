@@ -78,6 +78,7 @@ export function useAddCenter() {
         working_hours: formData.working_hours ?? {},
         avatar_url: formData.avatar_url ?? null,
         photos: formData.photos ?? [],
+        video_url: formData.video_url ?? null,
       });
       if (error) throw error;
     },

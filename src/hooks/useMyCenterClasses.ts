@@ -55,7 +55,7 @@ export function useSaveCenterClass() {
 
       const payload: ClassInsert = {
         center_id: formData.center_id,
-        practitioner_id: '' as any, // classes table still has this column but we don't use it for centers
+        practitioner_id: null as any, // classes table still has this column but we don't use it for centers
         title: formData.title.trim(),
         description: formData.description.trim() || null,
         price_mode: formData.price_mode,

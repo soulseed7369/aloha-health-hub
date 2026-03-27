@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Edit2, Upload, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useMyCenters } from "@/hooks/useMyCenters";
+import { useMyBillingProfile } from "@/hooks/useStripe";
 import { useMyCenterOfferings, useSaveCenterOffering, useDeleteCenterOffering, uploadCenterOfferingImage } from "@/hooks/useMyCenterOfferings";
 import type { PriceMode, OfferingRow } from "@/types/database";
 
@@ -70,6 +71,7 @@ export default function DashboardCenterOfferings() {
   const { data: centers = [], isLoading: centersLoading } = useMyCenters();
   const center = centers[0] || null;
   const { data: offerings = [], isLoading: offeringsLoading } = useMyCenterOfferings(center?.id ?? null);
+  const { data: billing } = useMyBillingProfile();
   const saveMutation = useSaveCenterOffering();
   const deleteMutation = useDeleteCenterOffering();
 
@@ -81,7 +83,8 @@ export default function DashboardCenterOfferings() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const isLoading = centersLoading || offeringsLoading;
-  const isFeatured = center?.tier === 'featured';
+  const tier = billing?.tier ?? center?.tier ?? 'free';
+  const isFeatured = tier === 'featured';
 
   const handleChange = (field: keyof OfferingFormData, value: any) => {
     if (field === 'no_fixed_date' && value) {

@@ -60,7 +60,7 @@ export async function optimizeImage(file: File): Promise<File> {
         canvas.width = finalSize;
         canvas.height = finalSize;
         const ctx = canvas.getContext('2d');
-        if (!ctx) { resolve(file); return; } // fallback
+        if (!ctx) { URL.revokeObjectURL(blobUrl); resolve(file); return; } // fallback
 
         // Draw the centered square crop from the original image, scaled to finalSize
         ctx.drawImage(img, offsetX, offsetY, squareSize, squareSize, 0, 0, finalSize, finalSize);
