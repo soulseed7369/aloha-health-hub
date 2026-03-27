@@ -606,14 +606,12 @@ const Directory = () => {
       setAccumulatedResults(newSearch.results);
       setLastPageSize(newSearch.results.length);
     } else {
-      setAccumulatedResults(prev => {
-        const existingIds = new Set(prev.map(r => r.id));
-        const fresh = newSearch.results.filter(r => !existingIds.has(r.id));
-        setLastPageSize(fresh.length);
-        return [...prev, ...fresh];
-      });
+      const existingIds = new Set(accumulatedResults.map(r => r.id));
+      const fresh = newSearch.results.filter(r => !existingIds.has(r.id));
+      setLastPageSize(fresh.length);
+      setAccumulatedResults(prev => [...prev, ...fresh]);
     }
-  }, [newSearch.results, newSearch.isLoading, page]);
+  }, [newSearch.results, newSearch.isLoading, page, accumulatedResults]);
 
   // Track the previous page value to distinguish between filter change and load more
   const prevPageRef = useRef<number>(0);
@@ -629,6 +627,11 @@ const Directory = () => {
     // When page > 0, we intentionally don't scroll to preserve user position
     prevPageRef.current = page;
   }, [page]);
+
+  // Reset prevPageRef when filters change (page is reset to 0 by the dependency effect)
+  useEffect(() => {
+    prevPageRef.current = 0;
+  }, [effectiveQuery, island, modality, city, centerType, effectiveSessionType, effectiveAcceptsClients, listingType]);
 
   const newTotalCount = newSearch.totalCount ?? 0;
 
@@ -773,9 +776,13 @@ const Directory = () => {
           tier: item.tier || 'free',
         }));
 
-      // Sort by tier priority (featured > premium > free) and cap at 50 pins
+      // Sort by tier priority (featured > premium > free), then by name alphabetically, and cap at 50 pins
       return filtered
-        .sort((a, b) => tierPriority(a.tier) - tierPriority(b.tier))
+        .sort((a, b) => {
+          const tierDiff = tierPriority(a.tier) - tierPriority(b.tier);
+          if (tierDiff !== 0) return tierDiff;
+          return a.name.localeCompare(b.name);
+        })
         .slice(0, 50);
     }
     // Old search fallback — combine both types
@@ -791,9 +798,13 @@ const Directory = () => {
     ];
     const filtered = all.filter(l => l.lat !== 0 && l.lng !== 0 && l.lat !== 19.8968);
 
-    // Sort by tier priority (featured > premium > free) and cap at 50 pins
+    // Sort by tier priority (featured > premium > free), then by name alphabetically, and cap at 50 pins
     return filtered
-      .sort((a, b) => tierPriority(a.tier) - tierPriority(b.tier))
+      .sort((a, b) => {
+        const tierDiff = tierPriority(a.tier) - tierPriority(b.tier);
+        if (tierDiff !== 0) return tierDiff;
+        return a.name.localeCompare(b.name);
+      })
       .slice(0, 50);
   }, [accumulatedResults, oldFilteredPractitioners, oldFilteredCenters]);
 
@@ -975,7 +986,7 @@ const Directory = () => {
 
           <div className="mb-4 flex items-center justify-between gap-2">
             <p className="text-sm text-muted-foreground" aria-live="polite" aria-atomic="true">
-              {isLoading ? "Loading…" : lastPageSize === 25 && newTotalCount > 0 ? `${resultCount} of ${newTotalCount} result${resultCount !== 1 ? "s" : ""} found` : `${resultCount} result${resultCount !== 1 ? "s" : ""} found`}
+              {isLoading ? "Loading…" : lastPageSize === 25 && newTotalCount > 0 && resultCount < newTotalCount ? `${resultCount} of ${newTotalCount} result${resultCount !== 1 ? "s" : ""} found` : `${resultCount} result${resultCount !== 1 ? "s" : ""} found`}
             </p>
             {userLocation ? (
               <div className="flex items-center gap-2">
