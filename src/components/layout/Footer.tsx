@@ -35,17 +35,11 @@ export function Footer() {
           <div className="space-y-3">
             <span className="font-display text-lg font-bold">Hawaiʻi Wellness</span>
             <p className="text-sm opacity-80">
-              Connecting Hawaiʻi with holistic wellness since 2024.
+              Connecting Hawaiʻi with holistic wellness
             </p>
             <p className="text-xs opacity-50">
-              Hawaii Wellness LLC · Kailua-Kona, HI
+              Hawaii Wellness LLC · Kamuela, HI
             </p>
-            <a
-              href="mailto:aloha@hawaiiwellness.net"
-              className="block text-xs opacity-60 hover:opacity-90 transition-opacity"
-            >
-              aloha@hawaiiwellness.net
-            </a>
           </div>
 
           {/* Quick Links */}
