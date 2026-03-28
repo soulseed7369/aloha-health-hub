@@ -36,10 +36,12 @@ function MapResizer({ visible }: { visible: boolean }) {
 function FitBounds({ locations }: { locations: MapLocation[] }) {
   const map = useMap();
   useEffect(() => {
-    if (locations.length === 0) return;
+    // Only fit bounds if there are multiple locations; single location can zoom in
+    if (locations.length <= 1) return;
     const bounds = L.latLngBounds(locations.map((l) => [l.lat, l.lng]));
     if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 13 });
+      // maxZoom: 9 ensures we never zoom tighter than the initial Big Island view
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 9 });
     }
   }, [map, locations]);
   return null;
@@ -128,7 +130,7 @@ export function DirectoryMap({ locations, visible = true }: DirectoryMapProps) {
       center={[19.8968, -155.5828]}
       zoom={9}
       className="h-full w-full"
-      scrollWheelZoom={true}
+      scrollWheelZoom={false}
       style={{ minHeight: "400px" }}
       aria-label="Interactive map of wellness providers"
     >
