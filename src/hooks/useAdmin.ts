@@ -24,6 +24,7 @@ export interface AdminQueryParams {
   // Centers-only filters
   centerType?: string;           // 'all' | 'spa' | 'wellness_center' | 'clinic' | 'retreat_center' | 'yoga_studio'
   missingData?: string;          // 'all' | 'phone' | 'email' | 'phone_or_email' | 'description' | 'photo'
+  claimed?: 'all' | 'claimed' | 'unclaimed';
   page?: number;
   pageSize?: number;
 }
@@ -87,6 +88,7 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
     status = 'all',
     modality = '',
     tier = 'all',
+    claimed = 'all',
     page = 0,
     pageSize = 50,
   } = params;
@@ -118,6 +120,12 @@ export const useAllPractitioners = (params: AdminQueryParams = {}) => {
 
       if (tier && tier !== 'all') {
         query = query.eq('tier', tier);
+      }
+
+      if (claimed === 'claimed') {
+        query = query.not('owner_id', 'is', null);
+      } else if (claimed === 'unclaimed') {
+        query = query.is('owner_id', null);
       }
 
       switch (sort) {
@@ -248,6 +256,7 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
     tier = 'all',
     centerType = 'all',
     missingData = 'all',
+    claimed = 'all',
     page = 0,
     pageSize = 50,
   } = params;
@@ -291,6 +300,12 @@ export const useAllCenters = (params: AdminQueryParams = {}) => {
         else if (missingData === 'phone_or_email') query = query.or('phone.is.null,email.is.null');
         else if (missingData === 'description') query = query.or('description.is.null,description.eq.');
         else if (missingData === 'photo') query = query.is('avatar_url', null);
+      }
+
+      if (claimed === 'claimed') {
+        query = query.not('owner_id', 'is', null);
+      } else if (claimed === 'unclaimed') {
+        query = query.is('owner_id', null);
       }
 
       switch (sort) {
