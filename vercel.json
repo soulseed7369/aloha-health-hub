@@ -25,7 +25,8 @@
       "destination": "/api/sitemap-articles.xml"
     },
     { "source": "/api/articles/:slug", "destination": "/api/articles/[slug]" },
-    { "source": "/api/island/:island", "destination": "/api/island/[island]" }
+    { "source": "/api/island/:island", "destination": "/api/island/[island]" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
