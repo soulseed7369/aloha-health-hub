@@ -1292,6 +1292,7 @@
 
         // State
         let allData = [];
+        let trueClaims = { total: 0, practitioners: 0, centers: 0 };
         let filteredData = [];
         let currentPage = 1;
         const rowsPerPage = 50;
@@ -1607,15 +1608,27 @@
             clearError();
 
             try {
-                const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/campaign_outreach?select=*&island=eq.big_island&order=created_at.desc&limit=1000`,
-                    {
-                        headers: {
-                            'apikey': SUPABASE_ANON_KEY,
-                            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                        }
-                    }
-                );
+                const headers = {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Prefer': 'count=exact'
+                };
+
+                // Fetch campaign outreach rows + true claim counts in parallel
+                const [response, practResp, centerResp] = await Promise.all([
+                    fetch(
+                        `${SUPABASE_URL}/rest/v1/campaign_outreach?select=*&island=eq.big_island&order=created_at.desc&limit=1000`,
+                        { headers }
+                    ),
+                    fetch(
+                        `${SUPABASE_URL}/rest/v1/practitioners?select=id&owner_id=not.is.null`,
+                        { headers }
+                    ),
+                    fetch(
+                        `${SUPABASE_URL}/rest/v1/centers?select=id&owner_id=not.is.null`,
+                        { headers }
+                    )
+                ]);
 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -1623,6 +1636,11 @@
 
                 allData = await response.json();
                 filteredData = [...allData];
+
+                // Parse true claim counts from Content-Range header (e.g. "0-26/27")
+                const practCount = parseInt((practResp.headers.get('Content-Range') || '0/0').split('/')[1]) || 0;
+                const centerCount = parseInt((centerResp.headers.get('Content-Range') || '0/0').split('/')[1]) || 0;
+                trueClaims = { total: practCount + centerCount, practitioners: practCount, centers: centerCount };
 
                 updateDashboard();
                 updateMatchingContactCount();
@@ -1650,7 +1668,7 @@
             const emailsSent = allData.filter(r => r.email_1_sent_at).length;
             const clicked = allData.filter(r => r.email_1_clicked_at).length;
             const email2Sent = allData.filter(r => r.email_2_sent_at).length;
-            const claimed = allData.filter(r => r.status === 'claimed' || r.status === 'upgraded').length;
+            const claimed = trueClaims.total || allData.filter(r => r.status === 'claimed' || r.status === 'upgraded').length;
             const upgraded = allData.filter(r => r.status === 'upgraded').length;
             const badContacts = allData.filter(r => r.status === 'bad_contact').length;
 
@@ -1664,7 +1682,7 @@
             document.getElementById('email2Sent').textContent = email2Sent.toLocaleString();
             document.getElementById('email2SentPct').textContent = `${Math.round((email2Sent / total) * 100)}% of total`;
             document.getElementById('claims').textContent = claimed.toLocaleString();
-            document.getElementById('claimsPct').textContent = `${emailsSent > 0 ? Math.round((claimed / emailsSent) * 100) : 0}% of sent`;
+            document.getElementById('claimsPct').textContent = trueClaims.total > 0 ? `${trueClaims.practitioners} practitioners · ${trueClaims.centers} centers` : `${emailsSent > 0 ? Math.round((claimed / emailsSent) * 100) : 0}% of sent`;
             document.getElementById('upgrades').textContent = upgraded.toLocaleString();
             document.getElementById('upgradesPct').textContent = `${claimed > 0 ? Math.round((upgraded / claimed) * 100) : 0}% of claims`;
             document.getElementById('badContacts').textContent = badContacts.toLocaleString();
