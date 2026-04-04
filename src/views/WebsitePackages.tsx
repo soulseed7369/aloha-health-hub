@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import {
   PACKAGES,
+  EVERY_WEBSITE_INCLUDES,
   KAMAAINA_WEBSITE_SPOTS,
 } from "@/lib/websitePackages";
 
@@ -27,7 +28,7 @@ const HOW_IT_WORKS = [
   {
     step: "02",
     title: "Proposal & agreement",
-    description: "We'll send a clear scope of work outlining deliverables, timeline, and payment terms. No surprises.",
+    description: "We'll send a clear scope of work outlining deliverables, timeline, revision rounds, and payment terms. No surprises.",
   },
   {
     step: "03",
@@ -59,12 +60,16 @@ const FAQ = [
     a: "Professional copywriting is included in every package. We'll write the copy based on a short intake questionnaire about your practice, style, and offerings. You review and approve before anything goes live. We just ask that you provide your own photos — a professional headshot makes a big difference.",
   },
   {
+    q: "How many revisions are included?",
+    a: "Essentials includes 1 feedback round during build. Standard includes 1 feedback round + 1 post-delivery revision. Pro includes 2 feedback rounds + 1 post-delivery revision. Additional major revisions after that are $149 each.",
+  },
+  {
     q: "What about hosting after the included period?",
-    a: "Hosting is included at no extra cost as long as your Premium or Featured directory subscription is active. If you cancel your subscription, hosting continues at $29/mo.",
+    a: "Hosting is included at no extra cost as long as your Premium or Featured directory subscription is active. If you cancel your subscription, hosting continues at a standalone rate (shown on each package card).",
   },
   {
     q: "What does social media integration include?",
-    a: "On the Pro package, we connect your Instagram, Facebook, and other social profiles directly into your site — so visitors can see your latest content and follow you without ever leaving your page.",
+    a: "On the Pro package, we connect your Instagram feed, Facebook page, Substack, and other social profiles directly into your website — so visitors can see your latest posts and follow you without leaving your site.",
   },
   {
     q: "Can I upgrade my package later?",
@@ -77,7 +82,7 @@ const DISCOVERY_CALL_URL = "https://calendar.app.google/KYSWe4dXtc4rMTt1A";
 export default function WebsitePackages() {
   usePageMeta(
     "Website Packages",
-    "Custom websites built for Hawaiʻi wellness providers. Done-for-you sites starting at $499 with Kamaʻāina Rate pricing.",
+    "Custom websites built for Hawaiʻi wellness providers. Done-for-you sites starting at $497 with Kamaʻāina Rate pricing.",
   );
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -349,6 +354,9 @@ export default function WebsitePackages() {
         <div className="mt-8 space-y-1.5 text-center">
           <p className="text-xs text-muted-foreground">
             Hosting is included at no extra cost as long as your Premium or Featured subscription is active.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Need changes after your included revisions? Additional major revisions are $149 each.
           </p>
         </div>
       </section>
