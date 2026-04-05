@@ -21,6 +21,68 @@ import {
   getOpenStatus,
 } from "@/lib/cardUtils";
 
+// ── C-2 design tokens (matches ProviderCard P-3 system) ──────────────────────
+const CIRCLE_SIZE = 130;
+const CIRCLE_OV   = CIRCLE_SIZE / 2; // 65px
+
+const TIER_RING: Record<string, string> = {
+  featured: "#f59e0b",
+  premium:  "#14b8a6",
+  free:     "#d1d5db",
+};
+
+const TIER_GLOW: Record<string, string> = {
+  featured: "0 0 0 2px rgba(251,191,36,0.5), 0 0 30px rgba(251,191,36,0.18), 0 4px 18px rgba(0,0,0,0.07)",
+  premium:  "0 0 0 2px rgba(45,212,191,0.46), 0 0 24px rgba(45,212,191,0.14), 0 4px 18px rgba(0,0,0,0.06)",
+  free:     "0 2px 14px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)",
+};
+
+const PHOTO_GLOW: Record<string, string> = {
+  featured: "0 6px 24px rgba(251,191,36,0.42)",
+  premium:  "0 6px 20px rgba(45,212,191,0.36)",
+  free:     "0 4px 16px rgba(0,0,0,0.13)",
+};
+
+const TIER_BORDER: Record<string, string> = {
+  featured: "1.5px solid #f59e0b",
+  premium:  "1.5px solid #14b8a6",
+  free:     "1px solid #e7e5e4",
+};
+
+// Center type: prominent colored label
+const CENTER_TYPE_COLOR: Record<string, string> = {
+  spa:             "#be185d",
+  wellness_center: "#0d9488",
+  clinic:          "#1d4ed8",
+  retreat_center:  "#7c3aed",
+  fitness_center:  "#b45309",
+  yoga_studio:     "#0d9488",
+};
+
+// Max service pills per tier
+const SVC_CAP: Record<string, number> = {
+  featured: 4,
+  premium:  3,
+  free:     2,
+};
+
+function tierKey(tier?: string): "featured" | "premium" | "free" {
+  if (tier === "featured" || tier === "premium") return tier;
+  return "free";
+}
+
+function getDividerBg(tier: string): string {
+  if (tier === "featured") return "linear-gradient(90deg,#fde68a,#fef3c7,transparent)";
+  if (tier === "premium")  return "linear-gradient(90deg,#99f6e4,#f0fdfa,transparent)";
+  return "linear-gradient(90deg,#e7e5e4,transparent)";
+}
+
+function getButtonStyle(tier: string): { background: string; color: string } {
+  if (tier === "featured") return { background: "linear-gradient(135deg,#f59e0b,#d97706)", color: "white" };
+  if (tier === "premium")  return { background: "linear-gradient(135deg,#14b8a6,#0d9488)", color: "white" };
+  return { background: "#f5f5f4", color: "#78716c" };
+}
+
 // ── Island badge (compact, for use in cards) ─────────────────────────────────
 function IslandPill({ island }: { island: string }) {
   const cfg = ISLAND_CFG[island];
@@ -39,13 +101,52 @@ function IslandPill({ island }: { island: string }) {
 function AvatarFallback({ name, className }: { name: string; className?: string }) {
   const { gradient, textColor } = avatarGradient(name);
   return (
-    <div
-      className={`flex items-center justify-center bg-gradient-to-br ${gradient} ${textColor} ${className}`}
-    >
+    <div className={`flex items-center justify-center bg-gradient-to-br ${gradient} ${textColor} ${className}`}>
       <Building2 className="h-8 w-8 opacity-80" />
     </div>
   );
 }
+
+// ── Verified dot ──────────────────────────────────────────────────────────────
+function VerifiedDot() {
+  return (
+    <span
+      style={{
+        width: 14, height: 14, borderRadius: "50%", background: "#14b8a6",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+      }}
+      aria-label="Verified"
+    >
+      <svg width={7} height={7} viewBox="0 0 10 10" fill="none">
+        <path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    </span>
+  );
+}
+
+// ── Open / Closed row ─────────────────────────────────────────────────────────
+function OpenRow({ isOpen }: { isOpen: boolean }) {
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 5, fontSize: 10,
+        fontWeight: 600, color: isOpen ? "#059669" : "#a8a29e",
+      }}
+    >
+      <div
+        style={{
+          width: 7, height: 7, borderRadius: "50%",
+          background: isOpen ? "#10b981" : "#d1d5db", flexShrink: 0,
+        }}
+      />
+      {isOpen ? "Open now" : "Currently closed"}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CenterCard
+// ────────────────────────────────────────────────────────────────────────────
 
 interface CenterCardProps {
   center: Center;
@@ -54,19 +155,16 @@ interface CenterCardProps {
   compact?: boolean;
 }
 
-export function CenterCard({
-  center,
-  highlightModality,
-  compact = false,
-}: CenterCardProps) {
+export function CenterCard({ center, highlightModality, compact = false }: CenterCardProps) {
   const displayModalities = center.modalities ?? (center.modality ? [center.modality] : []);
-  const sorted = sortModalities(displayModalities, highlightModality);
-  const hasImage = isValidListingImage(center.image);
+  const sorted    = sortModalities(displayModalities, highlightModality);
+  const hasImage  = isValidListingImage(center.image);
+  const openStatus = getOpenStatus(center.workingHours);
 
   // ── Compact (directory list) layout ────────────────────────────────────────
   if (compact) {
     const isFeatured = center.tier === 'featured';
-    const isPremium = center.tier === 'premium';
+    const isPremium  = center.tier === 'premium';
     const isEnhanced = isFeatured || isPremium;
 
     // Featured/premium: show ALL modalities. Free: cap at 3.
@@ -94,10 +192,7 @@ export function CenterCard({
                   loading="lazy"
                 />
               ) : (
-                <AvatarFallback
-                  name={center.name}
-                  className="h-16 w-16 rounded-lg"
-                />
+                <AvatarFallback name={center.name} className="h-16 w-16 rounded-lg" />
               )}
               <span className="inline-flex items-center gap-0.5 text-[9px] font-medium text-sky-600">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-sky-500" />
@@ -131,7 +226,7 @@ export function CenterCard({
                     · {formatDistance(center.distanceMiles)}
                   </span>
                 )}
-                {getOpenStatus(center.workingHours)?.isOpen && (
+                {openStatus?.isOpen && (
                   <span className="inline-flex items-center gap-0.5 text-emerald-600 font-medium">
                     · <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" /> Open
                   </span>
@@ -171,194 +266,210 @@ export function CenterCard({
     );
   }
 
-  // ── Full (homepage) vertical card layout ───────────────────────────────────
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const showPhotoCarousel =
-    center.photos && center.photos.length > 0 && center.tier === "featured";
-  const visibleModalities = sorted.slice(0, 2);
-  const extraCount = displayModalities.length - visibleModalities.length;
-
-  const handlePrevSlide = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentSlide((prev) =>
-      prev === 0 ? (center.photos?.length ?? 1) - 1 : prev - 1
-    );
-  };
-
-  const handleNextSlide = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCurrentSlide((prev) => ((prev + 1) % (center.photos?.length ?? 1)));
-  };
+  // ── Full card layout — C-2: Center Rich (Nunito + Cormorant, matched to P-3) ─
+  const tier    = tierKey(center.tier);
+  const isPaid  = tier === "featured" || tier === "premium";
+  const maxSvc  = SVC_CAP[tier];
+  const visibleMods = sorted.slice(0, maxSvc);
+  const extraCount  = displayModalities.length - visibleMods.length;
+  const btnStyle    = getButtonStyle(tier);
+  const typeColor   = center.centerType ? (CENTER_TYPE_COLOR[center.centerType] ?? "#64748b") : "#64748b";
+  const typeLabel   = center.centerType ? centerTypeLabel(center.centerType) : undefined;
 
   return (
     <Link
       to={`/center/${center.id}`}
-      className="block group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+      className="block h-full group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-[20px]"
     >
-      <Card
-        className={`relative flex h-80 flex-col overflow-hidden transition-all duration-200 group-hover:shadow-md group-hover:-translate-y-0.5 ${tierCardClasses(center.tier)} ${center.tier === "featured" ? "border-l-4 border-l-amber-400" : ""}`}
+      {/* Outer wrapper: creates space for the circle that bleeds above the card */}
+      <div
+        style={{
+          paddingTop: CIRCLE_OV,
+          height: "100%",
+          fontFamily: "'Nunito', sans-serif",
+        }}
       >
-        {/* Tier badge — top-right */}
-        {center.tier && center.tier !== "free" && (
-          <div className="absolute right-3 top-3 z-10">
-            <TierBadge tier={center.tier} />
-          </div>
-        )}
-
-        {showPhotoCarousel ? (
-          <>
-            {/* Photo carousel for featured tier */}
-            <div className="relative h-[140px] w-full overflow-hidden bg-gray-100">
-              <div className="absolute inset-0 flex">
-                {center.photos?.map((photo, idx) => (
-                  <OptimizedImage
-                    key={idx}
-                    src={photo}
-                    alt={`${center.name} photo ${idx + 1}`}
-                    width={320}
-                    height={140}
-                    className={`h-[140px] w-full object-cover transition-opacity duration-300 ${
-                      idx === currentSlide ? "opacity-100" : "opacity-0 absolute"
-                    }`}
-                    loading={idx === currentSlide ? "eager" : "lazy"}
-                  />
-                ))}
-              </div>
-
-              {/* Center type label — top-left corner */}
-              {center.centerType && (
-                <div className="absolute top-2 left-2 z-[5] bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-teal-700 text-[10px] font-medium border border-teal-200/60">
-                  {centerTypeLabel(center.centerType)}
-                </div>
-              )}
-
-              {/* Prev/next buttons on hover */}
-              <button
-                onClick={handlePrevSlide}
-                className="absolute left-2 top-1/2 -translate-y-1/2 z-[6] opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
-                aria-label="Previous photo"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={handleNextSlide}
-                className="absolute right-2 top-1/2 -translate-y-1/2 z-[6] opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/70 text-white rounded-full p-1"
-                aria-label="Next photo"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-
-              {/* Dot indicators at bottom */}
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-[5] flex gap-1">
-                {center.photos?.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setCurrentSlide(idx);
-                    }}
-                    className={`h-1.5 w-1.5 rounded-full transition-all ${
-                      idx === currentSlide
-                        ? "bg-white w-3"
-                        : "bg-white/50 hover:bg-white/75"
-                    }`}
-                    aria-label={`Go to photo ${idx + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            {/* Avatar — centered at top for non-featured or featured without photos */}
-            <div className="flex justify-center pt-5 relative">
-              {hasImage ? (
-                <OptimizedImage
-                  src={center.image}
-                  alt={`Photo of ${center.name}`}
-                  width={80}
-                  height={80}
-                  className="h-20 w-20 rounded-full object-cover ring-2 ring-background shadow"
-                  loading="lazy"
-                />
-              ) : (
-                <AvatarFallback
-                  name={center.name}
-                  className="h-20 w-20 rounded-full ring-2 ring-background shadow"
-                />
-              )}
-              {/* Center type label in top-left corner */}
-              {center.centerType && (
-                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm rounded-full px-2.5 py-0.5 text-teal-700 text-[10px] font-medium border border-teal-200/60">
-                  {centerTypeLabel(center.centerType)}
-                </div>
-              )}
-            </div>
-          </>
-        )}
-
-        {/* Info section */}
-        <div className="flex flex-1 flex-col px-4 pt-3 pb-4 text-center">
-          <div className="flex items-center justify-center gap-1">
-            <h3 className="truncate font-display text-base font-semibold group-hover:text-primary transition-colors leading-snug">
-              {center.name}
-            </h3>
-            {(center.tier === "premium" || center.tier === "featured") && (
-              <CheckCircle className="h-4 w-4 flex-shrink-0 text-emerald-500" aria-label="Verified" />
+        {/* White card */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            position: "relative",
+            background: "white",
+            borderRadius: 20,
+            border: TIER_BORDER[tier],
+            boxShadow: TIER_GLOW[tier],
+            padding: `${CIRCLE_OV + 12}px 15px 15px`,
+            transition: "transform .2s",
+          }}
+          className="group-hover:-translate-y-1"
+        >
+          {/* ── Floating circle photo ── */}
+          <div
+            style={{
+              position: "absolute",
+              top: -CIRCLE_OV,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: CIRCLE_SIZE,
+              height: CIRCLE_SIZE,
+              borderRadius: "50%",
+              border: `4px solid ${TIER_RING[tier]}`,
+              boxShadow: PHOTO_GLOW[tier],
+              overflow: "hidden",
+              background: "white",
+              zIndex: 2,
+            }}
+          >
+            {hasImage ? (
+              <OptimizedImage
+                src={center.image}
+                alt={`Photo of ${center.name}`}
+                width={CIRCLE_SIZE}
+                height={CIRCLE_SIZE}
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <AvatarFallback name={center.name} className="h-full w-full" />
             )}
           </div>
-          <div className="mt-1.5 flex items-center justify-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
-            <span className="truncate">{center.location}</span>
-            {center.distanceMiles != null && (
-              <span className="flex-shrink-0 text-muted-foreground/60">
-                · {formatDistance(center.distanceMiles)}
-              </span>
-            )}
-          </div>
-          {center.description && (
-            <p className="mt-2 line-clamp-2 flex-1 text-xs text-muted-foreground">
-              {center.description}
-            </p>
+
+          {/* ── Floating tier badge ── */}
+          {isPaid && (
+            <div style={{ position: "absolute", top: 11, right: 13, zIndex: 5 }}>
+              <TierBadge tier={center.tier} />
+            </div>
           )}
-          {!center.description && <div className="flex-1" />}
 
-          {/* Color-coded modality chips + open/closed status */}
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
-            {visibleModalities.length > 0 &&
-              visibleModalities.map((m) => (
-                <span
-                  key={m}
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-normal ${modalityBadgeClass(m)}`}
-                  role="listitem"
-                >
-                  {m}
-                </span>
-              ))}
-            {extraCount > 0 && (
-              <Badge variant="outline" className="text-[10px] font-normal py-0">
-                +{extraCount}
-              </Badge>
+          {/* ── HEADER section ── */}
+          <div style={{ marginBottom: 11 }}>
+            {/* Center type — prominent colored uppercase label */}
+            {typeLabel && (
+              <p
+                style={{
+                  fontSize: 10,
+                  fontWeight: 700,
+                  color: typeColor,
+                  marginBottom: 3,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                }}
+              >
+                {typeLabel}
+              </p>
             )}
-            {getOpenStatus(center.workingHours) &&
-              (getOpenStatus(center.workingHours)?.isOpen ? (
-                <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 font-medium">
-                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Open
-                </span>
-              ) : (
-                <span className="text-[10px] text-muted-foreground/60">Closed</span>
-              ))}
+
+            {/* Name — Cormorant Garamond for paid, Nunito 800 for free */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 5, marginBottom: 3 }}>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: isPaid ? 18 : 16,
+                  fontWeight: isPaid ? 400 : 800,
+                  fontFamily: isPaid ? "'Cormorant Garamond', serif" : "'Nunito', sans-serif",
+                  color: "#1c1917",
+                  lineHeight: 1.25,
+                  flex: 1,
+                }}
+              >
+                {center.name}
+              </h3>
+              {center.verified && (
+                <div style={{ marginTop: isPaid ? 5 : 3 }}>
+                  <VerifiedDot />
+                </div>
+              )}
+            </div>
+
+            {/* Location */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                fontSize: 10,
+                color: "#a8a29e",
+              }}
+            >
+              <MapPin className="h-2.5 w-2.5" />
+              {center.location}
+              {center.island && `, ${center.island.replace("_", " ")}`}
+            </div>
           </div>
 
-          <div className="mt-3 w-full rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground transition-opacity group-hover:opacity-90">
-            View Center →
+          {/* ── Tier-tinted section divider (matches P-3) ── */}
+          <div
+            style={{
+              height: 1.5,
+              background: getDividerBg(tier),
+              marginBottom: 11,
+            }}
+          />
+
+          {/* ── BODY section ── */}
+          {/* Service pills (from modalities) */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 9 }}>
+            {visibleMods.map((m) => (
+              <span
+                key={m}
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${modalityBadgeClass(m)}`}
+              >
+                {m}
+              </span>
+            ))}
+            {extraCount > 0 && (
+              <span style={{ fontSize: 10, color: "#a8a29e", alignSelf: "center" }}>+{extraCount} more</span>
+            )}
+          </div>
+
+          {/* Description — shown for all tiers */}
+          <p
+            style={{
+              fontSize: 11,
+              color: "#6b7280",
+              lineHeight: 1.6,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              marginBottom: 10,
+            }}
+          >
+            {center.description || center.bio || "A local wellness center serving the community."}
+          </p>
+
+          {/* Spacer — pushes bottom row to card bottom */}
+          <div style={{ flex: 1 }} />
+
+          {/* ── Bottom row ── */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            {/* Open/closed status — only shown when working hours are available */}
+            {openStatus !== null ? (
+              <OpenRow isOpen={openStatus.isOpen} />
+            ) : (
+              <div /> /* empty to keep flex layout */
+            )}
+            <button
+              style={{
+                padding: "6px 14px",
+                borderRadius: 9,
+                fontSize: 11,
+                fontWeight: 800,
+                border: "none",
+                background: btnStyle.background,
+                color: btnStyle.color,
+                cursor: "pointer",
+                flexShrink: 0,
+                fontFamily: "'Nunito', sans-serif",
+              }}
+            >
+              {isPaid ? "Explore →" : "View →"}
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
     </Link>
   );
 }

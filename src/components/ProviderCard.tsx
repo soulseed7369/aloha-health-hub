@@ -365,8 +365,8 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
               {provider.verified && <VerifiedDot />}
             </div>
 
-            {/* Job title inferred from primary modality */}
-            {provider.modality && (
+            {/* Job title — custom if set, otherwise inferred from primary modality */}
+            {(provider.title || provider.modality) && (
               <p
                 style={{
                   fontSize: 11,
@@ -376,7 +376,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   letterSpacing: "0.02em",
                 }}
               >
-                {inferTitleFromModality(provider.modality)}
+                {provider.title || inferTitleFromModality(provider.modality)}
               </p>
             )}
 
