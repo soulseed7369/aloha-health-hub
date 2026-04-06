@@ -89,7 +89,9 @@ const Articles = () => {
 
   const filtered =
     activeCategory
-      ? articles.filter((a) => a.category === activeCategory)
+      ? articles.filter((a) =>
+          a.categories?.includes(activeCategory) || a.category === activeCategory
+        )
       : articles;
 
   const [featured, ...rest] = filtered;

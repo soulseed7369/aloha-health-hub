@@ -30,8 +30,9 @@ export interface Article {
   excerpt: string;
   author: string;
   date: string;
-  category: string;
-  body?: string;       // Rich HTML for detail page
+  category: string;        // Primary category (first known category match, or 'Wellness')
+  categories?: string[];   // All matched categories (for multi-category filtering)
+  body?: string;           // Rich HTML for detail page
   featured?: boolean;
 }
 

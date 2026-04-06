@@ -138,6 +138,16 @@ export function centerRowToProvider(row: CenterRow): Provider {
   };
 }
 
+// ─── Known article categories (must match Articles.tsx ARTICLE_CATEGORIES) ──
+
+const KNOWN_CATEGORIES = new Set([
+  'Guides',
+  'Healing Traditions',
+  'Community',
+  'Island Life',
+  'Practitioners',
+]);
+
 // ─── articleRowToArticle ──────────────────────────────────────────────────────
 
 /**
@@ -153,7 +163,10 @@ export function articleRowToArticle(row: ArticleRow): Article {
     // leave empty
   }
 
-  const category = row.tags.length > 0 ? row.tags[0] : 'Wellness';
+  // Extract all known categories from tags
+  const categories = row.tags.filter(t => KNOWN_CATEGORIES.has(t));
+  // Primary category = first known category found, or fallback
+  const category = categories.length > 0 ? categories[0] : 'Wellness';
 
   return {
     id: row.id,
@@ -164,6 +177,7 @@ export function articleRowToArticle(row: ArticleRow): Article {
     author: row.author || "Hawai'i Wellness",
     date: dateLabel,
     category,
+    categories,
     body: row.body || undefined,
     featured: row.featured,
   };
