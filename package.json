@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "dev:vite": "vite",
-    "build": "next build",
+    "build": "bash scripts/build-hybrid.sh",
     "build:dev": "vite build --mode development",
     "build:vite": "vite build",
     "start": "next start",

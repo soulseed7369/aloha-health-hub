@@ -71,6 +71,16 @@ const nextConfig = {
 
   // Disable optimized font loading for now; we'll handle fonts in layout.tsx
   // if needed
+
+  // Fallback rewrites: routes not matched by App Router pages or public/ static
+  // files fall through to the Vite SPA shell (copied during build).
+  async rewrites() {
+    return {
+      fallback: [
+        { source: '/:path*', destination: '/_spa.html' },
+      ],
+    };
+  },
 };
 
 export default nextConfig;
