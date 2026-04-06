@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { ChevronDown, Mail } from 'lucide-react';
 import { generateFAQSchema, type FAQItem, type FAQSection } from '@/lib/faqSchema';
 import { JsonLd } from '@/components/JsonLd';
-import { usePageMeta } from '@/hooks/usePageMeta';
 
 function Accordion({ question, answer }: FAQItem) {
   const [open, setOpen] = useState(false);
@@ -376,10 +375,6 @@ const sections: FAQSection[] = [
 ];
 
 export default function HelpCenter() {
-  usePageMeta(
-    'Help Center',
-    'Get answers to common questions about finding practitioners, listing your practice, billing, and using Hawaiʻi Wellness.',
-  );
   const faqSchema = generateFAQSchema(sections);
 
   return (

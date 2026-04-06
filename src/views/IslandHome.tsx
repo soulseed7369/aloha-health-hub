@@ -122,7 +122,8 @@ export function IslandHome({ config }: IslandHomeProps) {
   } : null;
 
   const { data: practitioners, isLoading: loadingPractitioners, totalCount: practitionerCount, claimedCount } = useHomePractitioners(config.island);
-  const { data: centers, isLoading: loadingCenters, totalCount: centerCount } = useHomeCenters(config.island);
+  const { data: centers, isLoading: loadingCenters, totalCount: centerCount, claimedCount: centerClaimedCount } = useHomeCenters(config.island);
+  const totalClaimedCount = claimedCount + centerClaimedCount;
   const { data: articles = [], isLoading: loadingArticles } = useArticles();
 
   const handleWaitlist = async (e: React.FormEvent) => {
@@ -204,8 +205,8 @@ export function IslandHome({ config }: IslandHomeProps) {
                 </>
               )}
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary md:text-3xl">34</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Specialties</div>
+                <div className="text-2xl font-bold text-primary md:text-3xl">44</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Wellness Modalities</div>
               </div>
               <div className="h-8 w-px bg-border" aria-hidden="true" />
               <div className="text-center">
@@ -338,7 +339,7 @@ export function IslandHome({ config }: IslandHomeProps) {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-primary font-semibold">✓</span>
-                    Premium from $79/mo · Featured from $199/mo
+                    Premium from $49/mo · Featured from $79/mo
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-primary font-semibold">✓</span>
@@ -511,10 +512,10 @@ export function IslandHome({ config }: IslandHomeProps) {
       {/* ── List Your Practice CTA ─────────────────────────────────────────── */}
       <section className="bg-primary py-14 text-primary-foreground" aria-label="List your practice">
         <div className="container text-center">
-          {/* Trust signal — only show when 25+ practitioners have claimed listings */}
-          {claimedCount >= 25 && (
+          {/* Trust signal — only show when 25+ providers have claimed listings */}
+          {totalClaimedCount >= 25 && (
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-primary-foreground/90">
-              <span className="font-bold text-white">{claimedCount}+</span> practitioners have joined on {config.displayName}
+              <span className="font-bold text-white">{totalClaimedCount}+</span> wellness providers have joined on {config.displayName}
             </div>
           )}
           <h2 className="mb-3 font-display text-2xl font-bold md:text-3xl">

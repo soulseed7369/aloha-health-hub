@@ -361,4 +361,4 @@ LIMIT p_page_size;
 
 $$ LANGUAGE sql STABLE;
 
-GRANT EXECUTE ON FUNCTION search_listings TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION search_listings(text, text, text, int[], int[], int[], int[], int[], text, text, boolean, int, int, vector) TO authenticated, anon;

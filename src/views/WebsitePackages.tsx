@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  CheckCircle, Mail, ArrowRight, Star, Globe,
+  CheckCircle, Mail, ArrowRight, Star, Globe, ExternalLink,
   ChevronDown, ChevronUp, Sparkles, Layout, Smartphone, Pen,
   Link2, Lock,
 } from "lucide-react";
@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import {
   PACKAGES,
-  EVERY_WEBSITE_INCLUDES,
   KAMAAINA_WEBSITE_SPOTS,
 } from "@/lib/websitePackages";
 
@@ -28,7 +27,7 @@ const HOW_IT_WORKS = [
   {
     step: "02",
     title: "Proposal & agreement",
-    description: "We'll send a clear scope of work outlining deliverables, timeline, revision rounds, and payment terms. No surprises.",
+    description: "We'll send a clear scope of work outlining deliverables, timeline, and payment terms. No surprises.",
   },
   {
     step: "03",
@@ -60,16 +59,12 @@ const FAQ = [
     a: "Professional copywriting is included in every package. We'll write the copy based on a short intake questionnaire about your practice, style, and offerings. You review and approve before anything goes live. We just ask that you provide your own photos — a professional headshot makes a big difference.",
   },
   {
-    q: "How many revisions are included?",
-    a: "Essentials includes 1 feedback round during build. Standard includes 1 feedback round + 1 post-delivery revision. Pro includes 2 feedback rounds + 1 post-delivery revision. Additional major revisions after that are $149 each.",
-  },
-  {
     q: "What about hosting after the included period?",
-    a: "Hosting is included at no extra cost as long as your Premium or Featured directory subscription is active. If you cancel your subscription, hosting continues at a standalone rate (shown on each package card).",
+    a: "Hosting is included at no extra cost as long as your Premium or Featured directory subscription is active. If you cancel your subscription, hosting continues at $29/mo.",
   },
   {
     q: "What does social media integration include?",
-    a: "On the Pro package, we connect your Instagram feed, Facebook page, Substack, and other social profiles directly into your website — so visitors can see your latest posts and follow you without leaving your site.",
+    a: "On the Pro package, we connect your Instagram, Facebook, and other social profiles directly into your site — so visitors can see your latest content and follow you without ever leaving your page.",
   },
   {
     q: "Can I upgrade my package later?",
@@ -82,7 +77,7 @@ const DISCOVERY_CALL_URL = "https://calendar.app.google/KYSWe4dXtc4rMTt1A";
 export default function WebsitePackages() {
   usePageMeta(
     "Website Packages",
-    "Custom websites built for Hawaiʻi wellness providers. Done-for-you sites starting at $497 with Kamaʻāina Rate pricing.",
+    "Custom websites built for Hawaiʻi wellness providers. Done-for-you sites starting at $499 with Kamaʻāina Rate pricing.",
   );
 
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -100,9 +95,9 @@ export default function WebsitePackages() {
             A website that helps the right clients choose you
           </h1>
           <p className="text-lg text-muted-foreground md:text-xl leading-relaxed">
-            Your listing opens the door. Your website creates the connection.
-            We design websites for Hawaiʻi wellness practitioners that build trust,
-            reflect your unique gifts, and help more ideal clients reach out.
+            Your listing opens the door. Your website closes the deal.
+            We build sites for Hawaiʻi wellness practitioners that look extraordinary,
+            rank on Google, and turn visitors into booked clients — not just browsers.
           </p>
           <div className="mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button size="lg" className="gap-2 text-base px-8" asChild>
@@ -132,11 +127,65 @@ export default function WebsitePackages() {
               See what we build
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Every site is custom-designed for your practice. Here are three examples across
-              different modalities — each with a distinct look, feel, and structure.
+              Every site is custom-designed for your practice — beautiful enough to stop someone
+              mid-scroll, built to actually get you clients.
             </p>
           </div>
 
+          {/* ── Featured live example ──────────────────────────────────────── */}
+          <div className="rounded-xl overflow-hidden border-2 border-primary/20 shadow-sm mb-8">
+            <div
+              className="h-44 flex items-end p-6 relative"
+              style={{ background: "linear-gradient(135deg, #3D3530 0%, #7A5C58 50%, #C4A09A 100%)" }}
+            >
+              <div
+                className="absolute inset-0 opacity-15"
+                style={{ backgroundImage: "url('https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=1200&q=60')", backgroundSize: "cover", backgroundPosition: "center" }}
+              />
+              <div className="relative flex items-end justify-between w-full gap-4">
+                <div>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-[0.15em] uppercase bg-white/20 text-white px-2 py-0.5 rounded mb-2">
+                    Live site · Standard / Pro
+                  </span>
+                  <p className="text-[10px] font-semibold tracking-[0.18em] text-white/60 uppercase mb-0.5">Somatic Practitioner &amp; Mentor</p>
+                  <p className="text-white font-semibold text-2xl leading-tight" style={{ fontFamily: "Georgia, serif" }}>Tracy Kelleher</p>
+                  <p className="text-white/60 text-xs mt-0.5">International · Online &amp; In-Person</p>
+                </div>
+                <a
+                  href="https://www.tracy-kelleher.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 flex items-center gap-1.5 text-xs font-semibold text-white bg-white/15 hover:bg-white/25 border border-white/25 px-3 py-2 rounded-lg transition-colors"
+                >
+                  Visit site <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+            <div className="p-5 bg-white sm:grid sm:grid-cols-2 gap-5">
+              <div>
+                <div className="flex gap-1.5 mb-2.5">
+                  {["#FAF8F4", "#3D3530", "#C4A09A", "#EDE8E3"].map(c => (
+                    <div key={c} className="h-4 w-4 rounded-full border border-black/10 flex-shrink-0" style={{ backgroundColor: c }} />
+                  ))}
+                  <span className="text-xs text-muted-foreground ml-1">Warm parchment &amp; rose palette</span>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Full-bleed hero photography, scroll animations throughout, generous whitespace that creates a luxury feel. Multi-page with a distinct page for each offering — sessions, retreats, writing, and contact.
+                </p>
+              </div>
+              <div className="mt-4 sm:mt-0">
+                <p className="text-[10px] font-semibold tracking-wide uppercase text-muted-foreground mb-2">What&apos;s on the site</p>
+                <div className="flex flex-wrap gap-1">
+                  {["Multi-page", "Booking CTA", "Services grid", "Testimonials", "Retreats page", "Writing / Substack", "Social links", "Contact"].map(tag => (
+                    <span key={tag} className="text-[10px] bg-secondary text-muted-foreground px-2 py-0.5 rounded">{tag}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Template previews ─────────────────────────────────────────── */}
+          <p className="text-xs font-semibold tracking-wide uppercase text-muted-foreground mb-4">Essentials-style template previews</p>
           <div className="grid gap-5 md:grid-cols-3">
             {/* Massage */}
             <div className="rounded-xl overflow-hidden border border-border group hover:shadow-md transition-shadow">
@@ -287,22 +336,6 @@ export default function WebsitePackages() {
           </p>
         </div>
 
-        {/* What's included with every website */}
-        <div className="rounded-xl border border-border bg-secondary/30 p-6 mb-8">
-          <h3 className="text-base font-bold text-foreground mb-5 text-center">What&apos;s included with every website</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3.5">
-            {EVERY_WEBSITE_INCLUDES.map((text, i) => {
-              const Icon = BASE_FEATURE_ICONS[i] ?? CheckCircle;
-              return (
-                <div key={text} className="flex items-center gap-2.5 text-sm text-foreground">
-                  <Icon className="h-4.5 w-4.5 shrink-0 text-primary" />
-                  {text}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
         <div className="grid gap-6 md:grid-cols-3">
           {PACKAGES.map((pkg) => (
             <Card
@@ -370,9 +403,6 @@ export default function WebsitePackages() {
         <div className="mt-8 space-y-1.5 text-center">
           <p className="text-xs text-muted-foreground">
             Hosting is included at no extra cost as long as your Premium or Featured subscription is active.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Need changes after your included revisions? Additional major revisions are $149 each.
           </p>
         </div>
       </section>

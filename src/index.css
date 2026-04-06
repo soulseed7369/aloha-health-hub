@@ -133,3 +133,20 @@
   background: transparent !important;
   border: none !important;
 }
+
+/* Map marker bounce on card hover.
+   The outer .custom-map-marker is controlled by Leaflet's translate3d positioning,
+   so we animate the inner wrapper instead to avoid clobbering that transform. */
+@keyframes map-marker-bounce {
+  0%, 100% { transform: translateY(0); }
+  35%       { transform: translateY(-10px); }
+  65%       { transform: translateY(-5px); }
+}
+.map-marker-inner {
+  display: contents; /* passthrough by default — no layout change */
+}
+.map-marker-bounce .map-marker-inner {
+  display: block;
+  animation: map-marker-bounce 0.55s ease infinite;
+  transform-origin: bottom center;
+}

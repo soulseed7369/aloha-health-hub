@@ -137,6 +137,7 @@ export interface PractitionerRow {
   business_name: string | null;  // free-text business name (not a center record)
   modalities: string[];
   bio: string | null;
+  title: string | null;
   what_to_expect: string | null;
   island: string;
   region: string | null;

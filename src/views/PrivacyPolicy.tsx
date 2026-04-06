@@ -1,12 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function PrivacyPolicy() {
-  usePageMeta(
-    'Privacy Policy',
-    'Read the Hawaiʻi Wellness privacy policy — how we collect, use, and protect your personal information.',
-  );
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
       <Link

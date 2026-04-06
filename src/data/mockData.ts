@@ -30,14 +30,17 @@ export interface Article {
   excerpt: string;
   author: string;
   date: string;
-  category: string;
-  body?: string;       // Rich HTML for detail page
+  category: string;        // Primary category (first known category match, or 'Wellness')
+  categories?: string[];   // All matched categories (for multi-category filtering)
+  body?: string;           // Rich HTML for detail page
   featured?: boolean;
 }
 
 export interface Provider {
   id: string;
   name: string;
+  /** Custom job title (e.g. "Somatic Therapist"). Falls back to inferred title from modality. */
+  title?: string;
   businessName?: string; // center/business the practitioner is associated with
   image: string;
   type: "practitioner" | "center" | "retreat";

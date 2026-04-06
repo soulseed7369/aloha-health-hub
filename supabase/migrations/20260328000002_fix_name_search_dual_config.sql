@@ -1,6 +1,9 @@
 -- ============================================================================
 -- FIX NAME SEARCH — DUAL TEXT-SEARCH CONFIG + ILIKE FALLBACK
 -- ============================================================================
+
+-- Drop existing function first (return type changes in this migration)
+DROP FUNCTION IF EXISTS search_listings(text,text,text,integer[],integer[],integer[],integer[],integer[],text,text,boolean,integer,integer,vector);
 -- Root cause: GM pipeline sets practitioners.name to the *business* name.
 -- Personal names only live in display_name, which is often NULL for imported
 -- listings.  Even when populated, the 'english' tsvector config can mangle
@@ -560,4 +563,4 @@ LIMIT p_page_size;
 
 $$ LANGUAGE sql STABLE;
 
-GRANT EXECUTE ON FUNCTION search_listings TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION search_listings(text, text, text, int[], int[], int[], int[], int[], text, text, boolean, int, int, vector) TO authenticated, anon;

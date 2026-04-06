@@ -30,6 +30,24 @@ def fetch_all_emails() -> list:
     result = client.table("campaign_emails").select("*").order("sent_at", desc=True).execute()
     return result.data or []
 
+def fetch_true_claims() -> dict:
+    """
+    Count listings that have been claimed (owner_id IS NOT NULL) across both
+    practitioners and centers tables. This is the authoritative claim count —
+    campaign_outreach.status='claimed' misses direct claims and all centers.
+    """
+    pract_result = client.table("practitioners").select("id", count="exact").not_.is_("owner_id", "null").execute()
+    center_result = client.table("centers").select("id", count="exact").not_.is_("owner_id", "null").execute()
+
+    practitioners_claimed = pract_result.count or 0
+    centers_claimed = center_result.count or 0
+
+    return {
+        "practitioners_claimed": practitioners_claimed,
+        "centers_claimed": centers_claimed,
+        "total": practitioners_claimed + centers_claimed,
+    }
+
 
 def compute_summary(outreach: list) -> dict:
     """Compute summary statistics from outreach data."""
@@ -199,14 +217,20 @@ def main():
     print("Fetching campaign data...")
     outreach = fetch_all_outreach()
     emails = fetch_all_emails()
+    true_claims = fetch_true_claims()
 
     print(f"  Outreach rows: {len(outreach)}")
     print(f"  Email records: {len(emails)}")
+    print(f"  True claims:   {true_claims['total']} ({true_claims['practitioners_claimed']} practitioners + {true_claims['centers_claimed']} centers)")
 
     print("Computing metrics...")
+    summary = compute_summary(outreach)
+    summary["true_claims_total"] = true_claims["total"]
+    summary["true_claims_breakdown"] = true_claims
+
     data = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "summary": compute_summary(outreach),
+        "summary": summary,
         "funnel_phase1": compute_funnel(outreach, "phase1"),
         "funnel_phase2": compute_funnel(outreach, "phase2"),
         "email_stats": compute_email_stats(emails),

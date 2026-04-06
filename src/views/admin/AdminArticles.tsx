@@ -42,6 +42,16 @@ function formatDate(iso: string) {
   });
 }
 
+// ── Article categories (must match Articles.tsx ARTICLE_CATEGORIES) ──────────
+
+const ARTICLE_CATEGORIES = [
+  'Guides',
+  'Healing Traditions',
+  'Community',
+  'Island Life',
+  'Practitioners',
+] as const;
+
 // ── Blank form ────────────────────────────────────────────────────────────────
 
 const BLANK_FORM = {
@@ -49,7 +59,8 @@ const BLANK_FORM = {
   slug: '',
   author: "Hawai'i Wellness",
   excerpt: '',
-  tags: '',       // comma-separated string in the form; stored as array in DB
+  categories: [] as string[],  // multi-select from ARTICLE_CATEGORIES
+  extraTags: '',               // comma-separated free-form tags
   island: 'big_island',
   featured: false,
   status: 'draft' as 'draft' | 'published',
@@ -195,17 +206,48 @@ function ArticleForm({
         />
       </div>
 
-      {/* Tags + Island */}
+      {/* Categories (multi-select checkboxes) */}
+      <div>
+        <Label>Categories</Label>
+        <div className="flex flex-wrap gap-2 mt-1.5">
+          {ARTICLE_CATEGORIES.map(cat => {
+            const isSelected = form.categories.includes(cat);
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => {
+                  const next = isSelected
+                    ? form.categories.filter(c => c !== cat)
+                    : [...form.categories, cat];
+                  set('categories', next);
+                }}
+                className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                {isSelected && <span className="mr-1">✓</span>}
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-xs text-gray-500 mt-1">Select one or more. These control filtering on the blog page.</p>
+      </div>
+
+      {/* Extra tags + Island */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <Label htmlFor="art-tags">Tags / Category</Label>
+          <Label htmlFor="art-extra-tags">Additional Tags</Label>
           <Input
-            id="art-tags"
-            value={form.tags}
-            onChange={e => set('tags', e.target.value)}
-            placeholder="Community, Healing, Big Island"
+            id="art-extra-tags"
+            value={form.extraTags}
+            onChange={e => set('extraTags', e.target.value)}
+            placeholder="e.g. Big Island, Retreats, Breathwork"
           />
-          <p className="text-xs text-gray-500 mt-0.5">Comma-separated. First tag = category.</p>
+          <p className="text-xs text-gray-500 mt-0.5">Optional. Comma-separated free-form tags.</p>
         </div>
         <div>
           <Label>Island</Label>
@@ -290,14 +332,27 @@ export function AdminArticles() {
   const [editingArticle, setEditingArticle] = useState<ArticleRow | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest' | 'category'>('newest');
 
-  const { data: articles = [], isLoading } = useAllArticles({ search: searchInput, status: statusFilter });
+  const { data: rawArticles = [], isLoading } = useAllArticles({ search: searchInput, status: statusFilter });
+
+  const articles = [...rawArticles].sort((a, b) => {
+    if (sortOrder === 'oldest') {
+      return (a.published_at ? new Date(a.published_at).getTime() : 0) - (b.published_at ? new Date(b.published_at).getTime() : 0);
+    }
+    if (sortOrder === 'category') {
+      return (a.tags?.[0] ?? '').localeCompare(b.tags?.[0] ?? '');
+    }
+    // newest (default)
+    return (b.published_at ? new Date(b.published_at).getTime() : 0) - (a.published_at ? new Date(a.published_at).getTime() : 0);
+  });
   const insertArticle = useInsertArticle();
   const updateArticle = useUpdateArticle();
   const deleteArticle = useDeleteArticle();
 
   const handleAdd = async (form: FormState) => {
-    const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
+    const extra = form.extraTags.split(',').map(t => t.trim()).filter(Boolean);
+    const tags = [...form.categories, ...extra];
     try {
       const publishedAt = form.status === 'published'
         ? (form.published_at ? new Date(form.published_at).toISOString() : new Date().toISOString())
@@ -324,7 +379,8 @@ export function AdminArticles() {
 
   const handleEdit = async (form: FormState) => {
     if (!editingArticle) return;
-    const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
+    const extra = form.extraTags.split(',').map(t => t.trim()).filter(Boolean);
+    const tags = [...form.categories, ...extra];
     try {
       await updateArticle.mutateAsync({
         id: editingArticle.id,
@@ -388,19 +444,26 @@ export function AdminArticles() {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  const rowToForm = (row: ArticleRow): FormState => ({
-    title: row.title,
-    slug: row.slug,
-    author: row.author || "Hawai'i Wellness",
-    excerpt: row.excerpt || '',
-    tags: (row.tags || []).join(', '),
-    island: row.island || 'big_island',
-    featured: row.featured,
-    status: row.status === 'published' ? 'published' : 'draft',
-    body: row.body || '',
-    cover_image_url: row.cover_image_url,
-    published_at: isoToLocal(row.published_at),
-  });
+  const rowToForm = (row: ArticleRow): FormState => {
+    const allTags = row.tags || [];
+    const knownCategories = ARTICLE_CATEGORIES as readonly string[];
+    const categories = allTags.filter(t => knownCategories.includes(t));
+    const extraTags = allTags.filter(t => !knownCategories.includes(t)).join(', ');
+    return {
+      title: row.title,
+      slug: row.slug,
+      author: row.author || "Hawai'i Wellness",
+      excerpt: row.excerpt || '',
+      categories,
+      extraTags,
+      island: row.island || 'big_island',
+      featured: row.featured,
+      status: row.status === 'published' ? 'published' : 'draft',
+      body: row.body || '',
+      cover_image_url: row.cover_image_url,
+      published_at: isoToLocal(row.published_at),
+    };
+  };
 
   return (
     <div>
@@ -424,7 +487,7 @@ export function AdminArticles() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-3 mb-4">
+      <div className="flex flex-wrap gap-3 mb-4">
         <Input
           placeholder="Search by title…"
           value={searchInput}
@@ -437,6 +500,14 @@ export function AdminArticles() {
             <SelectItem value="all">All Statuses</SelectItem>
             <SelectItem value="published">Published</SelectItem>
             <SelectItem value="draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={sortOrder} onValueChange={v => setSortOrder(v as typeof sortOrder)}>
+          <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest first</SelectItem>
+            <SelectItem value="oldest">Oldest first</SelectItem>
+            <SelectItem value="category">By category</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -472,8 +543,16 @@ export function AdminArticles() {
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5">
                       {article.author || "Hawai'i Wellness"} · {article.published_at ? formatDate(article.published_at) : 'Unpublished'}
-                      {article.tags?.length > 0 && ` · ${article.tags[0]}`}
                     </p>
+                    {article.tags?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {article.tags
+                          .filter(t => (ARTICLE_CATEGORIES as readonly string[]).includes(t))
+                          .map(t => (
+                            <Badge key={t} variant="outline" className="text-[10px] px-1.5 py-0">{t}</Badge>
+                          ))}
+                      </div>
+                    )}
                     {article.excerpt && (
                       <p className="text-sm text-gray-600 line-clamp-1 mt-0.5">{article.excerpt}</p>
                     )}

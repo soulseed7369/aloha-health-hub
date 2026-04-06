@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Facebook, Instagram, Link2, Check } from 'lucide-react';
+import { Facebook, Instagram, Link2, Check, Twitter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { SITE_URL } from '@/lib/siteConfig';
@@ -16,14 +16,16 @@ function WhatsAppIcon({ className }: { className?: string }) {
 interface ShareButtonsProps {
   /** The URL to share. Defaults to current page. */
   url?: string;
-  /** Text to include with the share (used by WhatsApp). */
+  /** Text to include with the share (used by WhatsApp / X). */
   title: string;
   /** Compact row layout vs spread */
   compact?: boolean;
+  /** Show "Share:" label before the icons (default true) */
+  showLabel?: boolean;
   className?: string;
 }
 
-export function ShareButtons({ url, title, compact, className }: ShareButtonsProps) {
+export function ShareButtons({ url, title, compact, showLabel = true, className }: ShareButtonsProps) {
   const [copied, setCopied] = useState(false);
   const shareUrl = url || `${SITE_URL}${window.location.pathname}`;
   const encodedUrl = encodeURIComponent(shareUrl);
@@ -42,6 +44,10 @@ export function ShareButtons({ url, title, compact, className }: ShareButtonsPro
 
   const openFacebook = () => {
     window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank', 'width=600,height=400');
+  };
+
+  const openX = () => {
+    window.open(`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`, '_blank', 'width=600,height=400');
   };
 
   const openInstagram = async () => {
@@ -67,15 +73,9 @@ export function ShareButtons({ url, title, compact, className }: ShareButtonsPro
 
   return (
     <div className={`flex items-center gap-1.5 ${className ?? ''}`}>
-      <Button
-        variant="outline"
-        size="icon"
-        className={`${btnClass} text-[#E4405F] border-[#E4405F]/20 hover:bg-[#E4405F]/10 hover:text-[#E4405F]`}
-        onClick={openInstagram}
-        title="Share on Instagram"
-      >
-        <Instagram className={iconClass} />
-      </Button>
+      {showLabel && (
+        <span className="text-xs font-medium text-muted-foreground mr-0.5">Share:</span>
+      )}
 
       <Button
         variant="outline"
@@ -85,6 +85,26 @@ export function ShareButtons({ url, title, compact, className }: ShareButtonsPro
         title="Share on Facebook"
       >
         <Facebook className={iconClass} />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        className={`${btnClass} text-[#000000] border-border hover:bg-muted hover:text-foreground`}
+        onClick={openX}
+        title="Share on X (Twitter)"
+      >
+        <Twitter className={iconClass} />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        className={`${btnClass} text-[#E4405F] border-[#E4405F]/20 hover:bg-[#E4405F]/10 hover:text-[#E4405F]`}
+        onClick={openInstagram}
+        title="Share on Instagram"
+      >
+        <Instagram className={iconClass} />
       </Button>
 
       <Button

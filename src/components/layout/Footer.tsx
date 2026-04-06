@@ -38,7 +38,7 @@ export function Footer() {
               Connecting Hawaiʻi with holistic wellness
             </p>
             <p className="text-xs opacity-50">
-              Hawaii Wellness LLC · Kamuela, HI
+              Hawaii Wellness · Kamuela, HI
             </p>
           </div>
 
@@ -92,7 +92,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-accent-foreground/10 pt-6 text-center text-xs opacity-60">
-          © {new Date().getFullYear()} Hawaii Wellness LLC · hawaiiwellness.net · All rights reserved.
+          © {new Date().getFullYear()} Hawaii Wellness · hawaiiwellness.net · All rights reserved.
         </div>
       </div>
     </footer>

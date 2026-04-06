@@ -489,6 +489,7 @@ const Directory = () => {
   const [acceptsClients, setAcceptsClients] = useState(urlAcceptsClients);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [page, setPage] = useState(0);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   useEffect(() => {
     if (searchParams.get('island')) {
@@ -1065,15 +1066,25 @@ const Directory = () => {
               <div className="space-y-2">
                 {USE_NEW_SEARCH
                   ? unifiedResults.map(item =>
-                      item.raw.listing_type === 'center' && item.center
-                        ? <CenterCard key={item.raw.id} center={item.center} highlightModality={effectiveQuery} compact />
-                        : item.provider
-                        ? <ProviderCard key={item.raw.id} provider={item.provider} highlightModality={effectiveQuery} compact />
-                        : null
+                      <div key={item.raw.id} onMouseEnter={() => setHoveredId(item.raw.id)} onMouseLeave={() => setHoveredId(null)}>
+                        {item.raw.listing_type === 'center' && item.center
+                          ? <CenterCard center={item.center} highlightModality={effectiveQuery} compact />
+                          : item.provider
+                          ? <ProviderCard provider={item.provider} highlightModality={effectiveQuery} compact />
+                          : null}
+                      </div>
                     )
                   : [
-                      ...oldFilteredPractitioners.map(p => <ProviderCard key={p.id} provider={p} highlightModality={effectiveQuery} compact />),
-                      ...oldFilteredCenters.map(c => <CenterCard key={c.id} center={c} highlightModality={effectiveQuery} compact />),
+                      ...oldFilteredPractitioners.map(p => (
+                        <div key={p.id} onMouseEnter={() => setHoveredId(p.id)} onMouseLeave={() => setHoveredId(null)}>
+                          <ProviderCard provider={p} highlightModality={effectiveQuery} compact />
+                        </div>
+                      )),
+                      ...oldFilteredCenters.map(c => (
+                        <div key={c.id} onMouseEnter={() => setHoveredId(c.id)} onMouseLeave={() => setHoveredId(null)}>
+                          <CenterCard center={c} highlightModality={effectiveQuery} compact />
+                        </div>
+                      )),
                     ]
                 }
               </div>
@@ -1121,7 +1132,7 @@ const Directory = () => {
         <div className={`${showMap ? 'block' : 'hidden'} lg:block flex-1`} style={{ minHeight: "calc(100vh - 8rem)" }}>
           <div className="sticky top-0 h-[calc(100vh-8rem)]">
             <Suspense fallback={<div className="flex h-full items-center justify-center bg-muted"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>}>
-              <DirectoryMap locations={mapLocations} visible={showMap} />
+              <DirectoryMap locations={mapLocations} visible={showMap} hoveredId={hoveredId} />
             </Suspense>
           </div>
         </div>
