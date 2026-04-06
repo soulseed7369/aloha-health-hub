@@ -1,4 +1,4 @@
-import { Suspense, useEffect, memo } from "react";
+import { Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -17,14 +17,6 @@ import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_EMAIL } from "@/lib/siteCon
 import { lazyWithRetry, clearChunkRetryFlag } from "@/lib/lazyWithRetry";
 
 
-// ── Next.js App Router shim ───────────────────────────────────────────────────
-// Routes in this list are now handled by Next.js App Router (SSR).
-// When React Router lands on one (e.g. an in-SPA link click), force a hard
-// reload so Next.js serves the correct SSR page instead of the Vite component.
-const NextJsPage = memo(function NextJsPage() {
-  useEffect(() => { window.location.replace(window.location.href); }, []);
-  return null;
-});
 
 // ── Lazy-loaded page bundles (with auto-reload on stale chunks) ───────────────
 const Directory         = lazyWithRetry(() => import("./views/Directory"));
@@ -44,6 +36,11 @@ const BigIsland         = lazyWithRetry(() => import("./views/BigIsland"));
 const MauiHome          = lazyWithRetry(() => import("./views/MauiHome"));
 const OahuHome          = lazyWithRetry(() => import("./views/OahuHome"));
 const KauaiHome         = lazyWithRetry(() => import("./views/KauaiHome"));
+const ProfileDetail     = lazyWithRetry(() => import("./views/ProfileDetail"));
+const CenterDetail      = lazyWithRetry(() => import("./views/CenterDetail"));
+const PrivacyPolicy     = lazyWithRetry(() => import("./views/PrivacyPolicy"));
+const TermsOfService    = lazyWithRetry(() => import("./views/TermsOfService"));
+const HelpCenter        = lazyWithRetry(() => import("./views/HelpCenter"));
 
 // Dashboard pages (split separately — only loaded when user visits /dashboard)
 const AdminPanel        = lazyWithRetry(() => import("./views/admin/AdminPanel"));
@@ -164,15 +161,13 @@ const App = () => (
                 <Route path="/oahu"           element={<OahuHome />} />
                 <Route path="/kauai"          element={<KauaiHome />} />
 
-                {/* ── Owned by Next.js App Router (SSR) ── force hard reload ── */}
-                <Route path="/profile/:id"    element={<NextJsPage />} />
-                <Route path="/center/:id"     element={<NextJsPage />} />
-                <Route path="/articles/:slug" element={<NextJsPage />} />
-                <Route path="/privacy-policy" element={<NextJsPage />} />
-                <Route path="/terms-of-service" element={<NextJsPage />} />
-                <Route path="/help"           element={<NextJsPage />} />
-
-                {/* ── Still served by this SPA ── */}
+                {/* ── All other public pages — served by SPA ── */}
+                <Route path="/profile/:id"        element={<ProfileDetail />} />
+                <Route path="/center/:id"         element={<CenterDetail />} />
+                <Route path="/articles/:slug"     element={<ArticleDetail />} />
+                <Route path="/privacy-policy"     element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service"   element={<TermsOfService />} />
+                <Route path="/help"               element={<HelpCenter />} />
                 <Route path="/directory"          element={<Directory />} />
                 <Route path="/articles"           element={<Articles />} />
                 <Route path="/list-your-practice" element={<ListYourPractice />} />
