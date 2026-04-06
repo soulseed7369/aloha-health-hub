@@ -205,8 +205,8 @@ export function IslandHome({ config }: IslandHomeProps) {
                 </>
               )}
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary md:text-3xl">34</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Specialties</div>
+                <div className="text-2xl font-bold text-primary md:text-3xl">44</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Wellness Modalities</div>
               </div>
               <div className="h-8 w-px bg-border" aria-hidden="true" />
               <div className="text-center">
