@@ -62,7 +62,6 @@ export function practitionerRowToProvider(row: PractitionerRowWithBusiness): Pro
   return {
     id: row.id,
     name: displayName,
-    title: row.title ?? undefined,
     businessName,
     image: row.avatar_url || PLACEHOLDER_PRACTITIONER,
     type: 'practitioner' as const,

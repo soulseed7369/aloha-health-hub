@@ -62,7 +62,6 @@ const RESPONSE_TIME_OPTIONS = [
 
 const emptyForm: PractitionerFormData = {
   name: '',
-  title: '',
   island: 'big_island',
   modalities: [],
   bio: '',
@@ -106,7 +105,6 @@ export default function DashboardProfile() {
       initialized.current = true;
       setForm({
         name: practitioner.name ?? '',
-        title: practitioner.title ?? '',
         island: practitioner.island ?? 'big_island',
         modalities: practitioner.modalities ?? [],
         bio: practitioner.bio ?? '',
@@ -277,19 +275,6 @@ export default function DashboardProfile() {
               value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
             />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="jobTitle">Job Title</Label>
-            <Input
-              id="jobTitle"
-              placeholder="e.g. Somatic Therapist, Lomilomi Practitioner"
-              value={form.title}
-              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-            />
-            <p className="text-xs text-muted-foreground">
-              Shown below your name on your listing card. Leave blank to auto-fill from your primary modality.
-            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

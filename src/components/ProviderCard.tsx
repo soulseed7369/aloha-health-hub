@@ -376,7 +376,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                   letterSpacing: "0.02em",
                 }}
               >
-                {provider.title || inferTitleFromModality(provider.modality)}
+                {provider.title || inferTitleFromModality(provider.modalities?.[0] ?? provider.modality)}
               </p>
             )}
 

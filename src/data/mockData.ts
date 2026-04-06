@@ -38,8 +38,6 @@ export interface Article {
 export interface Provider {
   id: string;
   name: string;
-  /** Custom job title (e.g. "Somatic Therapist"). Falls back to inferred title from modality. */
-  title?: string;
   businessName?: string; // center/business the practitioner is associated with
   image: string;
   type: "practitioner" | "center" | "retreat";
