@@ -40,6 +40,10 @@ const TestimonialSubmit = lazyWithRetry(() => import("./views/TestimonialSubmit"
 const About             = lazyWithRetry(() => import("./views/About"));
 const WebsitePackages   = lazyWithRetry(() => import("./views/WebsitePackages"));
 const WebsitePreview    = lazyWithRetry(() => import("./views/WebsitePreview"));
+const BigIsland         = lazyWithRetry(() => import("./views/BigIsland"));
+const MauiHome          = lazyWithRetry(() => import("./views/MauiHome"));
+const OahuHome          = lazyWithRetry(() => import("./views/OahuHome"));
+const KauaiHome         = lazyWithRetry(() => import("./views/KauaiHome"));
 
 // Dashboard pages (split separately — only loaded when user visits /dashboard)
 const AdminPanel        = lazyWithRetry(() => import("./views/admin/AdminPanel"));
@@ -153,12 +157,14 @@ const App = () => (
 
               {/* Public pages — all share Header/Footer via PublicLayout */}
               <Route element={<PublicLayout />}>
+                {/* ── Island homepages — served by SPA (full dynamic content) ── */}
+                <Route path="/"               element={<BigIsland />} />
+                <Route path="/big-island"     element={<BigIsland />} />
+                <Route path="/maui"           element={<MauiHome />} />
+                <Route path="/oahu"           element={<OahuHome />} />
+                <Route path="/kauai"          element={<KauaiHome />} />
+
                 {/* ── Owned by Next.js App Router (SSR) ── force hard reload ── */}
-                <Route path="/"               element={<NextJsPage />} />
-                <Route path="/big-island"     element={<NextJsPage />} />
-                <Route path="/maui"           element={<NextJsPage />} />
-                <Route path="/oahu"           element={<NextJsPage />} />
-                <Route path="/kauai"          element={<NextJsPage />} />
                 <Route path="/profile/:id"    element={<NextJsPage />} />
                 <Route path="/center/:id"     element={<NextJsPage />} />
                 <Route path="/articles/:slug" element={<NextJsPage />} />
