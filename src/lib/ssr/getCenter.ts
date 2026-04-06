@@ -43,8 +43,8 @@ export async function getCenter(id: string): Promise<CenterProfile | null> {
     city: row.city,
     island: row.island ?? 'big_island',
     location: [row.city, row.island].filter(Boolean).join(', '),
-    phone: row.phone,
-    email: row.email,
+    phone: null,  // omitted from SSR — revealed client-side via /api/contact
+    email: null,  // omitted from SSR — revealed client-side via /api/contact
     website: row.website_url,
     externalBookingUrl: row.external_website_url ?? null,
     lat: row.lat,

@@ -32,8 +32,8 @@ export async function getPractitioner(id: string): Promise<PractitionerProfile |
     acceptingClients: row.accepts_new_clients,
     location: [row.city, row.island].filter(Boolean).join(', '),
     address: row.address,
-    phone: row.phone,
-    email: row.email,
+    phone: null,  // omitted from SSR — revealed client-side via /api/contact
+    email: null,  // omitted from SSR — revealed client-side via /api/contact
     website: row.website_url,
     externalBookingUrl: row.external_booking_url,
     bookingLabel: row.booking_label ?? null,
