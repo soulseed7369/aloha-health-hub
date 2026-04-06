@@ -193,3 +193,63 @@ export function sortModalities(modalities: string[], highlight?: string): string
     return aMatch === bMatch ? 0 : aMatch ? -1 : 1;
   });
 }
+
+// ── Infer a human-readable job title from a primary modality ────────────────
+// Used as the subtitle under the practitioner's name on cards.
+// Next sprint: replace/override with a dedicated `title` DB column.
+
+const MODALITY_TITLE_MAP: Record<string, string> = {
+  "Acupuncture":                    "Acupuncturist",
+  "Alternative Therapy":            "Alternative Therapist",
+  "Art Therapy":                    "Art Therapist",
+  "Astrology":                      "Astrologer",
+  "Ayurveda":                       "Ayurvedic Practitioner",
+  "Birth Doula":                    "Birth Doula",
+  "Breathwork":                     "Breathwork Facilitator",
+  "Chiropractic":                   "Chiropractor",
+  "Counseling":                     "Counselor",
+  "Craniosacral":                   "Craniosacral Therapist",
+  "Dentistry":                      "Dentist",
+  "Energy Healing":                 "Energy Healer",
+  "Family Constellation":           "Family Constellation Facilitator",
+  "Fitness":                        "Fitness Coach",
+  "Functional Medicine":            "Functional Medicine Practitioner",
+  "Hawaiian Healing":               "Hawaiian Healing Practitioner",
+  "Herbalism":                      "Herbalist",
+  "Hypnotherapy":                   "Hypnotherapist",
+  "IV Therapy":                     "IV Therapy Specialist",
+  "Life Coaching":                  "Life Coach",
+  "Lomilomi / Hawaiian Healing":    "Lomilomi Practitioner",
+  "Longevity":                      "Longevity Specialist",
+  "Massage":                        "Massage Therapist",
+  "Meditation":                     "Meditation Teacher",
+  "Midwife":                        "Midwife",
+  "Nature Therapy":                 "Nature Therapy Guide",
+  "Naturopathic":                   "Naturopathic Doctor",
+  "Nervous System Regulation":      "Nervous System Specialist",
+  "Network Chiropractic":           "Network Chiropractor",
+  "Nutrition":                      "Nutritionist",
+  "Osteopathic":                    "Osteopathic Practitioner",
+  "Physical Therapy":               "Physical Therapist",
+  "Psychic":                        "Psychic Intuitive",
+  "Psychotherapy":                  "Psychotherapist",
+  "Reiki":                          "Reiki Practitioner",
+  "Ritualist":                      "Ritualist",
+  "Somatic Therapy":                "Somatic Therapist",
+  "Soul Guidance":                  "Soul Guide",
+  "Sound Healing":                  "Sound Healer",
+  "TCM (Traditional Chinese Medicine)": "TCM Practitioner",
+  "Trauma-Informed Care":           "Trauma-Informed Therapist",
+  "Watsu / Water Therapy":          "Watsu Practitioner",
+  "Women's Health":                 "Women's Health Specialist",
+  "Yoga":                           "Yoga Teacher",
+};
+
+/**
+ * Returns a human-readable job title for a primary modality.
+ * Falls back to the raw modality string if no mapping exists.
+ */
+export function inferTitleFromModality(modality?: string | null): string | undefined {
+  if (!modality) return undefined;
+  return MODALITY_TITLE_MAP[modality] ?? modality;
+}
