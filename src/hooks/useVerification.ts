@@ -60,7 +60,7 @@ async function callEdgeFunction<T>(fnName: string, body: Record<string, unknown>
   if (!session) throw new Error('You must be logged in');
 
   const res = await fetch(
-    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${fnName}`,
+    `${(typeof import.meta !== 'undefined' && import.meta.env?.VITE_SUPABASE_URL) || process.env.NEXT_PUBLIC_SUPABASE_URL || ''}/functions/v1/${fnName}`,
     {
       method: 'POST',
       headers: {

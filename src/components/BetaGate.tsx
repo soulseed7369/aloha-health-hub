@@ -4,7 +4,10 @@ import { Leaf } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const STORAGE_KEY = 'beta_access';
-const BETA_SECRET = import.meta.env.VITE_BETA_SECRET as string | undefined;
+const BETA_SECRET =
+  (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_BETA_SECRET as string | undefined))
+  || (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_BETA_SECRET)
+  || undefined;
 
 function hasBetaAccess(): boolean {
   try {
