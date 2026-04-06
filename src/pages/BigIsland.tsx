@@ -30,7 +30,7 @@ const baseConfig = {
   displayName: "Big Island",
   heroImageUrl: "/big_island_pololu.webp",
   pageTitle: "Big Island Wellness Directory – Hawaiʻi Island",
-  pageDescription: "Find acupuncture, massage, yoga, reiki & naturopathic practitioners in Kona, Hilo & Waimea. Hawaiʻi Island's largest holistic wellness directory — 500+ practitioners, 34 specialties.",
+  pageDescription: "Find acupuncture, massage, yoga, reiki & naturopathic practitioners in Kona, Hilo & Waimea. Hawaiʻi Island's largest holistic wellness directory — 500+ practitioners, 44 wellness modalities.",
   faqItems: [
     {
       question: "What wellness practices are most popular on the Big Island?",
