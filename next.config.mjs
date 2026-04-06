@@ -73,11 +73,13 @@ const nextConfig = {
   // if needed
 
   // Fallback rewrites: routes not matched by App Router pages or public/ static
-  // files fall through to the Vite SPA shell (copied during build).
+  // files fall through to the Vite SPA via an API route that serves _spa.html.
+  // (Direct rewrites to static files don't work — Next.js routes them through
+  // the page system instead of the static file server.)
   async rewrites() {
     return {
       fallback: [
-        { source: '/:path*', destination: '/_spa.html' },
+        { source: '/:path*', destination: '/api/spa' },
       ],
     };
   },
