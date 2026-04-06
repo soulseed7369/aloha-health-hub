@@ -124,6 +124,26 @@ function VerifiedDot() {
   );
 }
 
+function VerifiedPill() {
+  return (
+    <span
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 3, flexShrink: 0,
+        background: "#f0fdf4", border: "1px solid #bbf7d0",
+        borderRadius: 99, padding: "2px 7px",
+        fontSize: 10, fontWeight: 700, color: "#16a34a",
+        letterSpacing: "0.02em", fontFamily: "'Nunito', sans-serif",
+      }}
+      aria-label="Verified"
+    >
+      <svg width={9} height={9} viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      Verified
+    </span>
+  );
+}
+
 // ── Open / Closed row ─────────────────────────────────────────────────────────
 function OpenRow({ isOpen }: { isOpen: boolean }) {
   return (
@@ -376,11 +396,15 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
               >
                 {center.name}
               </h3>
-              {center.verified && (
+              {isPaid ? (
                 <div style={{ marginTop: isPaid ? 5 : 3 }}>
+                  <VerifiedPill />
+                </div>
+              ) : center.verified ? (
+                <div style={{ marginTop: 3 }}>
                   <VerifiedDot />
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Location */}

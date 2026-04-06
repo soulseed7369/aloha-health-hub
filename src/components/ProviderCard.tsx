@@ -137,6 +137,26 @@ function VerifiedDot() {
   );
 }
 
+function VerifiedPill() {
+  return (
+    <span
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 3, flexShrink: 0,
+        background: "#f0fdf4", border: "1px solid #bbf7d0",
+        borderRadius: 99, padding: "2px 7px",
+        fontSize: 10, fontWeight: 700, color: "#16a34a",
+        letterSpacing: "0.02em", fontFamily: "'Nunito', sans-serif",
+      }}
+      aria-label="Verified"
+    >
+      <svg width={9} height={9} viewBox="0 0 10 10" fill="none" style={{ flexShrink: 0 }}>
+        <path d="M1.5 5L4 7.5L8.5 2.5" stroke="#16a34a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      Verified
+    </span>
+  );
+}
+
 // ── Accepts indicator ─────────────────────────────────────────────────────────
 function AcceptsIndicator({ accepts }: { accepts?: boolean }) {
   const isAccepting = accepts === true;
@@ -349,7 +369,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
           {/* ── HEADER section ── */}
           <div style={{ marginBottom: 11 }}>
             {/* Name + verified */}
-            <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 2, flexWrap: "wrap" }}>
               <h3
                 style={{
                   margin: 0,
@@ -362,7 +382,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
               >
                 {provider.name}
               </h3>
-              {provider.verified && <VerifiedDot />}
+              {(tier === "featured" || tier === "premium") ? <VerifiedPill /> : (provider.verified && <VerifiedDot />)}
             </div>
 
             {/* Job title — custom if set, otherwise inferred from primary modality */}
