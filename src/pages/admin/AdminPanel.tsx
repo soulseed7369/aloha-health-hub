@@ -187,6 +187,7 @@ const AdminPanel = () => {
   // ── Practitioner form state ───────────────────────────────────────────────
   const [practitionerForm, setPractitionerForm] = useState({
     name: '',
+    title: '',
     business_name: '' as string,
     modalities: [] as string[],
     bio: '',
@@ -218,6 +219,7 @@ const AdminPanel = () => {
   // ── Edit practitioner form state ──────────────────────────────────────────
   const [editPractitionerForm, setEditPractitionerForm] = useState({
     name: '',
+    title: '',
     first_name: '' as string,
     last_name: '' as string,
     display_name: '' as string,
@@ -454,9 +456,9 @@ const AdminPanel = () => {
       } as never);
       toast.success('Practitioner added');
       setIsAddPractitionerOpen(false);
-      setPractitionerForm({ name:'', modalities:[], bio:'', city:'', address:'',
+      setPractitionerForm({ name:'', title:'', modalities:[], bio:'', city:'', address:'',
         phone:'', email:'', website_url:'', external_booking_url:'',
-        accepts_new_clients:true, status:'published', avatar_url:null, center_id:null });
+        accepts_new_clients:true, status:'published', avatar_url:null, center_id:null } as never);
       setPractitionerPhotoFile(null);
       setPractitionerPhotoPreview(null);
     } catch (err) {
@@ -517,6 +519,7 @@ const AdminPanel = () => {
   const openEditPractitionerDialog = (p: PractitionerRow) => {
     setEditPractitionerForm({
       name: p.name,
+      title: p.title || '',
       first_name: (p as any).first_name || '',
       last_name: (p as any).last_name || '',
       display_name: (p as any).display_name || '',
@@ -1273,6 +1276,13 @@ const AdminPanel = () => {
                     <Input id="p-name" placeholder="Full name"
                       value={practitionerForm.name}
                       onChange={e => handlePractitionerChange('name', e.target.value)} required />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="p-title">Job Title</Label>
+                    <Input id="p-title" placeholder="e.g. Somatic Therapist (leave blank to auto-fill)"
+                      value={practitionerForm.title}
+                      onChange={e => handlePractitionerChange('title', e.target.value)} />
                   </div>
 
                   <div>
@@ -2194,6 +2204,16 @@ const AdminPanel = () => {
                     e.g. "Jamie Belmarez" if legal name differs from preferred name.
                   </p>
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="ep-title">Job Title</Label>
+                <Input id="ep-title" placeholder="e.g. Somatic Therapist (leave blank to auto-fill)"
+                  value={editPractitionerForm.title}
+                  onChange={e => handleEditPractitionerChange('title', e.target.value)} />
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Shown below name on card. Leave blank to infer from primary modality.
+                </p>
               </div>
 
               <div>
