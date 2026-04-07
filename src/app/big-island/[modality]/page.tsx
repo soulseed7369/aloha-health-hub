@@ -25,6 +25,13 @@ export async function generateStaticParams() {
   }));
 }
 
+// Custom meta descriptions for top priority pages — override the template default
+const CUSTOM_DESCRIPTIONS: Record<string, string> = {
+  massage: `Find massage therapists on the Big Island — lomilomi, deep tissue, Thai, and more in Kailua-Kona, Hilo, and Waimea. Hawaiʻi's largest holistic directory.`,
+  lomilomi: `Discover traditional lomilomi practitioners on the Big Island. Hawaiian healing arts in Kona, Hilo, and Holualoa — browse verified providers and book a session.`,
+  yoga: `Find yoga studios, retreat centers, and private teachers across the Big Island — from Kona and Hilo to Waikoloa, Pahoa, and beyond.`,
+};
+
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
@@ -37,7 +44,9 @@ export async function generateMetadata(
   }
 
   const title = `${modalityName} on ${ISLAND_DISPLAY_NAME}`;
-  const description = `Find certified ${modalityName} practitioners and wellness centers on ${ISLAND_DISPLAY_NAME}. Browse verified providers, compare services, and book sessions directly.`;
+  const description =
+    CUSTOM_DESCRIPTIONS[resolvedParams.modality] ??
+    `Find certified ${modalityName} practitioners and wellness centers on ${ISLAND_DISPLAY_NAME}. Browse verified providers, compare services, and book sessions directly.`;
   const url = canonicalUrl(`/${ISLAND_SLUG}/${resolvedParams.modality}`);
 
   return {

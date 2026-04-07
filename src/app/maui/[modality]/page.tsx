@@ -25,6 +25,12 @@ export async function generateStaticParams() {
   }));
 }
 
+// Custom meta descriptions for top priority pages — override the template default
+const CUSTOM_DESCRIPTIONS: Record<string, string> = {
+  yoga: `Find yoga teachers and studios across Maui — beachfront classes in Kihei, lineage teaching in Haiku, and retreat spaces from Paia to Kula.`,
+  massage: `Browse massage therapists and spas across Maui — lomilomi, craniosacral, Thai, and deep tissue from Kihei and Makawao to Hana. Book your Maui massage.`,
+};
+
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
@@ -37,7 +43,9 @@ export async function generateMetadata(
   }
 
   const title = `${modalityName} on ${ISLAND_DISPLAY_NAME}`;
-  const description = `Find certified ${modalityName} practitioners and wellness centers on ${ISLAND_DISPLAY_NAME}. Browse verified providers, compare services, and book sessions directly.`;
+  const description =
+    CUSTOM_DESCRIPTIONS[resolvedParams.modality] ??
+    `Find certified ${modalityName} practitioners and wellness centers on ${ISLAND_DISPLAY_NAME}. Browse verified providers, compare services, and book sessions directly.`;
   const url = canonicalUrl(`/${ISLAND_SLUG}/${resolvedParams.modality}`);
 
   return {
