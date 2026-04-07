@@ -398,87 +398,313 @@ const FAQ_ITEMS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TOC Component
+// Editorial CSS — follows GuidesHub pattern; page-specific styles only
 // ─────────────────────────────────────────────────────────────────────────────
+
+const editorialCss = `
+  /* Chapter / section labels */
+  .mod-chapter {
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: hsl(15, 65%, 52%);
+  }
+
+  /* Large category headings */
+  .mod-category-h {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(26px, 3.2vw, 40px);
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+  }
+
+  /* Modality card headings */
+  .mod-modality-h {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+  }
+
+  /* Sub-modality names within expanded cards */
+  .mod-sub-name {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  /* Pull quotes between sections */
+  .mod-pull-quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(20px, 2.5vw, 28px);
+    line-height: 1.48;
+    letter-spacing: -0.005em;
+  }
+
+  /* TOC heading */
+  .mod-toc-heading {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: 17px;
+    letter-spacing: -0.004em;
+  }
+
+  /* Island section headings */
+  .mod-island-h {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.2;
+  }
+
+  /* FAQ questions */
+  .mod-faq-q {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  /* Intro drop-cap paragraph */
+  .mod-intro::first-letter {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 56px;
+    float: left;
+    line-height: 0.88;
+    padding: 6px 10px 0 0;
+    color: hsl(15, 65%, 52%);
+    font-weight: 500;
+  }
+`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ParsedDescription {
+  lead: string;
+  subs: { name: string; desc: string }[];
+}
+
+/**
+ * Parse markdown bold tokens from description text.
+ * "Intro sentence. **SubName** does this. **SubName2** does that."
+ * → { lead: "Intro sentence.", subs: [{ name: "SubName", desc: "does this." }, ...] }
+ */
+function parseDescription(raw: string): ParsedDescription {
+  const parts = raw.split(/\*\*(.*?)\*\*/);
+  if (parts.length <= 1) {
+    return { lead: raw.trim(), subs: [] };
+  }
+  const lead = parts[0].trim();
+  const subs: { name: string; desc: string }[] = [];
+  for (let i = 1; i < parts.length; i += 2) {
+    const name = parts[i].trim();
+    const desc = (parts[i + 1] || "")
+      .trim()
+      .replace(/^,\s*/, "")           // strip leading comma (inline list format)
+      .replace(/^;\s*/, "")           // strip leading semicolon
+      .replace(/^and\s+/i, "")        // strip leading "and "
+      .replace(/[,;]\s*(and\s+)?$/i, "") // strip trailing comma/semicolon
+      .trim();
+    if (name) subs.push({ name, desc });
+  }
+  return { lead, subs };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pull quotes — inserted after select categories
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PULL_QUOTES: Record<number, { text: string; attribution: string }> = {
+  // After Bodywork (catIdx 0)
+  0: {
+    text: "The doctor of the future will give no medicine, but will interest his patients in the care of the human frame, in diet, and in the cause and prevention of disease.",
+    attribution: "Thomas Edison",
+  },
+  // After Mind, Nervous System & Psychotherapy (catIdx 2)
+  2: {
+    text: "The body keeps the score — mind, brain, and body in the transformation of trauma.",
+    attribution: "Bessel van der Kolk, MD",
+  },
+  // After Hawaiian & Nature-Based Healing (catIdx 5)
+  5: {
+    text: "Nānā i ke kumu — Look to the source.",
+    attribution: "Hawaiian proverb",
+  },
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-components
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PullQuote({ text, attribution }: { text: string; attribution: string }) {
+  return (
+    <blockquote className="my-14 pl-7 border-l-[3px] border-primary py-1">
+      <p className="mod-pull-quote text-foreground">&ldquo;{text}&rdquo;</p>
+      <footer className="mt-4 mod-chapter" style={{ color: "hsl(35, 12%, 55%)" }}>
+        — {attribution}
+      </footer>
+    </blockquote>
+  );
+}
+
+function ModalityCard({ mod }: { mod: Modality }) {
+  const { lead, subs } = parseDescription(mod.description);
+
+  return (
+    <article id={mod.anchor} className="scroll-mt-20">
+      {/* Left terracotta accent bar + card */}
+      <div className="flex border border-[hsl(35,18%,82%)] bg-background">
+        {/* Accent bar */}
+        <div className="w-[3px] shrink-0 bg-primary" />
+
+        <div className="flex-1">
+          {/* Card header */}
+          <div className="border-b border-[hsl(35,18%,82%)] px-6 py-4 sm:px-8">
+            <h3 className="mod-modality-h text-foreground">{mod.name}</h3>
+          </div>
+
+          {/* Card body */}
+          <div className="px-6 py-5 sm:px-8">
+            {/* Lead paragraph */}
+            {lead && (
+              <p className="text-[15.5px] leading-[1.75] text-muted-foreground">
+                {lead}
+              </p>
+            )}
+
+            {/* Sub-modalities */}
+            {subs.length > 0 && (
+              <div className="mt-5 divide-y divide-[hsl(35,15%,88%)]">
+                {subs.map((sub) => (
+                  <div key={sub.name} className="py-4">
+                    <div className="mod-sub-name text-foreground mb-1">{sub.name}</div>
+                    {sub.desc && (
+                      <p className="text-[14.5px] leading-[1.72] text-muted-foreground">
+                        {sub.desc}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Directory link */}
+            <div className="mt-5 pt-4 border-t border-[hsl(35,18%,82%)]">
+              <Link
+                to={`/directory?modality=${encodeURIComponent(mod.name)}`}
+                className="mod-chapter transition-opacity hover:opacity-60"
+              >
+                Find {mod.name} practitioners in Hawaiʻi →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 function TableOfContents() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="mb-10 rounded-2xl border border-border bg-muted/40 p-5">
+    <nav
+      className="mb-12 border border-[hsl(35,18%,80%)]"
+      style={{ background: "hsl(35, 22%, 97%)" }}
+    >
       <button
-        className="flex w-full items-center justify-between text-left"
+        className="flex w-full items-center justify-between px-6 py-5 text-left"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
       >
-        <span className="font-display text-base font-semibold text-foreground">
-          Table of Contents
+        <span className="mod-toc-heading text-foreground">Table of Contents</span>
+        <span className="mod-chapter" style={{ color: "hsl(35, 12%, 55%)" }}>
+          {open ? (
+            <span className="flex items-center gap-1.5">
+              Close <ChevronUp className="h-3 w-3" />
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5">
+              Open <ChevronDown className="h-3 w-3" />
+            </span>
+          )}
         </span>
-        {open ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        )}
       </button>
+
       {open && (
-        <ol className="mt-4 space-y-1 text-sm">
-          {CATEGORIES.map((cat, i) => (
-            <li key={cat.id}>
+        <div className="border-t border-[hsl(35,18%,80%)] px-6 pb-6 pt-2">
+          <ol className="grid sm:grid-cols-2 gap-0">
+            {CATEGORIES.map((cat, i) => (
+              <li key={cat.id} className="border-b border-[hsl(35,18%,80%)]">
+                <a
+                  href={`#${cat.id}`}
+                  className="flex items-baseline gap-4 py-3 text-foreground hover:text-primary transition-colors"
+                  onClick={() => setOpen(false)}
+                >
+                  <span className="mod-chapter shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="text-[14px] leading-snug">{cat.title}</span>
+                </a>
+              </li>
+            ))}
+            <li className="border-b border-[hsl(35,18%,80%)]">
               <a
-                href={`#${cat.id}`}
-                className="text-muted-foreground hover:text-primary transition-colors"
+                href="#by-island"
+                className="flex items-baseline gap-4 py-3 text-foreground hover:text-primary transition-colors"
+                onClick={() => setOpen(false)}
               >
-                {i + 1}. {cat.title}
+                <span className="mod-chapter shrink-0">{String(CATEGORIES.length + 1).padStart(2, "0")}</span>
+                <span className="text-[14px]">Wellness by Island</span>
               </a>
             </li>
-          ))}
-          <li>
-            <a
-              href="#by-island"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              {CATEGORIES.length + 1}. Wellness by Island
-            </a>
-          </li>
-          <li>
-            <a
-              href="#faq"
-              className="text-muted-foreground hover:text-primary transition-colors"
-            >
-              {CATEGORIES.length + 2}. FAQ
-            </a>
-          </li>
-        </ol>
+            <li>
+              <a
+                href="#faq"
+                className="flex items-baseline gap-4 py-3 text-foreground hover:text-primary transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                <span className="mod-chapter shrink-0">{String(CATEGORIES.length + 2).padStart(2, "0")}</span>
+                <span className="text-[14px]">Frequently Asked Questions</span>
+              </a>
+            </li>
+          </ol>
+        </div>
       )}
     </nav>
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FAQ Accordion
-// ─────────────────────────────────────────────────────────────────────────────
-
 function FaqAccordion() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
   return (
-    <div className="divide-y divide-border rounded-2xl border border-border overflow-hidden">
+    <div className="divide-y divide-[hsl(35,18%,80%)] border-y border-[hsl(35,18%,80%)]">
       {FAQ_ITEMS.map((item, i) => (
         <div key={i}>
           <button
-            className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left hover:bg-muted/30 transition-colors"
+            className="flex w-full items-start justify-between gap-6 py-6 text-left group"
             onClick={() => setOpenIdx(openIdx === i ? null : i)}
             aria-expanded={openIdx === i}
           >
-            <span className="font-medium text-foreground">{item.q}</span>
-            {openIdx === i ? (
-              <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
-            )}
+            <span className="mod-faq-q text-foreground group-hover:text-primary transition-colors flex-1">
+              {item.q}
+            </span>
+            <span className="mod-chapter shrink-0 mt-0.5 transition-colors group-hover:text-primary"
+              style={{ color: "hsl(35, 12%, 55%)" }}>
+              {openIdx === i ? "Close" : "Read"}
+            </span>
           </button>
           {openIdx === i && (
-            <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+            <div className="pb-6 text-[15.5px] leading-[1.75] text-muted-foreground border-t border-[hsl(35,18%,80%)] pt-4">
               {item.a}
             </div>
           )}
@@ -557,41 +783,57 @@ export default function WellnessModalities() {
       <JsonLd id="guide-article" data={articleSchema} />
       <JsonLd id="guide-faq" data={faqSchema} />
       <JsonLd id="guide-breadcrumb" data={breadcrumbSchema} />
+      <style dangerouslySetInnerHTML={{ __html: editorialCss }} />
 
       {/* ── Hero ──────────────────────────────────────────────────────────── */}
-      <div className="relative h-[480px] sm:h-[560px] overflow-hidden">
+      <div className="relative h-[480px] sm:h-[580px] overflow-hidden">
         <img
           src={guide.coverImage}
           alt={guide.coverAlt}
           className="absolute inset-0 h-full w-full object-cover object-center"
           fetchPriority="high"
         />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+        {/* Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
         {/* Hero content */}
-        <div className="relative flex h-full flex-col justify-end px-6 pb-10 sm:px-12 sm:pb-14 max-w-5xl mx-auto">
+        <div className="relative flex h-full flex-col justify-end px-6 pb-12 sm:px-12 sm:pb-16 max-w-5xl mx-auto">
           {/* Breadcrumbs */}
-          <nav className="mb-4 flex items-center gap-2 text-xs text-white/70">
+          <nav className="mb-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/60">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <span>/</span>
             <Link to="/guides" className="hover:text-white transition-colors">Guides</Link>
             <span>/</span>
-            <span className="text-white/90">Wellness Modalities</span>
+            <span className="text-white/80">Wellness Modalities</span>
           </nav>
 
-          {/* Badge */}
-          <span className="mb-3 inline-flex w-fit items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
-            Complete Guide · 2026
-          </span>
+          {/* Kicker */}
+          <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70">
+            The Complete Guide · Hawaiʻi
+          </div>
 
-          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl md:text-5xl leading-tight">
-            The Complete Guide to Wellness Modalities in Hawaiʻi
+          <h1
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontWeight: 500,
+              fontSize: "clamp(28px, 4.5vw, 52px)",
+              lineHeight: 1.08,
+              letterSpacing: "-0.015em",
+              color: "white",
+            }}
+          >
+            Wellness Modalities<br />
+            <em style={{ fontStyle: "italic", fontWeight: 400, color: "hsl(15, 70%, 72%)" }}>
+              in Hawaiʻi
+            </em>
           </h1>
-          <p className="mt-3 max-w-2xl text-white/80 text-sm sm:text-base">
-            Your definitive resource for holistic healing across the Hawaiian Islands — 44 modalities, 9 categories, island-by-island guidance.
+
+          <p className="mt-4 max-w-2xl text-white/75 text-[15px] sm:text-base leading-relaxed">
+            Your definitive reference for holistic healing across the Hawaiian Islands — 44 modalities, 9 traditions, island-by-island guidance.
           </p>
-          <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/70">
+
+          {/* Meta bar */}
+          <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-[11px] uppercase tracking-[0.18em] text-white/55">
             <span>44 Modalities</span>
             <span>·</span>
             <span>4 Islands</span>
@@ -604,11 +846,11 @@ export default function WellnessModalities() {
       </div>
 
       {/* ── Body ──────────────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+      <main className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
 
-        {/* Intro */}
-        <section className="prose prose-neutral max-w-none mb-10">
-          <p className="text-lg text-muted-foreground leading-relaxed">
+        {/* Intro paragraph with drop cap */}
+        <section className="mb-12 max-w-[720px]">
+          <p className="mod-intro text-[17px] leading-[1.78] text-muted-foreground">
             Hawaii is one of the world's great centers of holistic healing. The islands' multicultural heritage —
             Native Hawaiian traditions, Japanese, Chinese, Filipino, and Western influences — has produced a
             wellness ecosystem of extraordinary breadth and depth. Whether you're a visitor seeking a restorative
@@ -619,90 +861,114 @@ export default function WellnessModalities() {
 
         <TableOfContents />
 
-        {/* Categories */}
+        {/* ── Categories ────────────────────────────────────────────────── */}
         {CATEGORIES.map((cat, catIdx) => (
           <section
             key={cat.id}
             id={cat.id}
-            className="mb-16 scroll-mt-20"
+            className="mb-20 scroll-mt-20"
           >
-            <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl mb-3 flex items-center gap-3">
-              <span>{cat.icon}</span>
-              {cat.title}
-            </h2>
-            <p className="text-muted-foreground mb-8 leading-relaxed">{cat.intro}</p>
-
-            <div className="space-y-8">
-              {cat.modalities.map((mod) => (
-                <div
-                  key={mod.anchor}
-                  id={mod.anchor}
-                  className="scroll-mt-20 rounded-2xl border border-border bg-card p-6 sm:p-8"
+            {/* Section header — thick rule, chapter label, title */}
+            <div className="mb-8 border-t-2 border-foreground pt-6">
+              <div className="mb-1 flex items-center gap-3">
+                <span className="mod-chapter">{String(catIdx + 1).padStart(2, "0")}</span>
+                <span
+                  className="text-[18px]"
+                  role="img"
+                  aria-label={cat.title}
                 >
-                  <h3 className="font-display text-xl font-semibold text-foreground mb-3">
-                    {mod.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-                    {mod.description.replace(/\*\*(.*?)\*\*/g, "$1")}
-                  </p>
-                  <div className="mt-4">
-                    <Link
-                      to={`/directory?modality=${encodeURIComponent(mod.name)}`}
-                      className="text-xs font-medium text-primary hover:underline"
-                    >
-                      Find {mod.name} practitioners in Hawaiʻi →
-                    </Link>
-                  </div>
-                </div>
+                  {cat.icon}
+                </span>
+              </div>
+              <h2 className="mod-category-h text-foreground">{cat.title}</h2>
+            </div>
+
+            {/* Category intro — constrained reading width */}
+            <p className="mb-10 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
+              {cat.intro}
+            </p>
+
+            {/* Modality cards */}
+            <div className="space-y-5">
+              {cat.modalities.map((mod) => (
+                <ModalityCard key={mod.anchor} mod={mod} />
               ))}
             </div>
 
-            {/* Mid-guide CTA after category 4 */}
-            {catIdx === 3 && (
-              <GuideCTA
-                variant="mid"
-                headline="Looking for a specific modality?"
-                body="Search the Hawaiʻi Wellness Directory by modality, island, and session type to find your practitioner."
+            {/* Pull quote — inserted after select categories */}
+            {PULL_QUOTES[catIdx] && (
+              <PullQuote
+                text={PULL_QUOTES[catIdx].text}
+                attribution={PULL_QUOTES[catIdx].attribution}
               />
+            )}
+
+            {/* Mid-guide CTA after Eastern & Integrative Medicine */}
+            {catIdx === 3 && (
+              <div className="mt-12">
+                <GuideCTA
+                  variant="mid"
+                  headline="Looking for a specific modality?"
+                  body="Search the Hawaiʻi Wellness Directory by modality, island, and session type to find your practitioner."
+                />
+              </div>
             )}
           </section>
         ))}
 
-        {/* By Island */}
-        <section id="by-island" className="mb-16 scroll-mt-20">
-          <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl mb-3">
-            🗺️ Wellness by Island
-          </h2>
-          <p className="text-muted-foreground mb-8 leading-relaxed">
+        {/* ── By Island ─────────────────────────────────────────────────── */}
+        <section id="by-island" className="mb-20 scroll-mt-20">
+          <div className="mb-8 border-t-2 border-foreground pt-6">
+            <div className="mb-1 mod-chapter">{String(CATEGORIES.length + 1).padStart(2, "0")}</div>
+            <h2 className="mod-category-h text-foreground">Wellness by Island</h2>
+          </div>
+
+          <p className="mb-10 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
             Each Hawaiian island has its own distinct wellness character, shaped by its geography, communities,
             and cultural heritage. Here's what to know about each island's healing landscape.
           </p>
-          <div className="grid gap-6 sm:grid-cols-2">
+
+          {/* Editorial horizontal list — hairline-separated */}
+          <div className="border-t border-[hsl(35,18%,80%)]">
             {ISLAND_SECTIONS.map((island) => (
-              <div key={island.name} className="rounded-2xl border border-border bg-card p-6">
-                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                  {island.emoji} {island.name}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{island.description}</p>
-                <Link
-                  to={island.link}
-                  className="text-xs font-medium text-primary hover:underline"
-                >
-                  Browse {island.name} practitioners →
-                </Link>
+              <div
+                key={island.name}
+                className="grid sm:grid-cols-[180px_1fr] gap-6 sm:gap-10 py-9 border-b border-[hsl(35,18%,80%)]"
+              >
+                {/* Island identity */}
+                <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-2">
+                  <span className="text-2xl">{island.emoji}</span>
+                  <h3 className="mod-island-h text-foreground">{island.name}</h3>
+                </div>
+
+                {/* Description + link */}
+                <div>
+                  <p className="text-[16px] leading-[1.75] text-muted-foreground mb-4">
+                    {island.description}
+                  </p>
+                  <Link
+                    to={island.link}
+                    className="mod-chapter transition-opacity hover:opacity-60"
+                  >
+                    Browse {island.name} practitioners →
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
         </section>
 
-        {/* FAQ */}
+        {/* ── FAQ ───────────────────────────────────────────────────────── */}
         <section id="faq" className="mb-16 scroll-mt-20">
-          <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl mb-3">
-            ❓ Frequently Asked Questions
-          </h2>
-          <p className="text-muted-foreground mb-8 leading-relaxed">
+          <div className="mb-8 border-t-2 border-foreground pt-6">
+            <div className="mb-1 mod-chapter">{String(CATEGORIES.length + 2).padStart(2, "0")}</div>
+            <h2 className="mod-category-h text-foreground">Frequently Asked Questions</h2>
+          </div>
+
+          <p className="mb-10 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
             Common questions about wellness modalities and finding practitioners in Hawaiʻi.
           </p>
+
           <FaqAccordion />
         </section>
 
