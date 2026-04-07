@@ -1,0 +1,714 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { JsonLd } from "@/components/JsonLd";
+import { GuideCTA } from "@/components/GuideCTA";
+import { getGuideBySlug } from "@/lib/guides";
+
+const guide = getGuideBySlug("wellness-modalities-hawaii")!;
+const CANONICAL = `https://hawaiiwellness.net/guides/${guide.slug}`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Data
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface Modality {
+  name: string;
+  anchor: string;
+  description: string;
+}
+
+interface Category {
+  id: string;
+  title: string;
+  icon: string;
+  intro: string;
+  modalities: Modality[];
+}
+
+const CATEGORIES: Category[] = [
+  {
+    id: "bodywork",
+    title: "Bodywork & Manual Therapy",
+    icon: "🙌",
+    intro:
+      "Bodywork encompasses hands-on techniques that manipulate the soft tissues and structure of the body to relieve pain, improve circulation, and restore mobility. Hawaii's warm, healing culture makes it a natural home for these practices.",
+    modalities: [
+      {
+        name: "Massage Therapy",
+        anchor: "massage",
+        description:
+          "Massage therapy is the broadest category in Hawaiian wellness, encompassing dozens of distinct techniques. **Swedish massage** uses long gliding strokes to improve circulation and induce relaxation — the classic introductory massage. **Deep tissue massage** targets the deeper layers of muscle and connective tissue, applying sustained pressure to release chronic tension and knots. **Myofascial Release** works with the fascia — the connective tissue web surrounding every muscle and organ — using gentle sustained pressure to eliminate pain and restore motion. **Rolfing (Structural Integration)** is a more intensive form of fascia work developed by Ida Rolf, involving a systematic series of sessions that reorganize the body's alignment relative to gravity. **Manual Lymphatic Drainage (MLD)** uses feather-light circular strokes to stimulate the lymphatic system, reducing swelling, supporting immunity, and detoxifying tissues — especially valued post-surgery or for lymphedema. **Sports massage** combines techniques tailored to the physical demands of athletes, focusing on injury prevention, recovery, and performance. **Thai massage** is performed on a mat on the floor, with the practitioner using their hands, elbows, knees, and feet to move the recipient through assisted yoga-like stretches while applying acupressure along energy lines (sen). **Prenatal massage** adapts positioning and pressure for pregnant clients, addressing the unique discomforts of pregnancy such as lower back pain, hip tension, and swollen ankles. **Shiatsu** is a Japanese form of finger-pressure therapy applied along the body's meridian lines, similar in philosophy to acupuncture but without needles. **Reflexology** maps the hands, feet, and ears as microcosms of the entire body — applying targeted pressure to reflex points to support corresponding organs and systems.",
+      },
+      {
+        name: "Chiropractic",
+        anchor: "chiropractic",
+        description:
+          "Chiropractic care focuses on the diagnosis and treatment of musculoskeletal disorders, with particular emphasis on the spine. Practitioners use manual spinal manipulation (adjustments) to restore proper alignment, relieve nerve pressure, and improve overall nervous system function. Many Hawaii chiropractors integrate soft-tissue work, nutrition counseling, and lifestyle coaching into their practice. **Network Spinal Analysis (Network Chiropractic)** is a gentler, more energetic form that uses light touches at specific spinal gateways to help the nervous system release stored tension patterns.",
+      },
+      {
+        name: "Craniosacral Therapy",
+        anchor: "craniosacral",
+        description:
+          "Craniosacral Therapy (CST) is an extraordinarily gentle form of bodywork that works with the rhythmic movement of cerebrospinal fluid around the brain and spinal cord. Practitioners use a touch lighter than the weight of a nickel to release restrictions in the craniosacral system, relieving tension deep in the body and improving central nervous system function. CST is particularly effective for headaches, migraines, chronic neck and back pain, TMJ disorders, post-traumatic stress, and sensory processing challenges in children.",
+      },
+      {
+        name: "Physical Therapy",
+        anchor: "physical-therapy",
+        description:
+          "Physical therapists in Hawaii are licensed healthcare providers who diagnose and treat movement disorders resulting from injury, surgery, or chronic conditions. Beyond rehabilitation exercises, many PTs incorporate manual therapy, dry needling, ultrasound, and functional movement assessments. Hawaii's active outdoor lifestyle — surfing, hiking, paddling — means local PTs often specialize in sports rehab and performance optimization.",
+      },
+      {
+        name: "Osteopathic Medicine",
+        anchor: "osteopathic",
+        description:
+          "Osteopathic physicians (DOs) are fully licensed medical doctors who additionally train in Osteopathic Manipulative Treatment (OMT) — hands-on techniques to diagnose, treat, and prevent illness. OMT addresses the body as an integrated unit, recognizing that structure and function are interrelated. Techniques include muscle energy, counterstrain, high-velocity low-amplitude thrust, and myofascial release.",
+      },
+      {
+        name: "Watsu / Water Therapy",
+        anchor: "watsu",
+        description:
+          "Watsu (Water Shiatsu) combines elements of Zen Shiatsu with the weightlessness of warm water. The recipient floats in a heated pool while the practitioner gently cradles, stretches, and massages them, moving through flowing sequences that are impossible to replicate on land. The combination of buoyancy, warmth, and skilled touch creates profound physical release and emotional unwinding. Hawaii's natural relationship with water makes Watsu particularly resonant here.",
+      },
+    ],
+  },
+  {
+    id: "energy",
+    title: "Energy & Vibrational Healing",
+    icon: "✨",
+    intro:
+      "Energy healing traditions work with the subtle energy fields and bioelectric systems of the body. While many of these practices predate modern science, contemporary research in biofield science continues to investigate their mechanisms. Hawaii's volcanic land and ocean energy create a uniquely powerful setting for these practices.",
+    modalities: [
+      {
+        name: "Reiki",
+        anchor: "reiki",
+        description:
+          "Reiki is a Japanese energy healing technique developed by Mikao Usui in the early 20th century. The word translates roughly as 'universal life energy.' Practitioners channel healing energy through their hands, lightly placed on or just above the body, to support the body's natural healing processes. Reiki promotes deep relaxation, reduces stress and anxiety, and supports physical and emotional healing. Hawaii has a vibrant Reiki community with practitioners trained across all lineages — Usui, Tibetan, Karuna, Holy Fire, and more.",
+      },
+      {
+        name: "Sound Healing",
+        anchor: "sound-healing",
+        description:
+          "Sound healing uses the therapeutic properties of vibration and frequency to shift the body and mind into coherent, healing states. Tibetan singing bowls, crystal bowls, gongs, tuning forks, drums, and the human voice are common instruments. Sound baths — where participants lie in restorative poses while immersed in overlapping tonal frequencies — are especially popular in Hawaii. Research suggests sound healing reduces cortisol, slows brainwave activity into meditative states, and may support cellular healing through resonance.",
+      },
+      {
+        name: "Energy Healing",
+        anchor: "energy-healing",
+        description:
+          "Encompassing a broad range of modalities — Healing Touch, Therapeutic Touch, Pranic Healing, Quantum Healing, and more — energy healing works with the body's biofield (the electromagnetic and subtle energy field surrounding the physical body). Practitioners assess and clear disturbances in the field to support physical, emotional, and spiritual wellbeing. Many Hawaii practitioners blend energy healing with other intuitive and somatic approaches.",
+      },
+      {
+        name: "Family Constellation",
+        anchor: "family-constellation",
+        description:
+          "Developed by German psychotherapist Bert Hellinger, Family Constellations is a therapeutic approach that reveals and heals hidden dynamics passed down through family systems across generations. In group or individual sessions, representatives (or objects) are placed spatially to represent family members, and the unconscious entanglements and loyalties that may be causing suffering in the present are revealed and resolved. This work is increasingly recognized as an effective approach for trauma, relationship patterns, physical illness, and recurring life difficulties.",
+      },
+    ],
+  },
+  {
+    id: "mind-nervous-system",
+    title: "Mind, Nervous System & Psychotherapy",
+    icon: "🧠",
+    intro:
+      "The connection between mind and body is at the heart of modern integrative health. Hawaii's mental health and psychotherapy community has grown significantly, with many practitioners offering trauma-informed, somatic, and culturally sensitive care.",
+    modalities: [
+      {
+        name: "Psychotherapy & Counseling",
+        anchor: "psychotherapy",
+        description:
+          "Psychotherapy in Hawaii encompasses the full spectrum of evidence-based talk therapy approaches. **Cognitive Behavioral Therapy (CBT)** addresses the relationship between thoughts, feelings, and behaviors — one of the most extensively researched therapeutic modalities for anxiety, depression, OCD, and PTSD. **EMDR (Eye Movement Desensitization and Reprocessing)** uses bilateral stimulation (often eye movements) to process traumatic memories, dramatically reducing their emotional charge. Originally developed for PTSD, EMDR is now used for phobias, grief, performance anxiety, and more. **IFS (Internal Family Systems)** views the psyche as a community of 'parts' — each with protective roles — and works to unburden wounded parts through compassionate internal dialogue. **ACT (Acceptance and Commitment Therapy)** uses mindfulness and values-based action to develop psychological flexibility rather than eliminating difficult thoughts and feelings. **DBT (Dialectical Behavior Therapy)** combines CBT with mindfulness and was originally developed for borderline personality disorder; it's now widely used for emotional dysregulation, self-harm, and eating disorders. **Psychodynamic therapy** explores how unconscious processes and early relational experiences shape present patterns. **Gestalt therapy** emphasizes present-moment awareness and the therapeutic relationship itself as the field of healing. **AEDP (Accelerated Experiential Dynamic Psychotherapy)** focuses on transforming trauma through moment-to-moment tracking of emotional experience and healing states. **Narrative therapy** helps clients re-author their life stories, separating person from problem. **Couples and relationship therapy** supports partners in developing communication, repairing ruptures, and rebuilding intimacy. **Group therapy** harnesses the healing power of shared experience, offering both community and mirrored insight.",
+      },
+      {
+        name: "Somatic Therapy",
+        anchor: "somatic-therapy",
+        description:
+          "Somatic therapies recognize that trauma, stress, and emotion are stored in the body — not just the mind. Somatic Experiencing (developed by Peter Levine) tracks bodily sensations to discharge incomplete trauma responses stored in the nervous system. Sensorimotor Psychotherapy integrates body-centered techniques with attachment theory. Somatic therapy is particularly powerful for complex trauma, chronic pain, dissociation, and conditions where talk therapy alone hasn't reached the root.",
+      },
+      {
+        name: "Nervous System Regulation",
+        anchor: "nervous-system",
+        description:
+          "Nervous system regulation focuses on restoring the body's ability to move fluidly between states of activation and rest — healing the dysregulation caused by chronic stress and trauma. Practitioners draw on polyvagal theory, breathwork, somatic awareness, and gentle movement to help clients expand their 'window of tolerance' and build resilience. This work is increasingly central to trauma healing, burnout recovery, and chronic illness support.",
+      },
+      {
+        name: "Hypnotherapy",
+        anchor: "hypnotherapy",
+        description:
+          "Clinical hypnotherapy uses guided trance states to access the subconscious mind, where deeply held beliefs, patterns, and memories reside. In this receptive state, the hypnotherapist can help the client reframe limiting beliefs, reduce phobias, manage chronic pain, support behavioral change (smoking cessation, weight loss), and process trauma. Modern hypnotherapy is far from stage performance — it is a respectful, collaborative, and evidence-informed practice.",
+      },
+      {
+        name: "Meditation",
+        anchor: "meditation",
+        description:
+          "Hawaii has a thriving meditation culture spanning Vipassana (insight), Zen, Tibetan Buddhist, TM (Transcendental Meditation), mindfulness-based stress reduction (MBSR), and non-dual inquiry traditions. Meditation teachers and studios across all islands offer drop-in sessions, workshops, and multi-day retreats. Research consistently demonstrates meditation's benefits for anxiety, depression, chronic pain, immune function, and cognitive performance.",
+      },
+      {
+        name: "Breathwork",
+        anchor: "breathwork",
+        description:
+          "Breathwork encompasses a wide range of conscious breathing practices used for healing, spiritual experience, and performance. Holotropic Breathwork (developed by Stanislav Grof) uses accelerated breathing and evocative music to access non-ordinary states of consciousness for healing. Transformational Breath uses a connected, diaphragmatic breath pattern to release suppressed emotions and open energetic flow. The Wim Hof Method combines specific breathing patterns with cold exposure for stress resilience and immune support. Pranayama — yogic breathing — encompasses dozens of techniques from the calming (Nadi Shodhana) to the activating (Kapalabhati).",
+      },
+    ],
+  },
+  {
+    id: "eastern",
+    title: "Eastern & Integrative Medicine",
+    icon: "🌿",
+    intro:
+      "Hawaii's multicultural heritage — shaped by waves of Japanese, Chinese, Filipino, Korean, and other Asian immigrant communities — has created a uniquely fertile ground for Eastern healing traditions to take root and flourish.",
+    modalities: [
+      {
+        name: "Acupuncture",
+        anchor: "acupuncture",
+        description:
+          "Acupuncture is one of the cornerstones of Traditional Chinese Medicine (TCM), with a clinical history spanning over 2,500 years. Hair-thin needles are inserted at specific points along the body's meridian channels to regulate the flow of qi (vital energy), restore balance, and trigger the body's natural healing responses. Research supports its effectiveness for chronic pain, headaches, nausea, infertility, anxiety, insomnia, and digestive disorders. Hawaii has a robust community of licensed acupuncturists, many also trained in TCM herbal medicine.",
+      },
+      {
+        name: "Traditional Chinese Medicine (TCM)",
+        anchor: "tcm",
+        description:
+          "TCM is a complete medical system encompassing acupuncture, herbal medicine, dietary therapy, Tui Na massage, cupping, moxibustion, and Qi Gong. TCM views health as a dynamic balance of opposing forces (yin/yang) and the smooth flow of qi through meridian channels. Practitioners diagnose through pulse taking, tongue observation, and detailed intake. TCM excels in treating chronic and complex conditions that conventional medicine struggles with.",
+      },
+      {
+        name: "Ayurveda",
+        anchor: "ayurveda",
+        description:
+          "Ayurveda — 'the science of life' — is India's 5,000-year-old holistic medical system. It categorizes individuals into constitutional types (doshas: Vata, Pitta, Kapha) and tailors recommendations for diet, lifestyle, herbs, yoga, and therapeutic treatments (Panchakarma detox, Abhyanga oil massage, Shirodhara) accordingly. Hawaii's tropical climate shares many qualities with the Ayurvedic concept of Kapha — making Ayurvedic practices particularly useful for managing heat, humidity, and the local seasonal rhythms.",
+      },
+      {
+        name: "Naturopathic Medicine",
+        anchor: "naturopathic",
+        description:
+          "Naturopathic doctors (NDs) are trained in a four-year graduate medical program and combine conventional diagnostics with natural therapeutics — clinical nutrition, botanical medicine, homeopathy, physical medicine, and lifestyle counseling. The guiding principles include treating the root cause, supporting the body's inherent healing capacity (vis medicatrix naturae), and first doing no harm. NDs in Hawaii often serve as primary care providers for patients seeking an integrative approach.",
+      },
+      {
+        name: "Functional Medicine",
+        anchor: "functional-medicine",
+        description:
+          "Functional medicine is a systems-biology-based approach that identifies and addresses the root causes of chronic disease rather than managing symptoms. Practitioners conduct comprehensive lab testing, detailed health histories, and genomic analysis to understand the unique biochemistry of each patient. Conditions like autoimmune disease, hormonal imbalances, chronic fatigue, gut dysfunction, and metabolic disorders are common focuses.",
+      },
+      {
+        name: "Herbalism",
+        anchor: "herbalism",
+        description:
+          "Hawaii's extraordinarily biodiverse flora includes both indigenous medicinal plants and species brought by Pacific Islander, Asian, and Western settler communities. Clinical herbalists create individualized protocols using whole plant preparations — teas, tinctures, capsules, and topicals. Hawaiian herbalism naturally intersects with Lāʻau Lapaʻau (Native Hawaiian plant medicine), and many practitioners integrate both traditions.",
+      },
+    ],
+  },
+  {
+    id: "movement",
+    title: "Movement & Embodiment",
+    icon: "🧘",
+    intro:
+      "Movement is medicine. Hawaii's outdoor culture, with year-round warm weather and stunning natural settings, creates ideal conditions for embodied movement practices that heal from the inside out.",
+    modalities: [
+      {
+        name: "Yoga",
+        anchor: "yoga",
+        description:
+          "Yoga is perhaps the most widely practiced wellness modality in Hawaii, offered across all islands in beach, studio, and retreat settings. The tradition encompasses vastly different styles: **Hatha** (foundational postures and breath), **Vinyasa** (breath-synchronized flow), **Iyengar** (precise alignment with props), **Kundalini** (energy activation through movement, breath, and mantra), **Restorative** (deeply supported poses for nervous system healing), **Yin** (long-held floor poses targeting connective tissue), and **Yoga Nidra** (guided conscious sleep for deep restoration). Many Hawaii yoga teachers weave Hawaiian spirituality, ecological awareness, or trauma sensitivity into their teaching.",
+      },
+      {
+        name: "Fitness & Movement Coaching",
+        anchor: "fitness",
+        description:
+          "Hawaii's active lifestyle culture has spawned a rich wellness fitness ecosystem. Movement coaches, personal trainers, and functional fitness instructors work in studios, gyms, outdoor parks, and clients' homes. Specializations include surf conditioning, paddling performance, hiking preparation, post-rehab training, and longevity-focused movement. Many practitioners in this category hold additional certifications in corrective exercise, Pilates, or strength and conditioning.",
+      },
+    ],
+  },
+  {
+    id: "hawaiian-nature",
+    title: "Hawaiian & Nature-Based Healing",
+    icon: "🌺",
+    intro:
+      "Hawaiian healing traditions are among the most sophisticated indigenous medical systems in the world — developed over centuries of careful observation of nature, the human body, and the cosmos. These practices deserve deep respect and cultural sensitivity from practitioners and seekers alike.",
+    modalities: [
+      {
+        name: "Lomilomi / Hawaiian Healing",
+        anchor: "lomilomi",
+        description:
+          "Lomilomi is the traditional massage and bodywork system of Native Hawaiians, literally meaning 'to knead, to rub, or to soothe.' Far more than massage, Lomilomi is rooted in the Hawaiian philosophical system of aloha — love, harmony, and breath — and is inseparable from prayer, intention, and spiritual connection. The flowing, rhythmic strokes often use the forearms and elbows to create waves of movement through the body. Different family lineages hold distinct lomilomi traditions, some of which are still considered sacred and taught only within appropriate cultural contexts. Travelers seeking authentic lomilomi should look for Native Hawaiian practitioners or those who have trained with recognized kumu (teachers).",
+      },
+      {
+        name: "Lāʻau Lapaʻau (Hawaiian Plant Medicine)",
+        anchor: "laau-lapapau",
+        description:
+          "Lāʻau Lapaʻau is the Hawaiian tradition of using medicinal plants for healing. Native Hawaiian healers (kahuna lāʻau lapaʻau) had an encyclopedic knowledge of hundreds of indigenous plants and their therapeutic applications. Many traditional remedies have since been validated by modern phytochemistry. Today, a small number of dedicated practitioners — most with Native Hawaiian lineage — continue to practice this sacred art. Plants such as ʻōlena (turmeric), noni, kava, mamaki, and kukui are central to the pharmacopoeia.",
+      },
+      {
+        name: "Hoʻoponopono",
+        anchor: "hooponopono",
+        description:
+          "Hoʻoponopono is a Native Hawaiian practice of reconciliation, forgiveness, and healing relationships. Traditionally facilitated by a kahuna (healing priest) within a family group, modern adaptations include individual therapeutic practice using the four-phrase protocol: 'I love you. I'm sorry. Please forgive me. Thank you.' Whether used in group settings, individual therapy, or as a personal daily practice, Hoʻoponopono addresses the energetic and relational roots of illness, conflict, and suffering.",
+      },
+      {
+        name: "Nature Therapy",
+        anchor: "nature-therapy",
+        description:
+          "Hawaii is one of the world's great natural healing environments — ancient rainforests, volcanic landscapes, coral reefs, and open ocean all within a short drive. Nature therapy modalities include forest bathing (Shinrin-yoku), ocean therapy, eco-therapy, and guided nature immersion experiences. Research consistently shows that time in natural environments reduces cortisol, lowers blood pressure, boosts NK cell activity, and restores directed-attention capacity. Hawaii practitioners guide clients into mindful connection with the natural world as a core healing modality.",
+      },
+      {
+        name: "Art Therapy",
+        anchor: "art-therapy",
+        description:
+          "Art therapy uses the creative process of making art — drawing, painting, sculpture, collage, and mixed media — as a therapeutic tool. The creative process itself is healing: it bypasses the verbal defenses of the conscious mind, externalizes inner experience, and allows for the processing of emotions that are difficult to express in words. Art therapists in Hawaii often integrate local natural materials, Hawaiian symbols, and cultural imagery into their therapeutic work.",
+      },
+    ],
+  },
+  {
+    id: "nutrition-longevity",
+    title: "Nutrition & Longevity",
+    icon: "🥥",
+    intro:
+      "Food as medicine has deep roots in both Hawaiian tradition and modern functional health science. Hawaii's agricultural richness — tropical fruits, local vegetables, fresh fish, and traditional staple crops — provides an extraordinary foundation for nutritional healing.",
+    modalities: [
+      {
+        name: "Nutrition Counseling",
+        anchor: "nutrition",
+        description:
+          "Registered Dietitians (RDs) and Certified Nutrition Specialists (CNS) in Hawaii offer evidence-based nutritional counseling for a wide range of conditions — metabolic syndrome, gut health, hormonal imbalances, eating disorders, and athletic performance. Many practitioners integrate functional nutrition testing (microbiome analysis, food sensitivity panels, nutrient status) with dietary counseling. Hawaii's traditional diet — centered on poi, fish, sweet potato, and taro — is increasingly recognized as a highly nutritious, anti-inflammatory template.",
+      },
+      {
+        name: "Longevity & Preventive Medicine",
+        anchor: "longevity",
+        description:
+          "Longevity medicine focuses on extending healthspan — the number of years lived in good health — rather than simply lifespan. Hawaii already has one of the longest life expectancies in the United States, often attributed to its multicultural diet, strong social connections, and outdoor lifestyle. Longevity practitioners offer comprehensive health optimization: advanced biomarker testing, HRV assessment, sleep optimization, hormone balancing, peptide protocols, and evidence-based supplementation strategies.",
+      },
+    ],
+  },
+  {
+    id: "life-soul",
+    title: "Life Guidance & Soul Work",
+    icon: "🌙",
+    intro:
+      "Hawaii has long been a gathering place for seekers, visionaries, and those called to deeper purpose. This cluster of practices addresses the existential, spiritual, and soul dimensions of human experience.",
+    modalities: [
+      {
+        name: "Life Coaching",
+        anchor: "life-coaching",
+        description:
+          "Life coaches partner with clients to clarify their vision, identify obstacles, build accountability, and design a path toward their goals. Unlike therapy, coaching is generally present- and future-focused rather than working with the past. Hawaii's coaching community is diverse — spanning executive coaches, wellness coaches, spiritual life coaches, relationship coaches, and purpose coaches. Many Hawaii coaches integrate Hawaiian values such as mālama (care/stewardship) and pono (righteousness/alignment) into their methodology.",
+      },
+      {
+        name: "Soul Guidance & Intuitive Healing",
+        anchor: "soul-guidance",
+        description:
+          "Soul guidance encompasses readings, energy assessments, akashic record work, channeling, and intuitive coaching that address the soul's journey, purpose, and growth. Practitioners in this category work at the intersection of spirituality, psychology, and energy awareness. Hawaii's sacred land and strong spiritual traditions attract many gifted intuitives and soul workers from around the world.",
+      },
+      {
+        name: "Astrology",
+        anchor: "astrology",
+        description:
+          "Astrology is one of humanity's oldest symbolic systems — a map of cosmic cycles and their correspondence to individual and collective human experience. Astrologers in Hawaii offer natal chart readings, transit and progression forecasts, synastry (relationship compatibility), and evolutionary astrology that explores the soul's deeper themes and growth edges. Modern astrologers increasingly integrate psychological frameworks with traditional astrological symbolism.",
+      },
+      {
+        name: "Psychic & Intuitive Services",
+        anchor: "psychic",
+        description:
+          "Hawaii has a rich tradition of psychic and intuitive practitioners — tarot readers, mediums, oracle card practitioners, and clairvoyants. Whether approached as tools for self-reflection, spiritual guidance, or literal communication with other dimensions of reality, these practices have served human beings across every culture for millennia. Hawaii's open, spiritually-oriented culture creates a welcoming environment for these services.",
+      },
+    ],
+  },
+  {
+    id: "womens-health",
+    title: "Womenʻs Health & Birth Support",
+    icon: "🌸",
+    intro:
+      "Hawaii has a thriving community of practitioners specializing in womenʻs health across the full arc of the feminine lifecycle — from fertility and pregnancy through birth, postpartum, and menopause.",
+    modalities: [
+      {
+        name: "Womenʻs Health",
+        anchor: "womens-health",
+        description:
+          "Practitioners specializing in womenʻs health address the unique physiological, hormonal, and psychosocial dimensions of the feminine experience. This includes functional gynecology, hormonal balance, pelvic floor physical therapy, fertility support, endometriosis and PCOS care, perimenopause and menopause navigation, and sexual health. Many Hawaii practitioners bring both clinical expertise and a holistic, trauma-informed lens to this deeply personal work.",
+      },
+      {
+        name: "Birth Doula",
+        anchor: "birth-doula",
+        description:
+          "Birth doulas provide continuous non-medical support to birthing people before, during, and immediately after labor. Research consistently shows that doula support reduces cesarean rates, shortens labor duration, improves satisfaction with the birth experience, and reduces use of pain medication. Hawaii doulas often integrate Hawaiian birth traditions, water birth facilitation, and sacred space-holding into their practice.",
+      },
+      {
+        name: "Midwifery",
+        anchor: "midwifery",
+        description:
+          "Certified Nurse-Midwives (CNMs) and Licensed Midwives (LMs) in Hawaii provide comprehensive maternity care — from prenatal visits through birth and postpartum care. Home birth and birth center births attended by midwives are increasingly popular in Hawaii as an alternative to hospital birth. Hawaii's midwifery community has strong roots in both indigenous Hawaiian birth traditions and evidence-based midwifery practice.",
+      },
+    ],
+  },
+];
+
+const ISLAND_SECTIONS = [
+  {
+    name: "Oʻahu",
+    emoji: "🌆",
+    description:
+      "As Hawaii's most populous island and home to Honolulu, Oʻahu has the most extensive wellness ecosystem — from large wellness centers in Kailua to boutique studios in Mānoa. The North Shore offers a surf-culture wellness scene, while Honolulu's urban core has sophisticated integrative medicine clinics.",
+    link: "/oahu",
+  },
+  {
+    name: "Maui",
+    emoji: "🌅",
+    description:
+      "Maui's wellness scene is centered in Paia, Makawao (the 'wellness town' of Upcountry), and Kihei. The island attracts an unusually high concentration of gifted healers across every tradition — from Hawaiian healing lineages to cutting-edge functional medicine and consciousness-expanding retreats in Hāna.",
+    link: "/maui",
+  },
+  {
+    name: "Big Island",
+    emoji: "🌋",
+    description:
+      "The Big Island's volcanic energy and diverse microclimates — from the rainforests of Puna to the dry slopes of Kona — create distinct healing communities across the island. Kailua-Kona has a robust integrative medicine scene; Pahoa and Hilo attract practitioners drawn to the island's powerful, transformative earth energy.",
+    link: "/big-island",
+  },
+  {
+    name: "Kauaʻi",
+    emoji: "🌿",
+    description:
+      "Kauaʻi's remote beauty and strong aloha ʻāina (love of the land) culture attract deeply rooted practitioners. The North Shore (Hanalei) and Kīlauea have concentrations of yoga teachers, energy healers, and nature-based practitioners. Kauaʻi's small size and tight-knit community mean word-of-mouth recommendations are especially reliable.",
+    link: "/kauai",
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    q: "What wellness modalities are most popular in Hawaii?",
+    a: "Massage therapy (especially Lomilomi), yoga, acupuncture, and energy healing (particularly Reiki and sound healing) are among the most widely practiced modalities across Hawaii. Native Hawaiian healing traditions — Lomilomi, Lāʻau Lapaʻau, and Hoʻoponopono — are unique to the islands.",
+  },
+  {
+    q: "How do I find a qualified wellness practitioner in Hawaii?",
+    a: "The Hawaiʻi Wellness Directory lists vetted practitioners across all four main islands, filterable by modality, island, city, and session type. For licensed modalities (acupuncture, chiropractic, physical therapy, naturopathic medicine), verify credentials through the Hawaii Professional and Vocational Licensing Division (PVL).",
+  },
+  {
+    q: "Are there Hawaii-specific healing traditions I should know about?",
+    a: "Yes. Lomilomi (Hawaiian massage), Lāʻau Lapaʻau (Hawaiian plant medicine), and Hoʻoponopono (forgiveness and reconciliation practice) are indigenous Hawaiian healing systems. These traditions deserve cultural respect — seek out Native Hawaiian practitioners or those who have trained in appropriate cultural lineages.",
+  },
+  {
+    q: "What is the difference between a wellness practitioner and a licensed healthcare provider?",
+    a: "Licensed healthcare providers (MDs, DOs, NDs, chiropractors, acupuncturists, PTs, psychologists, LCSWs) have completed accredited degree programs and passed licensing exams regulated by state boards. Wellness practitioners (life coaches, Reiki practitioners, yoga teachers) may hold certifications but are not licensed healthcare providers. Both have value — understanding the distinction helps you choose the right type of support.",
+  },
+  {
+    q: "Can I find online wellness sessions with Hawaii practitioners?",
+    a: "Yes. Many Hawaii practitioners offer virtual sessions — particularly for modalities like life coaching, psychotherapy, nutritional counseling, astrology, and some energy healing practices. Use the 'Online' session type filter in the Hawaiʻi Wellness Directory to find virtual-friendly practitioners.",
+  },
+  {
+    q: "Which island has the most wellness practitioners?",
+    a: "Oʻahu has the largest number of practitioners due to its population size. However, Maui (particularly the Upcountry region and Paia) and the Big Island (Kona and Puna) have notably dense wellness communities relative to their populations, with high concentrations of specialized and indigenous healing practitioners.",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOC Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+function TableOfContents() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <nav className="mb-10 rounded-2xl border border-border bg-muted/40 p-5">
+      <button
+        className="flex w-full items-center justify-between text-left"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+      >
+        <span className="font-display text-base font-semibold text-foreground">
+          Table of Contents
+        </span>
+        {open ? (
+          <ChevronUp className="h-4 w-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+      {open && (
+        <ol className="mt-4 space-y-1 text-sm">
+          {CATEGORIES.map((cat, i) => (
+            <li key={cat.id}>
+              <a
+                href={`#${cat.id}`}
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
+                {i + 1}. {cat.title}
+              </a>
+            </li>
+          ))}
+          <li>
+            <a
+              href="#by-island"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              {CATEGORIES.length + 1}. Wellness by Island
+            </a>
+          </li>
+          <li>
+            <a
+              href="#faq"
+              className="text-muted-foreground hover:text-primary transition-colors"
+            >
+              {CATEGORIES.length + 2}. FAQ
+            </a>
+          </li>
+        </ol>
+      )}
+    </nav>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FAQ Accordion
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FaqAccordion() {
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
+
+  return (
+    <div className="divide-y divide-border rounded-2xl border border-border overflow-hidden">
+      {FAQ_ITEMS.map((item, i) => (
+        <div key={i}>
+          <button
+            className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left hover:bg-muted/30 transition-colors"
+            onClick={() => setOpenIdx(openIdx === i ? null : i)}
+            aria-expanded={openIdx === i}
+          >
+            <span className="font-medium text-foreground">{item.q}</span>
+            {openIdx === i ? (
+              <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+            )}
+          </button>
+          {openIdx === i && (
+            <div className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+              {item.a}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// JSON-LD schemas
+// ─────────────────────────────────────────────────────────────────────────────
+
+const articleSchema = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: guide.seoTitle,
+  description: guide.description,
+  url: CANONICAL,
+  datePublished: guide.publishedAt,
+  dateModified: guide.updatedAt,
+  image: `https://hawaiiwellness.net${guide.ogImage}`,
+  author: {
+    "@type": "Organization",
+    name: "Hawaiʻi Wellness",
+    url: "https://hawaiiwellness.net",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "Hawaiʻi Wellness",
+    url: "https://hawaiiwellness.net",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://hawaiiwellness.net/hawaii-wellness-logo.png",
+    },
+  },
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQ_ITEMS.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: item.a,
+    },
+  })),
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://hawaiiwellness.net" },
+    { "@type": "ListItem", position: 2, name: "Guides", item: "https://hawaiiwellness.net/guides" },
+    { "@type": "ListItem", position: 3, name: "Wellness Modalities in Hawaiʻi", item: CANONICAL },
+  ],
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function WellnessModalities() {
+  usePageMeta(
+    guide.seoTitle,
+    guide.description,
+    `https://hawaiiwellness.net${guide.ogImage}`,
+    "article"
+  );
+
+  return (
+    <>
+      <JsonLd id="guide-article" data={articleSchema} />
+      <JsonLd id="guide-faq" data={faqSchema} />
+      <JsonLd id="guide-breadcrumb" data={breadcrumbSchema} />
+
+      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      <div className="relative h-[480px] sm:h-[560px] overflow-hidden">
+        <img
+          src={guide.coverImage}
+          alt={guide.coverAlt}
+          className="absolute inset-0 h-full w-full object-cover object-center"
+          fetchPriority="high"
+        />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+
+        {/* Hero content */}
+        <div className="relative flex h-full flex-col justify-end px-6 pb-10 sm:px-12 sm:pb-14 max-w-5xl mx-auto">
+          {/* Breadcrumbs */}
+          <nav className="mb-4 flex items-center gap-2 text-xs text-white/70">
+            <Link to="/" className="hover:text-white transition-colors">Home</Link>
+            <span>/</span>
+            <Link to="/guides" className="hover:text-white transition-colors">Guides</Link>
+            <span>/</span>
+            <span className="text-white/90">Wellness Modalities</span>
+          </nav>
+
+          {/* Badge */}
+          <span className="mb-3 inline-flex w-fit items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
+            Complete Guide · 2026
+          </span>
+
+          <h1 className="font-display text-3xl font-bold text-white sm:text-4xl md:text-5xl leading-tight">
+            The Complete Guide to Wellness Modalities in Hawaiʻi
+          </h1>
+          <p className="mt-3 max-w-2xl text-white/80 text-sm sm:text-base">
+            Your definitive resource for holistic healing across the Hawaiian Islands — 44 modalities, 9 categories, island-by-island guidance.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3 text-xs text-white/70">
+            <span>44 Modalities</span>
+            <span>·</span>
+            <span>4 Islands</span>
+            <span>·</span>
+            <span>{guide.readMinutes} min read</span>
+            <span>·</span>
+            <span>Updated {new Date(guide.updatedAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Body ──────────────────────────────────────────────────────────── */}
+      <main className="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+
+        {/* Intro */}
+        <section className="prose prose-neutral max-w-none mb-10">
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Hawaii is one of the world's great centers of holistic healing. The islands' multicultural heritage —
+            Native Hawaiian traditions, Japanese, Chinese, Filipino, and Western influences — has produced a
+            wellness ecosystem of extraordinary breadth and depth. Whether you're a visitor seeking a restorative
+            experience or a resident managing a chronic health challenge, this guide will help you navigate the
+            full landscape of healing modalities available across Oʻahu, Maui, the Big Island, and Kauaʻi.
+          </p>
+        </section>
+
+        <TableOfContents />
+
+        {/* Categories */}
+        {CATEGORIES.map((cat, catIdx) => (
+          <section
+            key={cat.id}
+            id={cat.id}
+            className="mb-16 scroll-mt-20"
+          >
+            <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl mb-3 flex items-center gap-3">
+              <span>{cat.icon}</span>
+              {cat.title}
+            </h2>
+            <p className="text-muted-foreground mb-8 leading-relaxed">{cat.intro}</p>
+
+            <div className="space-y-8">
+              {cat.modalities.map((mod) => (
+                <div
+                  key={mod.anchor}
+                  id={mod.anchor}
+                  className="scroll-mt-20 rounded-2xl border border-border bg-card p-6 sm:p-8"
+                >
+                  <h3 className="font-display text-xl font-semibold text-foreground mb-3">
+                    {mod.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
+                    {mod.description.replace(/\*\*(.*?)\*\*/g, "$1")}
+                  </p>
+                  <div className="mt-4">
+                    <Link
+                      to={`/directory?modality=${encodeURIComponent(mod.name)}`}
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Find {mod.name} practitioners in Hawaiʻi →
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Mid-guide CTA after category 4 */}
+            {catIdx === 3 && (
+              <GuideCTA
+                variant="mid"
+                headline="Looking for a specific modality?"
+                body="Search the Hawaiʻi Wellness Directory by modality, island, and session type to find your practitioner."
+              />
+            )}
+          </section>
+        ))}
+
+        {/* By Island */}
+        <section id="by-island" className="mb-16 scroll-mt-20">
+          <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl mb-3">
+            🗺️ Wellness by Island
+          </h2>
+          <p className="text-muted-foreground mb-8 leading-relaxed">
+            Each Hawaiian island has its own distinct wellness character, shaped by its geography, communities,
+            and cultural heritage. Here's what to know about each island's healing landscape.
+          </p>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {ISLAND_SECTIONS.map((island) => (
+              <div key={island.name} className="rounded-2xl border border-border bg-card p-6">
+                <h3 className="font-display text-lg font-semibold text-foreground mb-2">
+                  {island.emoji} {island.name}
+                </h3>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">{island.description}</p>
+                <Link
+                  to={island.link}
+                  className="text-xs font-medium text-primary hover:underline"
+                >
+                  Browse {island.name} practitioners →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section id="faq" className="mb-16 scroll-mt-20">
+          <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl mb-3">
+            ❓ Frequently Asked Questions
+          </h2>
+          <p className="text-muted-foreground mb-8 leading-relaxed">
+            Common questions about wellness modalities and finding practitioners in Hawaiʻi.
+          </p>
+          <FaqAccordion />
+        </section>
+
+        {/* End CTA */}
+        <GuideCTA variant="end" />
+      </main>
+    </>
+  );
+}

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useCallback, Suspense, lazy, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ import type { Provider, Center } from "@/data/mockData";
 import { haversineDistance } from "@/lib/geoUtils";
 import { Map, Search, SlidersHorizontal, X, Frown, Navigation, User, Building2 } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { getModalityGuideUrl } from "@/lib/guides";
 
 type ListingType = "all" | "practitioner" | "center";
 
@@ -977,6 +978,20 @@ const Directory = () => {
             <p className="mb-2 rounded bg-blue-50 px-3 py-2 text-xs text-blue-700">
               {crossIslandNote}
             </p>
+          )}
+
+          {/* Guide contextual banner — shown when a modality filter is active and we have a guide entry */}
+          {modality && getModalityGuideUrl(modality) && (
+            <Link
+              to={getModalityGuideUrl(modality)!}
+              className="mb-3 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-xs hover:bg-primary/10 transition-colors"
+            >
+              <span className="text-foreground">
+                <span className="font-medium">New:</span> Read our complete guide to{" "}
+                <span className="font-medium text-primary">{modality}</span> in Hawaiʻi
+              </span>
+              <span className="shrink-0 text-primary font-medium">Read guide →</span>
+            </Link>
           )}
 
           <div className="mb-4 flex items-center justify-between gap-2">

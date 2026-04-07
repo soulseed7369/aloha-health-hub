@@ -422,6 +422,15 @@ export function IslandHome({ config }: IslandHomeProps) {
               </Link>
             ))}
           </div>
+          <p className="mt-5 text-sm text-muted-foreground">
+            Not sure which modality is right for you?{" "}
+            <Link
+              to="/guides/wellness-modalities-hawaii"
+              className="font-medium text-primary hover:underline"
+            >
+              Read the Complete Guide to Wellness Modalities in Hawaiʻi →
+            </Link>
+          </p>
         </div>
       </section>
 
