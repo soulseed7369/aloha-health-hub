@@ -34,7 +34,7 @@ const CATEGORIES: Category[] = [
     id: "bodywork",
     title: "Bodywork & Manual Therapy",
     intro:
-      "Bodywork encompasses hands-on techniques that manipulate the soft tissues and structure of the body to relieve pain, improve circulation, and restore mobility. Hawaii's warm, healing culture makes it a natural home for these practices.",
+      "Bodywork encompasses hands-on techniques that manipulate the soft tissues and structure of the body to relieve pain, improve circulation, and restore mobility. The field ranges from clinical, research-backed rehabilitation to deeply restorative practices designed purely to unwind the nervous system — and many Hawaiʻi practitioners train across several traditions, blending Western anatomy with lineage-based hands-on work. With the islands' deep Lomilomi heritage and a culture that reveres therapeutic touch, Hawaiʻi is one of the richest places in the world to receive bodywork of any kind.",
     modalities: [
       {
         name: "Massage Therapy",
@@ -78,7 +78,7 @@ const CATEGORIES: Category[] = [
     id: "energy",
     title: "Energy & Vibrational Healing",
     intro:
-      "Energy healing traditions work with the subtle energy fields and bioelectric systems of the body. While many of these practices predate modern science, contemporary research in biofield science continues to investigate their mechanisms. Hawaii's volcanic land and ocean energy create a uniquely powerful setting for these practices.",
+      "Energy healing traditions work with the subtle energy fields and bioelectric systems of the body — what different cultures have called qi, prana, mana, or simply life force. While many of these practices predate modern science, contemporary research in biofield science, HRV measurement, and PEMF therapy continues to investigate their mechanisms, and clinical studies on modalities like Reiki and Healing Touch show measurable effects on pain, anxiety, and recovery. Quality varies widely in this category, so lineage, training hours, and client reviews matter more here than in most fields — Hawaiʻi's volcanic land and ocean energy draw both deeply trained practitioners and casual hobbyists, and knowing the difference is essential.",
     modalities: [
       {
         name: "Reiki",
@@ -110,7 +110,7 @@ const CATEGORIES: Category[] = [
     id: "mind-nervous-system",
     title: "Mind, Nervous System & Psychotherapy",
     intro:
-      "The connection between mind and body is at the heart of modern integrative health. Hawaii's mental health and psychotherapy community has grown significantly, with many practitioners offering trauma-informed, somatic, and culturally sensitive care.",
+      "The old separation between mind and body has collapsed. Decades of neuroscience, polyvagal theory, and trauma research have confirmed what contemplative traditions long intuited — that thoughts, emotions, and physiology are continuously shaping one another, and that lasting healing often requires working with all three at once. Hawaiʻi's mental health and psychotherapy community has grown significantly in response, with many practitioners now offering trauma-informed, somatic, and culturally sensitive care that goes far beyond talk therapy alone.",
     modalities: [
       {
         name: "Psychotherapy & Counseling",
@@ -154,7 +154,7 @@ const CATEGORIES: Category[] = [
     id: "eastern",
     title: "Eastern & Integrative Medicine",
     intro:
-      "Hawaii's multicultural heritage — shaped by waves of Japanese, Chinese, Filipino, Korean, and other Asian immigrant communities — has created a uniquely fertile ground for Eastern healing traditions to take root and flourish.",
+      "Hawaiʻi's multicultural heritage — shaped by waves of Japanese, Chinese, Filipino, Korean, and other Asian immigrant communities — has created a uniquely fertile ground for Eastern healing traditions to take root and flourish. Unlike on the mainland, where these practices are often treated as alternative add-ons, in Hawaiʻi they are deeply woven into daily life and mainstream healthcare: acupuncturists practice alongside MDs, herbal pharmacies operate in strip malls, and Ayurvedic and TCM clinicians train patients for years at a time. These are not symptom-chasing modalities but complete medical systems, each offering a different lens on how the body, mind, and environment shape health.",
     modalities: [
       {
         name: "Acupuncture",
@@ -198,7 +198,7 @@ const CATEGORIES: Category[] = [
     id: "movement",
     title: "Movement & Embodiment",
     intro:
-      "Movement is medicine. Hawaii's outdoor culture, with year-round warm weather and stunning natural settings, creates ideal conditions for embodied movement practices that heal from the inside out.",
+      "Movement is medicine — and one of the most underprescribed forms of it. Modern research consistently ranks regular movement among the single most powerful interventions for mental health, metabolic function, cognitive longevity, chronic pain, and nervous system regulation, often outperforming pharmaceuticals for conditions like mild depression and low back pain. Hawaiʻi's outdoor culture, with year-round warm weather, stunning natural settings, and a deep tradition of ocean- and land-based practice, creates ideal conditions for embodied movement — from gentle therapeutic work to high-performance training — that heals from the inside out.",
     modalities: [
       {
         name: "Yoga",
@@ -218,7 +218,7 @@ const CATEGORIES: Category[] = [
     id: "hawaiian-nature",
     title: "Hawaiian & Nature-Based Healing",
     intro:
-      "Hawaiian healing traditions are among the most sophisticated indigenous medical systems in the world — developed over centuries of careful observation of nature, the human body, and the cosmos. These practices deserve deep respect and cultural sensitivity from practitioners and seekers alike.",
+      "Hawaiian healing traditions are among the most sophisticated indigenous medical systems in the world — developed over centuries of careful observation of nature, the human body, and the cosmos, and transmitted through lineages of kāhuna (expert practitioners) whose training could span decades. At their heart is a worldview in which physical, emotional, spiritual, and environmental health are inseparable, and in which the land (ʻāina), the ancestors, and the person being healed are all active participants in the work. These practices deserve deep respect and cultural sensitivity from practitioners and seekers alike — and when approached with humility, they offer something no imported modality can replicate: healing rooted in the very land you are standing on.",
     modalities: [
       {
         name: "Lomilomi / Hawaiian Healing",
@@ -256,7 +256,7 @@ const CATEGORIES: Category[] = [
     id: "nutrition-longevity",
     title: "Nutrition & Longevity",
     intro:
-      "Food as medicine has deep roots in both Hawaiian tradition and modern functional health science. Hawaii's agricultural richness — tropical fruits, local vegetables, fresh fish, and traditional staple crops — provides an extraordinary foundation for nutritional healing.",
+      "Food as medicine has deep roots in both Hawaiian tradition and modern functional health science. What you eat shapes every system in the body — hormones, mood, inflammation, gut microbiome, mitochondrial function, cognitive performance, and the pace at which you age — and the most up-to-date longevity research increasingly points to diet and lifestyle as the largest modifiable levers for healthspan. Hawaiʻi's agricultural richness — tropical fruits, local vegetables, reef-caught fish, and traditional staple crops like kalo (taro) and ʻulu (breadfruit) — provides an extraordinary foundation for nutritional healing, and a growing community of practitioners is helping residents and visitors alike translate that abundance into personalized protocols.",
     modalities: [
       {
         name: "Nutrition Counseling",
@@ -276,7 +276,7 @@ const CATEGORIES: Category[] = [
     id: "life-soul",
     title: "Life Guidance & Soul Work",
     intro:
-      "Hawaii has long been a gathering place for seekers, visionaries, and those called to deeper purpose. This cluster of practices addresses the existential, spiritual, and soul dimensions of human experience.",
+      "Hawaiʻi has long been a gathering place for seekers, visionaries, and those called to deeper purpose — people drawn by the islands' spiritual potency and sense of possibility. This cluster of practices addresses the existential, spiritual, and soul dimensions of human experience: the questions of meaning, calling, identity, grief, legacy, and transformation that sit beneath most presenting concerns. Whether rooted in coaching frameworks, contemplative traditions, or intuitive arts, these modalities share a common premise — that alignment with something larger than the self is not a luxury but a foundation for wellbeing.",
     modalities: [
       {
         name: "Life Coaching",
@@ -308,7 +308,7 @@ const CATEGORIES: Category[] = [
     id: "womens-health",
     title: "Womenʻs Health & Birth Support",
     intro:
-      "Hawaii has a thriving community of practitioners specializing in womenʻs health across the full arc of the feminine lifecycle — from fertility and pregnancy through birth, postpartum, and menopause.",
+      "Women's bodies have been historically under-researched in conventional medicine, leaving enormous gaps in how conditions like PCOS, endometriosis, perimenopause, and postpartum mental health are diagnosed and treated. Hawaiʻi has responded with a thriving community of practitioners specializing in womenʻs health across the full arc of the feminine lifecycle — from fertility and pregnancy through birth, postpartum, and menopause — many of whom blend functional medicine, traditional midwifery wisdom, trauma-informed care, and Hawaiian birth traditions. For women navigating any stage of this arc, Hawaiʻi is one of the most supportive places in the country to find care that treats you as a whole person, not a checklist of symptoms.",
     modalities: [
       {
         name: "Womenʻs Health",
@@ -1044,16 +1044,13 @@ export default function WellnessModalities() {
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
               fontWeight: 500,
-              fontSize: "clamp(28px, 4.5vw, 52px)",
-              lineHeight: 1.08,
-              letterSpacing: "-0.015em",
+              fontSize: "clamp(36px, 5.5vw, 64px)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.018em",
               color: "white",
             }}
           >
-            Wellness Modalities<br />
-            <em style={{ fontStyle: "italic", fontWeight: 400, color: "hsl(15, 70%, 72%)" }}>
-              in Hawaiʻi
-            </em>
+            Wellness Modalities<br />in Hawaiʻi
           </h1>
           <p className="mt-4 max-w-2xl text-white/75 text-[15px] sm:text-base leading-relaxed">
             Your definitive reference for holistic healing across the Hawaiian Islands — 44 modalities, 9 traditions, island-by-island guidance.

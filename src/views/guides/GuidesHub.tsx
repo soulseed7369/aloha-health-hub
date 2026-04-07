@@ -32,9 +32,9 @@ const editorialCss = `
   .hub-headline {
     font-family: 'Playfair Display', serif;
     font-weight: 500;
-    font-size: clamp(34px, 4.5vw, 54px);
-    line-height: 1.15;
-    letter-spacing: -0.012em;
+    font-size: clamp(22px, 2.8vw, 32px);
+    line-height: 1.35;
+    letter-spacing: -0.006em;
   }
   .hub-headline em { font-style: italic; color: hsl(15, 65%, 42%); font-weight: 500; }
 
@@ -45,7 +45,6 @@ const editorialCss = `
     line-height: 1.02;
     letter-spacing: -0.018em;
   }
-  .hub-feature-title em { font-style: italic; }
 
   .hub-deck {
     font-family: 'Playfair Display', serif;
@@ -140,7 +139,7 @@ export default function GuidesHub() {
           <em>Guides</em>
         </h1>
         <p className="hub-tagline mt-7 text-[15px] text-muted-foreground">
-          A field journal of holistic healing across the islands.
+          Your companion to holistic healing across the islands.
         </p>
       </header>
 
@@ -171,7 +170,7 @@ export default function GuidesHub() {
       <section className="px-6 pt-24 pb-12 text-center">
         <div className="mx-auto max-w-[760px]">
           <h2 className="hub-headline text-foreground">
-            From traditional Hawaiian healing to <em>modern somatic practice</em>, our guides are a living reference to what it means to care for the body, mind, and spirit in Hawaiʻi.
+            From traditional Hawaiian healing to modern somatic practice, our guides are a living reference to what it means to care for the body, mind, and spirit in Hawaiʻi.
           </h2>
         </div>
       </section>
@@ -202,7 +201,7 @@ export default function GuidesHub() {
                     The Complete Guide
                   </div>
                   <h3 className="hub-feature-title mt-5 text-foreground">
-                    Wellness Modalities <em>in Hawaiʻi</em>
+                    Wellness Modalities in Hawaiʻi
                   </h3>
                   <p className="hub-deck mt-6 text-muted-foreground">
                     Forty-four practices, nine traditions, and the Hawaiian wisdom that shapes them all.
