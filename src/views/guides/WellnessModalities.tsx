@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ChevronDown, ChevronUp,
+  Hand, Sparkles, Brain, Leaf, Activity, Sun, Apple, Moon, Heart,
+} from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
 import { GuideCTA } from "@/components/GuideCTA";
@@ -22,7 +25,6 @@ interface Modality {
 interface Category {
   id: string;
   title: string;
-  icon: string;
   intro: string;
   modalities: Modality[];
 }
@@ -31,7 +33,6 @@ const CATEGORIES: Category[] = [
   {
     id: "bodywork",
     title: "Bodywork & Manual Therapy",
-    icon: "🙌",
     intro:
       "Bodywork encompasses hands-on techniques that manipulate the soft tissues and structure of the body to relieve pain, improve circulation, and restore mobility. Hawaii's warm, healing culture makes it a natural home for these practices.",
     modalities: [
@@ -39,7 +40,7 @@ const CATEGORIES: Category[] = [
         name: "Massage Therapy",
         anchor: "massage",
         description:
-          "Massage therapy is the broadest category in Hawaiian wellness, encompassing dozens of distinct techniques. **Swedish massage** uses long gliding strokes to improve circulation and induce relaxation — the classic introductory massage. **Deep tissue massage** targets the deeper layers of muscle and connective tissue, applying sustained pressure to release chronic tension and knots. **Myofascial Release** works with the fascia — the connective tissue web surrounding every muscle and organ — using gentle sustained pressure to eliminate pain and restore motion. **Rolfing (Structural Integration)** is a more intensive form of fascia work developed by Ida Rolf, involving a systematic series of sessions that reorganize the body's alignment relative to gravity. **Manual Lymphatic Drainage (MLD)** uses feather-light circular strokes to stimulate the lymphatic system, reducing swelling, supporting immunity, and detoxifying tissues — especially valued post-surgery or for lymphedema. **Sports massage** combines techniques tailored to the physical demands of athletes, focusing on injury prevention, recovery, and performance. **Thai massage** is performed on a mat on the floor, with the practitioner using their hands, elbows, knees, and feet to move the recipient through assisted yoga-like stretches while applying acupressure along energy lines (sen). **Prenatal massage** adapts positioning and pressure for pregnant clients, addressing the unique discomforts of pregnancy such as lower back pain, hip tension, and swollen ankles. **Shiatsu** is a Japanese form of finger-pressure therapy applied along the body's meridian lines, similar in philosophy to acupuncture but without needles. **Reflexology** maps the hands, feet, and ears as microcosms of the entire body — applying targeted pressure to reflex points to support corresponding organs and systems.",
+          "Massage therapy is the foundation of hands-on healing — the oldest, most universal form of therapeutic care practiced by virtually every culture on earth. At its core, it is the application of intentional, skilled touch to the body's soft tissues: muscles, tendons, fascia, and connective tissue. Through pressure, friction, and sustained contact, massage relieves chronic pain, reduces stress hormones, improves circulation, supports lymphatic drainage, and restores ease of movement. Research consistently demonstrates benefits for anxiety, sleep quality, immune function, and athletic recovery. In Hawaiʻi, where the spirit of aloha imbues every act of service with care and intention, therapeutic touch carries particular depth — and practitioners trained across multiple traditions are common. Within this broad tradition, dozens of distinct techniques have evolved to address specific needs. **Swedish massage** uses long gliding strokes to improve circulation and induce relaxation — the classic introductory massage. **Deep tissue massage** targets the deeper layers of muscle and connective tissue, applying sustained pressure to release chronic tension and knots. **Myofascial Release** works with the fascia — the connective tissue web surrounding every muscle and organ — using gentle sustained pressure to eliminate pain and restore motion. **Rolfing (Structural Integration)** is a more intensive form of fascia work developed by Ida Rolf, involving a systematic series of sessions that reorganize the body's alignment relative to gravity. **Manual Lymphatic Drainage (MLD)** uses feather-light circular strokes to stimulate the lymphatic system, reducing swelling, supporting immunity, and detoxifying tissues — especially valued post-surgery or for lymphedema. **Sports massage** combines techniques tailored to the physical demands of athletes, focusing on injury prevention, recovery, and performance. **Thai massage** is performed on a mat on the floor, with the practitioner using their hands, elbows, knees, and feet to move the recipient through assisted yoga-like stretches while applying acupressure along energy lines (sen). **Prenatal massage** adapts positioning and pressure for pregnant clients, addressing the unique discomforts of pregnancy such as lower back pain, hip tension, and swollen ankles. **Shiatsu** is a Japanese form of finger-pressure therapy applied along the body's meridian lines, similar in philosophy to acupuncture but without needles. **Reflexology** maps the hands, feet, and ears as microcosms of the entire body — applying targeted pressure to reflex points to support corresponding organs and systems.",
       },
       {
         name: "Chiropractic",
@@ -76,7 +77,6 @@ const CATEGORIES: Category[] = [
   {
     id: "energy",
     title: "Energy & Vibrational Healing",
-    icon: "✨",
     intro:
       "Energy healing traditions work with the subtle energy fields and bioelectric systems of the body. While many of these practices predate modern science, contemporary research in biofield science continues to investigate their mechanisms. Hawaii's volcanic land and ocean energy create a uniquely powerful setting for these practices.",
     modalities: [
@@ -109,7 +109,6 @@ const CATEGORIES: Category[] = [
   {
     id: "mind-nervous-system",
     title: "Mind, Nervous System & Psychotherapy",
-    icon: "🧠",
     intro:
       "The connection between mind and body is at the heart of modern integrative health. Hawaii's mental health and psychotherapy community has grown significantly, with many practitioners offering trauma-informed, somatic, and culturally sensitive care.",
     modalities: [
@@ -117,7 +116,7 @@ const CATEGORIES: Category[] = [
         name: "Psychotherapy & Counseling",
         anchor: "psychotherapy",
         description:
-          "Psychotherapy in Hawaii encompasses the full spectrum of evidence-based talk therapy approaches. **Cognitive Behavioral Therapy (CBT)** addresses the relationship between thoughts, feelings, and behaviors — one of the most extensively researched therapeutic modalities for anxiety, depression, OCD, and PTSD. **EMDR (Eye Movement Desensitization and Reprocessing)** uses bilateral stimulation (often eye movements) to process traumatic memories, dramatically reducing their emotional charge. Originally developed for PTSD, EMDR is now used for phobias, grief, performance anxiety, and more. **IFS (Internal Family Systems)** views the psyche as a community of 'parts' — each with protective roles — and works to unburden wounded parts through compassionate internal dialogue. **ACT (Acceptance and Commitment Therapy)** uses mindfulness and values-based action to develop psychological flexibility rather than eliminating difficult thoughts and feelings. **DBT (Dialectical Behavior Therapy)** combines CBT with mindfulness and was originally developed for borderline personality disorder; it's now widely used for emotional dysregulation, self-harm, and eating disorders. **Psychodynamic therapy** explores how unconscious processes and early relational experiences shape present patterns. **Gestalt therapy** emphasizes present-moment awareness and the therapeutic relationship itself as the field of healing. **AEDP (Accelerated Experiential Dynamic Psychotherapy)** focuses on transforming trauma through moment-to-moment tracking of emotional experience and healing states. **Narrative therapy** helps clients re-author their life stories, separating person from problem. **Couples and relationship therapy** supports partners in developing communication, repairing ruptures, and rebuilding intimacy. **Group therapy** harnesses the healing power of shared experience, offering both community and mirrored insight.",
+          "Psychotherapy and counseling offer something no other wellness modality can fully replicate: a dedicated, confidential relationship in which to examine your inner life with skilled, compassionate guidance. The research is extensive — therapy reliably reduces symptoms of depression, anxiety, PTSD, and many other conditions, often with effects that outlast medication alone. Modern psychotherapy has evolved far beyond its origins: today's practitioners draw on neuroscience, attachment theory, somatic awareness, and decades of clinical research to offer precisely targeted approaches for specific conditions. Hawaiʻi's mental health community includes therapists trained across every major evidence-based school, many bringing cultural sensitivity shaped by the islands' diverse heritage. **Cognitive Behavioral Therapy (CBT)** addresses the relationship between thoughts, feelings, and behaviors — one of the most extensively researched therapeutic modalities for anxiety, depression, OCD, and PTSD. **EMDR (Eye Movement Desensitization and Reprocessing)** uses bilateral stimulation (often eye movements) to process traumatic memories, dramatically reducing their emotional charge. Originally developed for PTSD, EMDR is now used for phobias, grief, performance anxiety, and more. **IFS (Internal Family Systems)** views the psyche as a community of 'parts' — each with protective roles — and works to unburden wounded parts through compassionate internal dialogue. **ACT (Acceptance and Commitment Therapy)** uses mindfulness and values-based action to develop psychological flexibility rather than eliminating difficult thoughts and feelings. **DBT (Dialectical Behavior Therapy)** combines CBT with mindfulness and was originally developed for borderline personality disorder; it's now widely used for emotional dysregulation, self-harm, and eating disorders. **Psychodynamic therapy** explores how unconscious processes and early relational experiences shape present patterns. **Gestalt therapy** emphasizes present-moment awareness and the therapeutic relationship itself as the field of healing. **AEDP (Accelerated Experiential Dynamic Psychotherapy)** focuses on transforming trauma through moment-to-moment tracking of emotional experience and healing states. **Narrative therapy** helps clients re-author their life stories, separating person from problem. **Couples and relationship therapy** supports partners in developing communication, repairing ruptures, and rebuilding intimacy. **Group therapy** harnesses the healing power of shared experience, offering both community and mirrored insight.",
       },
       {
         name: "Somatic Therapy",
@@ -154,7 +153,6 @@ const CATEGORIES: Category[] = [
   {
     id: "eastern",
     title: "Eastern & Integrative Medicine",
-    icon: "🌿",
     intro:
       "Hawaii's multicultural heritage — shaped by waves of Japanese, Chinese, Filipino, Korean, and other Asian immigrant communities — has created a uniquely fertile ground for Eastern healing traditions to take root and flourish.",
     modalities: [
@@ -199,7 +197,6 @@ const CATEGORIES: Category[] = [
   {
     id: "movement",
     title: "Movement & Embodiment",
-    icon: "🧘",
     intro:
       "Movement is medicine. Hawaii's outdoor culture, with year-round warm weather and stunning natural settings, creates ideal conditions for embodied movement practices that heal from the inside out.",
     modalities: [
@@ -220,7 +217,6 @@ const CATEGORIES: Category[] = [
   {
     id: "hawaiian-nature",
     title: "Hawaiian & Nature-Based Healing",
-    icon: "🌺",
     intro:
       "Hawaiian healing traditions are among the most sophisticated indigenous medical systems in the world — developed over centuries of careful observation of nature, the human body, and the cosmos. These practices deserve deep respect and cultural sensitivity from practitioners and seekers alike.",
     modalities: [
@@ -259,7 +255,6 @@ const CATEGORIES: Category[] = [
   {
     id: "nutrition-longevity",
     title: "Nutrition & Longevity",
-    icon: "🥥",
     intro:
       "Food as medicine has deep roots in both Hawaiian tradition and modern functional health science. Hawaii's agricultural richness — tropical fruits, local vegetables, fresh fish, and traditional staple crops — provides an extraordinary foundation for nutritional healing.",
     modalities: [
@@ -280,7 +275,6 @@ const CATEGORIES: Category[] = [
   {
     id: "life-soul",
     title: "Life Guidance & Soul Work",
-    icon: "🌙",
     intro:
       "Hawaii has long been a gathering place for seekers, visionaries, and those called to deeper purpose. This cluster of practices addresses the existential, spiritual, and soul dimensions of human experience.",
     modalities: [
@@ -313,7 +307,6 @@ const CATEGORIES: Category[] = [
   {
     id: "womens-health",
     title: "Womenʻs Health & Birth Support",
-    icon: "🌸",
     intro:
       "Hawaii has a thriving community of practitioners specializing in womenʻs health across the full arc of the feminine lifecycle — from fertility and pregnancy through birth, postpartum, and menopause.",
     modalities: [
@@ -342,28 +335,24 @@ const CATEGORIES: Category[] = [
 const ISLAND_SECTIONS = [
   {
     name: "Oʻahu",
-    emoji: "🌆",
     description:
       "As Hawaii's most populous island and home to Honolulu, Oʻahu has the most extensive wellness ecosystem — from large wellness centers in Kailua to boutique studios in Mānoa. The North Shore offers a surf-culture wellness scene, while Honolulu's urban core has sophisticated integrative medicine clinics.",
     link: "/oahu",
   },
   {
     name: "Maui",
-    emoji: "🌅",
     description:
       "Maui's wellness scene is centered in Paia, Makawao (the 'wellness town' of Upcountry), and Kihei. The island attracts an unusually high concentration of gifted healers across every tradition — from Hawaiian healing lineages to cutting-edge functional medicine and consciousness-expanding retreats in Hāna.",
     link: "/maui",
   },
   {
     name: "Big Island",
-    emoji: "🌋",
     description:
       "The Big Island's volcanic energy and diverse microclimates — from the rainforests of Puna to the dry slopes of Kona — create distinct healing communities across the island. Kailua-Kona has a robust integrative medicine scene; Pahoa and Hilo attract practitioners drawn to the island's powerful, transformative earth energy.",
     link: "/big-island",
   },
   {
     name: "Kauaʻi",
-    emoji: "🌿",
     description:
       "Kauaʻi's remote beauty and strong aloha ʻāina (love of the land) culture attract deeply rooted practitioners. The North Shore (Hanalei) and Kīlauea have concentrations of yoga teachers, energy healers, and nature-based practitioners. Kauaʻi's small size and tight-knit community mean word-of-mouth recommendations are especially reliable.",
     link: "/kauai",
@@ -398,11 +387,156 @@ const FAQ_ITEMS = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Editorial CSS — follows GuidesHub pattern; page-specific styles only
+// Complementary Modalities data
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface AilmentPairing {
+  need: string;
+  description: string;
+  modalities: { name: string; anchor: string }[];
+}
+
+interface ModalityPairing {
+  a: string;
+  b: string;
+  anchorA: string;
+  anchorB: string;
+  why: string;
+}
+
+const AILMENT_PAIRINGS: AilmentPairing[] = [
+  {
+    need: "Chronic Pain",
+    description: "Pain with both physical and nervous system components responds best to multi-modal care.",
+    modalities: [
+      { name: "Massage Therapy", anchor: "massage" },
+      { name: "Acupuncture", anchor: "acupuncture" },
+      { name: "Physical Therapy", anchor: "physical-therapy" },
+      { name: "Craniosacral Therapy", anchor: "craniosacral" },
+    ],
+  },
+  {
+    need: "Anxiety & Stress",
+    description: "Nervous system regulation happens below the thinking mind — these modalities reach there.",
+    modalities: [
+      { name: "Breathwork", anchor: "breathwork" },
+      { name: "Somatic Therapy", anchor: "somatic-therapy" },
+      { name: "Meditation", anchor: "meditation" },
+      { name: "Reiki", anchor: "reiki" },
+    ],
+  },
+  {
+    need: "Trauma Recovery",
+    description: "Trauma lives in both body and mind — complete healing addresses both dimensions.",
+    modalities: [
+      { name: "Psychotherapy", anchor: "psychotherapy" },
+      { name: "Somatic Therapy", anchor: "somatic-therapy" },
+      { name: "Nervous System Regulation", anchor: "nervous-system" },
+      { name: "Breathwork", anchor: "breathwork" },
+    ],
+  },
+  {
+    need: "Burnout & Fatigue",
+    description: "Deep exhaustion often has roots in nervous system depletion and unaddressed grief.",
+    modalities: [
+      { name: "Nervous System Regulation", anchor: "nervous-system" },
+      { name: "Lomilomi", anchor: "lomilomi" },
+      { name: "Sound Healing", anchor: "sound-healing" },
+      { name: "Functional Medicine", anchor: "functional-medicine" },
+    ],
+  },
+  {
+    need: "Digestive & Gut Health",
+    description: "The gut-brain axis connects digestion to mental, immune, and hormonal health.",
+    modalities: [
+      { name: "Functional Medicine", anchor: "functional-medicine" },
+      { name: "TCM", anchor: "tcm" },
+      { name: "Naturopathic Medicine", anchor: "naturopathic" },
+      { name: "Nutrition Counseling", anchor: "nutrition" },
+    ],
+  },
+  {
+    need: "Spiritual Growth",
+    description: "Hawaiʻi's sacred landscapes and healing traditions deepen any path of inner inquiry.",
+    modalities: [
+      { name: "Meditation", anchor: "meditation" },
+      { name: "Lomilomi", anchor: "lomilomi" },
+      { name: "Hoʻoponopono", anchor: "hooponopono" },
+      { name: "Soul Guidance", anchor: "soul-guidance" },
+    ],
+  },
+  {
+    need: "Movement & Recovery",
+    description: "Active bodies need conditioning, structural support, and intentional restoration.",
+    modalities: [
+      { name: "Yoga", anchor: "yoga" },
+      { name: "Physical Therapy", anchor: "physical-therapy" },
+      { name: "Chiropractic", anchor: "chiropractic" },
+      { name: "Massage Therapy", anchor: "massage" },
+    ],
+  },
+  {
+    need: "Hormonal Balance",
+    description: "Hormonal health is shaped by stress, nutrition, environment, and lifestyle together.",
+    modalities: [
+      { name: "Functional Medicine", anchor: "functional-medicine" },
+      { name: "Ayurveda", anchor: "ayurveda" },
+      { name: "Acupuncture", anchor: "acupuncture" },
+      { name: "Naturopathic Medicine", anchor: "naturopathic" },
+    ],
+  },
+];
+
+const MODALITY_PAIRINGS: ModalityPairing[] = [
+  {
+    a: "Psychotherapy",
+    b: "Somatic Therapy",
+    anchorA: "psychotherapy",
+    anchorB: "somatic-therapy",
+    why: "Talk therapy and body-based work address trauma from both the cognitive and physical dimensions — together, they reach parts that neither can alone.",
+  },
+  {
+    a: "Acupuncture",
+    b: "Herbalism",
+    anchorA: "acupuncture",
+    anchorB: "herbalism",
+    why: "Complementary pillars of TCM: needles address energy flow in the meridian system while herbs address internal biochemistry and constitutional balance.",
+  },
+  {
+    a: "Lomilomi",
+    b: "Hoʻoponopono",
+    anchorA: "lomilomi",
+    anchorB: "hooponopono",
+    why: "Both are rooted in Native Hawaiian philosophy — bodywork releases physical holding while forgiveness practice resolves relational and spiritual roots of suffering.",
+  },
+  {
+    a: "Breathwork",
+    b: "Nervous System Regulation",
+    anchorA: "breathwork",
+    anchorB: "nervous-system",
+    why: "Breathwork creates acute nervous system shifts; regulation work builds the long-term capacity to hold those states and expand the window of tolerance.",
+  },
+  {
+    a: "Yoga",
+    b: "Meditation",
+    anchorA: "yoga",
+    anchorB: "meditation",
+  why: "Movement practice prepares the body for stillness; meditation deepens the self-awareness that yoga cultivates — each potentiates the other.",
+  },
+  {
+    a: "Functional Medicine",
+    b: "Nutrition Counseling",
+    anchorA: "functional-medicine",
+    anchorB: "nutrition",
+    why: "Advanced lab testing reveals biochemical imbalances; nutritional counseling translates those findings into sustainable daily practice.",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Editorial CSS
 // ─────────────────────────────────────────────────────────────────────────────
 
 const editorialCss = `
-  /* Chapter / section labels */
   .mod-chapter {
     font-family: 'Source Sans 3', system-ui, sans-serif;
     font-size: 11px;
@@ -411,8 +545,6 @@ const editorialCss = `
     text-transform: uppercase;
     color: hsl(15, 65%, 52%);
   }
-
-  /* Large category headings */
   .mod-category-h {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 500;
@@ -420,8 +552,6 @@ const editorialCss = `
     line-height: 1.12;
     letter-spacing: -0.01em;
   }
-
-  /* Modality card headings */
   .mod-modality-h {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 500;
@@ -429,8 +559,6 @@ const editorialCss = `
     line-height: 1.2;
     letter-spacing: -0.005em;
   }
-
-  /* Sub-modality names within expanded cards */
   .mod-sub-name {
     font-family: 'Playfair Display', Georgia, serif;
     font-style: italic;
@@ -438,8 +566,6 @@ const editorialCss = `
     font-size: 16px;
     line-height: 1.35;
   }
-
-  /* Pull quotes between sections */
   .mod-pull-quote {
     font-family: 'Playfair Display', Georgia, serif;
     font-style: italic;
@@ -448,32 +574,37 @@ const editorialCss = `
     line-height: 1.48;
     letter-spacing: -0.005em;
   }
-
-  /* TOC heading */
   .mod-toc-heading {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 500;
     font-size: 17px;
     letter-spacing: -0.004em;
   }
-
-  /* Island section headings */
   .mod-island-h {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 500;
     font-size: clamp(20px, 2.2vw, 26px);
     line-height: 1.2;
   }
-
-  /* FAQ questions */
   .mod-faq-q {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 500;
     font-size: 17px;
     line-height: 1.4;
   }
-
-  /* Intro drop-cap paragraph */
+  .mod-need-h {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+  .mod-pair-names {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.3;
+  }
   .mod-intro::first-letter {
     font-family: 'Playfair Display', Georgia, serif;
     font-size: 56px;
@@ -494,48 +625,51 @@ interface ParsedDescription {
   subs: { name: string; desc: string }[];
 }
 
-/**
- * Parse markdown bold tokens from description text.
- * "Intro sentence. **SubName** does this. **SubName2** does that."
- * → { lead: "Intro sentence.", subs: [{ name: "SubName", desc: "does this." }, ...] }
- */
 function parseDescription(raw: string): ParsedDescription {
   const parts = raw.split(/\*\*(.*?)\*\*/);
-  if (parts.length <= 1) {
-    return { lead: raw.trim(), subs: [] };
-  }
+  if (parts.length <= 1) return { lead: raw.trim(), subs: [] };
   const lead = parts[0].trim();
   const subs: { name: string; desc: string }[] = [];
   for (let i = 1; i < parts.length; i += 2) {
     const name = parts[i].trim();
     const desc = (parts[i + 1] || "")
       .trim()
-      .replace(/^,\s*/, "")           // strip leading comma (inline list format)
-      .replace(/^;\s*/, "")           // strip leading semicolon
-      .replace(/^and\s+/i, "")        // strip leading "and "
-      .replace(/[,;]\s*(and\s+)?$/i, "") // strip trailing comma/semicolon
+      .replace(/^,\s*/, "")
+      .replace(/^;\s*/, "")
+      .replace(/^and\s+/i, "")
+      .replace(/[,;]\s*(and\s+)?$/i, "")
       .trim();
     if (name) subs.push({ name, desc });
   }
   return { lead, subs };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Pull quotes — inserted after select categories
-// ─────────────────────────────────────────────────────────────────────────────
+function getCategoryIcon(id: string) {
+  const cls = "h-[18px] w-[18px] shrink-0";
+  const sw = 1.5;
+  switch (id) {
+    case "bodywork":           return <Hand className={cls} strokeWidth={sw} />;
+    case "energy":             return <Sparkles className={cls} strokeWidth={sw} />;
+    case "mind-nervous-system":return <Brain className={cls} strokeWidth={sw} />;
+    case "eastern":            return <Leaf className={cls} strokeWidth={sw} />;
+    case "movement":           return <Activity className={cls} strokeWidth={sw} />;
+    case "hawaiian-nature":    return <Sun className={cls} strokeWidth={sw} />;
+    case "nutrition-longevity":return <Apple className={cls} strokeWidth={sw} />;
+    case "life-soul":          return <Moon className={cls} strokeWidth={sw} />;
+    case "womens-health":      return <Heart className={cls} strokeWidth={sw} />;
+    default: return null;
+  }
+}
 
 const PULL_QUOTES: Record<number, { text: string; attribution: string }> = {
-  // After Bodywork (catIdx 0)
   0: {
     text: "The doctor of the future will give no medicine, but will interest his patients in the care of the human frame, in diet, and in the cause and prevention of disease.",
     attribution: "Thomas Edison",
   },
-  // After Mind, Nervous System & Psychotherapy (catIdx 2)
   2: {
     text: "The body keeps the score — mind, brain, and body in the transformation of trauma.",
     attribution: "Bessel van der Kolk, MD",
   },
-  // After Hawaiian & Nature-Based Healing (catIdx 5)
   5: {
     text: "Nānā i ke kumu — Look to the source.",
     attribution: "Hawaiian proverb",
@@ -559,30 +693,20 @@ function PullQuote({ text, attribution }: { text: string; attribution: string })
 
 function ModalityCard({ mod }: { mod: Modality }) {
   const { lead, subs } = parseDescription(mod.description);
-
   return (
     <article id={mod.anchor} className="scroll-mt-20">
-      {/* Left terracotta accent bar + card */}
       <div className="flex border border-[hsl(35,18%,82%)] bg-background">
-        {/* Accent bar */}
         <div className="w-[3px] shrink-0 bg-primary" />
-
         <div className="flex-1">
-          {/* Card header */}
           <div className="border-b border-[hsl(35,18%,82%)] px-6 py-4 sm:px-8">
             <h3 className="mod-modality-h text-foreground">{mod.name}</h3>
           </div>
-
-          {/* Card body */}
           <div className="px-6 py-5 sm:px-8">
-            {/* Lead paragraph */}
             {lead && (
               <p className="text-[15.5px] leading-[1.75] text-muted-foreground">
                 {lead}
               </p>
             )}
-
-            {/* Sub-modalities */}
             {subs.length > 0 && (
               <div className="mt-5 divide-y divide-[hsl(35,15%,88%)]">
                 {subs.map((sub) => (
@@ -597,8 +721,6 @@ function ModalityCard({ mod }: { mod: Modality }) {
                 ))}
               </div>
             )}
-
-            {/* Directory link */}
             <div className="mt-5 pt-4 border-t border-[hsl(35,18%,82%)]">
               <Link
                 to={`/directory?modality=${encodeURIComponent(mod.name)}`}
@@ -614,33 +736,159 @@ function ModalityCard({ mod }: { mod: Modality }) {
   );
 }
 
-function TableOfContents() {
-  const [open, setOpen] = useState(false);
+function CategorySection({ cat, catIdx }: { cat: Category; catIdx: number }) {
+  const [expanded, setExpanded] = useState(false);
+  const pullQuote = PULL_QUOTES[catIdx];
+  const showCTA = catIdx === 3;
 
   return (
-    <nav
-      className="mb-12 border border-[hsl(35,18%,80%)]"
-      style={{ background: "hsl(35, 22%, 97%)" }}
-    >
+    <section id={cat.id} className="mb-20 scroll-mt-20">
+      {/* Header — thick rule, chapter number, icon, title */}
+      <div className="mb-6 border-t-2 border-foreground pt-6">
+        <div className="mb-2 flex items-center gap-3 text-primary">
+          <span className="mod-chapter">{String(catIdx + 1).padStart(2, "0")}</span>
+          {getCategoryIcon(cat.id)}
+        </div>
+        <h2 className="mod-category-h text-foreground">{cat.title}</h2>
+      </div>
+
+      {/* Intro — always visible */}
+      <p className="mb-7 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
+        {cat.intro}
+      </p>
+
+      {/* Expand/collapse toggle */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-2.5 mb-8 transition-opacity hover:opacity-70"
+        aria-expanded={expanded}
+      >
+        <span className="mod-chapter">
+          {expanded
+            ? `Collapse`
+            : `Explore ${cat.modalities.length} modalities`}
+        </span>
+        {expanded
+          ? <ChevronUp className="h-3 w-3 text-primary" strokeWidth={2.5} />
+          : <ChevronDown className="h-3 w-3 text-primary" strokeWidth={2.5} />}
+      </button>
+
+      {/* Modality cards — accordion */}
+      {expanded && (
+        <div className="space-y-5">
+          {cat.modalities.map((mod) => (
+            <ModalityCard key={mod.anchor} mod={mod} />
+          ))}
+
+          {showCTA && (
+            <div className="mt-10">
+              <GuideCTA
+                variant="mid"
+                headline="Looking for a specific modality?"
+                body="Search the Hawaiʻi Wellness Directory by modality, island, and session type to find your practitioner."
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Pull quote — always visible, acts as section divider */}
+      {pullQuote && <PullQuote text={pullQuote.text} attribution={pullQuote.attribution} />}
+    </section>
+  );
+}
+
+function ComplementarySection() {
+  return (
+    <section className="mb-20">
+      {/* Header */}
+      <div className="mb-8 border-t-2 border-foreground pt-6">
+        <div className="mb-1 mod-chapter">Finding Your Path</div>
+        <h2 className="mod-category-h text-foreground">
+          Complementary Modalities
+        </h2>
+      </div>
+
+      <p className="mb-12 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
+        Healing rarely happens in a single modality. The most effective journeys combine practices that reinforce each other — addressing the body, nervous system, and root causes together. Here's where to start based on what you're seeking.
+      </p>
+
+      {/* By need — responsive grid */}
+      <div className="mb-16">
+        <div className="mb-7 mod-chapter" style={{ color: "hsl(35, 12%, 55%)" }}>
+          Starting Points by Need
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {AILMENT_PAIRINGS.map((item) => (
+            <div
+              key={item.need}
+              className="border border-[hsl(35,18%,82%)] bg-background p-5"
+            >
+              <div className="mod-need-h text-foreground mb-2">{item.need}</div>
+              <p className="text-[13px] leading-[1.6] text-muted-foreground mb-4">
+                {item.description}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {item.modalities.map((m) => (
+                  <a
+                    key={m.anchor}
+                    href={`#${m.anchor}`}
+                    className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary border border-primary/30 px-2.5 py-1 hover:bg-primary hover:text-white transition-colors"
+                  >
+                    {m.name}
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Natural pairings */}
+      <div>
+        <div className="mb-7 mod-chapter" style={{ color: "hsl(35, 12%, 55%)" }}>
+          Natural Pairings
+        </div>
+        <div className="border-t border-[hsl(35,18%,80%)]">
+          {MODALITY_PAIRINGS.map((pair) => (
+            <div
+              key={`${pair.a}-${pair.b}`}
+              className="grid sm:grid-cols-[220px_1fr] gap-4 sm:gap-10 py-6 border-b border-[hsl(35,18%,80%)]"
+            >
+              <div>
+                <div className="mod-pair-names text-foreground">
+                  <a href={`#${pair.anchorA}`} className="hover:text-primary transition-colors">
+                    {pair.a}
+                  </a>
+                  <span className="mx-2 not-italic font-light text-muted-foreground">+</span>
+                  <a href={`#${pair.anchorB}`} className="hover:text-primary transition-colors">
+                    {pair.b}
+                  </a>
+                </div>
+              </div>
+              <p className="text-[15px] leading-[1.72] text-muted-foreground">{pair.why}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function TableOfContents() {
+  const [open, setOpen] = useState(false);
+  return (
+    <nav className="mb-12 border border-[hsl(35,18%,80%)]" style={{ background: "hsl(35, 22%, 97%)" }}>
       <button
         className="flex w-full items-center justify-between px-6 py-5 text-left"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
       >
         <span className="mod-toc-heading text-foreground">Table of Contents</span>
-        <span className="mod-chapter" style={{ color: "hsl(35, 12%, 55%)" }}>
-          {open ? (
-            <span className="flex items-center gap-1.5">
-              Close <ChevronUp className="h-3 w-3" />
-            </span>
-          ) : (
-            <span className="flex items-center gap-1.5">
-              Open <ChevronDown className="h-3 w-3" />
-            </span>
-          )}
+        <span className="mod-chapter flex items-center gap-1.5" style={{ color: "hsl(35, 12%, 55%)" }}>
+          {open ? <><ChevronUp className="h-3 w-3" /> Close</> : <><ChevronDown className="h-3 w-3" /> Open</>}
         </span>
       </button>
-
       {open && (
         <div className="border-t border-[hsl(35,18%,80%)] px-6 pb-6 pt-2">
           <ol className="grid sm:grid-cols-2 gap-0">
@@ -648,7 +896,7 @@ function TableOfContents() {
               <li key={cat.id} className="border-b border-[hsl(35,18%,80%)]">
                 <a
                   href={`#${cat.id}`}
-                  className="flex items-baseline gap-4 py-3 text-foreground hover:text-primary transition-colors"
+                  className="flex items-center gap-4 py-3 text-foreground hover:text-primary transition-colors"
                   onClick={() => setOpen(false)}
                 >
                   <span className="mod-chapter shrink-0">{String(i + 1).padStart(2, "0")}</span>
@@ -657,23 +905,21 @@ function TableOfContents() {
               </li>
             ))}
             <li className="border-b border-[hsl(35,18%,80%)]">
-              <a
-                href="#by-island"
-                className="flex items-baseline gap-4 py-3 text-foreground hover:text-primary transition-colors"
-                onClick={() => setOpen(false)}
-              >
+              <a href="#complementary" className="flex items-center gap-4 py-3 text-foreground hover:text-primary transition-colors" onClick={() => setOpen(false)}>
                 <span className="mod-chapter shrink-0">{String(CATEGORIES.length + 1).padStart(2, "0")}</span>
+                <span className="text-[14px]">Complementary Modalities</span>
+              </a>
+            </li>
+            <li className="border-b border-[hsl(35,18%,80%)]">
+              <a href="#by-island" className="flex items-center gap-4 py-3 text-foreground hover:text-primary transition-colors" onClick={() => setOpen(false)}>
+                <span className="mod-chapter shrink-0">{String(CATEGORIES.length + 2).padStart(2, "0")}</span>
                 <span className="text-[14px]">Wellness by Island</span>
               </a>
             </li>
             <li>
-              <a
-                href="#faq"
-                className="flex items-baseline gap-4 py-3 text-foreground hover:text-primary transition-colors"
-                onClick={() => setOpen(false)}
-              >
-                <span className="mod-chapter shrink-0">{String(CATEGORIES.length + 2).padStart(2, "0")}</span>
-                <span className="text-[14px]">Frequently Asked Questions</span>
+              <a href="#faq" className="flex items-center gap-4 py-3 text-foreground hover:text-primary transition-colors" onClick={() => setOpen(false)}>
+                <span className="mod-chapter shrink-0">{String(CATEGORIES.length + 3).padStart(2, "0")}</span>
+                <span className="text-[14px]">FAQ</span>
               </a>
             </li>
           </ol>
@@ -685,7 +931,6 @@ function TableOfContents() {
 
 function FaqAccordion() {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
-
   return (
     <div className="divide-y divide-[hsl(35,18%,80%)] border-y border-[hsl(35,18%,80%)]">
       {FAQ_ITEMS.map((item, i) => (
@@ -727,19 +972,12 @@ const articleSchema = {
   datePublished: guide.publishedAt,
   dateModified: guide.updatedAt,
   image: `https://hawaiiwellness.net${guide.ogImage}`,
-  author: {
-    "@type": "Organization",
-    name: "Hawaiʻi Wellness",
-    url: "https://hawaiiwellness.net",
-  },
+  author: { "@type": "Organization", name: "Hawaiʻi Wellness", url: "https://hawaiiwellness.net" },
   publisher: {
     "@type": "Organization",
     name: "Hawaiʻi Wellness",
     url: "https://hawaiiwellness.net",
-    logo: {
-      "@type": "ImageObject",
-      url: "https://hawaiiwellness.net/hawaii-wellness-logo.png",
-    },
+    logo: { "@type": "ImageObject", url: "https://hawaiiwellness.net/hawaii-wellness-logo.png" },
   },
 };
 
@@ -749,10 +987,7 @@ const faqSchema = {
   mainEntity: FAQ_ITEMS.map((item) => ({
     "@type": "Question",
     name: item.q,
-    acceptedAnswer: {
-      "@type": "Answer",
-      text: item.a,
-    },
+    acceptedAnswer: { "@type": "Answer", text: item.a },
   })),
 };
 
@@ -785,20 +1020,16 @@ export default function WellnessModalities() {
       <JsonLd id="guide-breadcrumb" data={breadcrumbSchema} />
       <style dangerouslySetInnerHTML={{ __html: editorialCss }} />
 
-      {/* ── Hero ──────────────────────────────────────────────────────────── */}
+      {/* ── Hero ── plain untitled image; page has its own H1 */}
       <div className="relative h-[480px] sm:h-[580px] overflow-hidden">
         <img
-          src={guide.coverImage}
-          alt={guide.coverAlt}
+          src="/complete-health-modalities-guide.jpg"
+          alt="Pololū Valley, Big Island — Hawaiʻi Wellness Modalities Guide"
           className="absolute inset-0 h-full w-full object-cover object-center"
           fetchPriority="high"
         />
-        {/* Gradient */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
-        {/* Hero content */}
         <div className="relative flex h-full flex-col justify-end px-6 pb-12 sm:px-12 sm:pb-16 max-w-5xl mx-auto">
-          {/* Breadcrumbs */}
           <nav className="mb-5 flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-white/60">
             <Link to="/" className="hover:text-white transition-colors">Home</Link>
             <span>/</span>
@@ -806,12 +1037,9 @@ export default function WellnessModalities() {
             <span>/</span>
             <span className="text-white/80">Wellness Modalities</span>
           </nav>
-
-          {/* Kicker */}
           <div className="mb-4 text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70">
             The Complete Guide · Hawaiʻi
           </div>
-
           <h1
             style={{
               fontFamily: "'Playfair Display', Georgia, serif",
@@ -827,12 +1055,9 @@ export default function WellnessModalities() {
               in Hawaiʻi
             </em>
           </h1>
-
           <p className="mt-4 max-w-2xl text-white/75 text-[15px] sm:text-base leading-relaxed">
             Your definitive reference for holistic healing across the Hawaiian Islands — 44 modalities, 9 traditions, island-by-island guidance.
           </p>
-
-          {/* Meta bar */}
           <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-[11px] uppercase tracking-[0.18em] text-white/55">
             <span>44 Modalities</span>
             <span>·</span>
@@ -845,10 +1070,10 @@ export default function WellnessModalities() {
         </div>
       </div>
 
-      {/* ── Body ──────────────────────────────────────────────────────────── */}
+      {/* ── Body ── */}
       <main className="mx-auto max-w-4xl px-4 py-14 sm:px-6">
 
-        {/* Intro paragraph with drop cap */}
+        {/* Intro with drop cap */}
         <section className="mb-12 max-w-[720px]">
           <p className="mod-intro text-[17px] leading-[1.78] text-muted-foreground">
             Hawaii is one of the world's great centers of holistic healing. The islands' multicultural heritage —
@@ -861,95 +1086,33 @@ export default function WellnessModalities() {
 
         <TableOfContents />
 
-        {/* ── Categories ────────────────────────────────────────────────── */}
+        {/* ── Category sections (accordion) ── */}
         {CATEGORIES.map((cat, catIdx) => (
-          <section
-            key={cat.id}
-            id={cat.id}
-            className="mb-20 scroll-mt-20"
-          >
-            {/* Section header — thick rule, chapter label, title */}
-            <div className="mb-8 border-t-2 border-foreground pt-6">
-              <div className="mb-1 flex items-center gap-3">
-                <span className="mod-chapter">{String(catIdx + 1).padStart(2, "0")}</span>
-                <span
-                  className="text-[18px]"
-                  role="img"
-                  aria-label={cat.title}
-                >
-                  {cat.icon}
-                </span>
-              </div>
-              <h2 className="mod-category-h text-foreground">{cat.title}</h2>
-            </div>
-
-            {/* Category intro — constrained reading width */}
-            <p className="mb-10 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
-              {cat.intro}
-            </p>
-
-            {/* Modality cards */}
-            <div className="space-y-5">
-              {cat.modalities.map((mod) => (
-                <ModalityCard key={mod.anchor} mod={mod} />
-              ))}
-            </div>
-
-            {/* Pull quote — inserted after select categories */}
-            {PULL_QUOTES[catIdx] && (
-              <PullQuote
-                text={PULL_QUOTES[catIdx].text}
-                attribution={PULL_QUOTES[catIdx].attribution}
-              />
-            )}
-
-            {/* Mid-guide CTA after Eastern & Integrative Medicine */}
-            {catIdx === 3 && (
-              <div className="mt-12">
-                <GuideCTA
-                  variant="mid"
-                  headline="Looking for a specific modality?"
-                  body="Search the Hawaiʻi Wellness Directory by modality, island, and session type to find your practitioner."
-                />
-              </div>
-            )}
-          </section>
+          <CategorySection key={cat.id} cat={cat} catIdx={catIdx} />
         ))}
 
-        {/* ── By Island ─────────────────────────────────────────────────── */}
+        {/* ── Complementary Modalities ── */}
+        <div id="complementary" className="scroll-mt-20">
+          <ComplementarySection />
+        </div>
+
+        {/* ── By Island ── */}
         <section id="by-island" className="mb-20 scroll-mt-20">
           <div className="mb-8 border-t-2 border-foreground pt-6">
-            <div className="mb-1 mod-chapter">{String(CATEGORIES.length + 1).padStart(2, "0")}</div>
+            <div className="mb-1 mod-chapter">{String(CATEGORIES.length + 2).padStart(2, "0")}</div>
             <h2 className="mod-category-h text-foreground">Wellness by Island</h2>
           </div>
-
           <p className="mb-10 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
             Each Hawaiian island has its own distinct wellness character, shaped by its geography, communities,
-            and cultural heritage. Here's what to know about each island's healing landscape.
+            and cultural heritage.
           </p>
-
-          {/* Editorial horizontal list — hairline-separated */}
           <div className="border-t border-[hsl(35,18%,80%)]">
             {ISLAND_SECTIONS.map((island) => (
-              <div
-                key={island.name}
-                className="grid sm:grid-cols-[180px_1fr] gap-6 sm:gap-10 py-9 border-b border-[hsl(35,18%,80%)]"
-              >
-                {/* Island identity */}
-                <div className="flex sm:flex-col items-center sm:items-start gap-3 sm:gap-2">
-                  <span className="text-2xl">{island.emoji}</span>
-                  <h3 className="mod-island-h text-foreground">{island.name}</h3>
-                </div>
-
-                {/* Description + link */}
+              <div key={island.name} className="grid sm:grid-cols-[180px_1fr] gap-6 sm:gap-10 py-9 border-b border-[hsl(35,18%,80%)]">
+                <h3 className="mod-island-h text-foreground">{island.name}</h3>
                 <div>
-                  <p className="text-[16px] leading-[1.75] text-muted-foreground mb-4">
-                    {island.description}
-                  </p>
-                  <Link
-                    to={island.link}
-                    className="mod-chapter transition-opacity hover:opacity-60"
-                  >
+                  <p className="text-[16px] leading-[1.75] text-muted-foreground mb-4">{island.description}</p>
+                  <Link to={island.link} className="mod-chapter transition-opacity hover:opacity-60">
                     Browse {island.name} practitioners →
                   </Link>
                 </div>
@@ -958,21 +1121,18 @@ export default function WellnessModalities() {
           </div>
         </section>
 
-        {/* ── FAQ ───────────────────────────────────────────────────────── */}
+        {/* ── FAQ ── */}
         <section id="faq" className="mb-16 scroll-mt-20">
           <div className="mb-8 border-t-2 border-foreground pt-6">
-            <div className="mb-1 mod-chapter">{String(CATEGORIES.length + 2).padStart(2, "0")}</div>
+            <div className="mb-1 mod-chapter">{String(CATEGORIES.length + 3).padStart(2, "0")}</div>
             <h2 className="mod-category-h text-foreground">Frequently Asked Questions</h2>
           </div>
-
           <p className="mb-10 max-w-[660px] text-[17px] leading-[1.78] text-muted-foreground">
             Common questions about wellness modalities and finding practitioners in Hawaiʻi.
           </p>
-
           <FaqAccordion />
         </section>
 
-        {/* End CTA */}
         <GuideCTA variant="end" />
       </main>
     </>

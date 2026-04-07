@@ -22,9 +22,9 @@ const editorialCss = `
   .hub-display {
     font-family: 'Playfair Display', Georgia, serif;
     font-weight: 500;
-    font-size: clamp(58px, 9vw, 132px);
-    line-height: 0.92;
-    letter-spacing: -0.025em;
+    font-size: clamp(42px, 6.5vw, 96px);
+    line-height: 0.94;
+    letter-spacing: -0.022em;
   }
   .hub-display em { font-style: italic; font-weight: 400; color: hsl(15, 65%, 42%); }
   .hub-tagline { font-family: 'Playfair Display', serif; font-style: italic; }
