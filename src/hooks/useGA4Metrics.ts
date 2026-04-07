@@ -8,6 +8,7 @@ export interface GA4PeriodMetrics {
 }
 
 export interface GA4Metrics {
+  today: GA4PeriodMetrics;
   last7d: GA4PeriodMetrics;
   last30d: GA4PeriodMetrics;
 }

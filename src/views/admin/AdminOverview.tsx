@@ -5,7 +5,7 @@ import { useAdminMetrics } from '@/hooks/useAdminMetrics';
 import { useGA4Metrics } from '@/hooks/useGA4Metrics';
 import {
   Users, Building2, CheckCircle, FileText,
-  TrendingUp, Star, Crown, UserCheck, BarChart2, Eye,
+  TrendingUp, Star, Crown, UserCheck, BarChart2, Eye, DollarSign,
 } from 'lucide-react';
 
 function MetricCard({
@@ -154,7 +154,7 @@ export function AdminOverview() {
       {/* ── Subscriptions section ── */}
       <section>
         <h3 className="mb-3 text-sm font-semibold text-muted-foreground uppercase tracking-wide">Subscriptions</h3>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <MetricCard
             title="Active Total"
             value={data?.totalActiveSubscriptions ?? 0}
@@ -174,10 +174,18 @@ export function AdminOverview() {
           <MetricCard
             title="Featured 👑"
             value={data?.activeFeatured ?? 0}
-            sub="$129/mo"
+            sub="$69–$109/mo"
             icon={Crown}
             loading={isLoading}
             accent="purple"
+          />
+          <MetricCard
+            title="MRR"
+            value={`$${(data?.mrr ?? 0).toLocaleString()}`}
+            sub="monthly recurring revenue"
+            icon={DollarSign}
+            loading={isLoading}
+            accent="green"
           />
         </div>
       </section>
@@ -201,6 +209,34 @@ export function AdminOverview() {
           </Card>
         ) : (
           <>
+            <p className="mb-2 text-xs text-muted-foreground">Today</p>
+            <div className="mb-4 grid grid-cols-3 gap-3">
+              <MetricCard
+                title="Sessions"
+                value={ga4?.today.sessions ?? 0}
+                sub="visits"
+                icon={TrendingUp}
+                loading={ga4Loading}
+                accent="blue"
+              />
+              <MetricCard
+                title="Users"
+                value={ga4?.today.users ?? 0}
+                sub="unique visitors"
+                icon={Users}
+                loading={ga4Loading}
+                accent="green"
+              />
+              <MetricCard
+                title="Pageviews"
+                value={ga4?.today.pageviews ?? 0}
+                sub="pages viewed"
+                icon={Eye}
+                loading={ga4Loading}
+                accent="purple"
+              />
+            </div>
+
             <p className="mb-2 text-xs text-muted-foreground">Last 7 days</p>
             <div className="mb-4 grid grid-cols-3 gap-3">
               <MetricCard

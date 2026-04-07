@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { STRIPE_PRICES } from '@/lib/stripe';
 
 export interface AdminMetrics {
   // Listings
@@ -17,6 +18,7 @@ export interface AdminMetrics {
   activePremium: number;
   activeFeatured: number;
   totalActiveSubscriptions: number;
+  mrr: number;
 }
 
 async function fetchAdminMetrics(): Promise<AdminMetrics> {
@@ -39,6 +41,7 @@ async function fetchAdminMetrics(): Promise<AdminMetrics> {
     { count: claims7dCent },
     { count: activePremium },
     { count: activeFeatured },
+    { data: activeSubs },
   ] = await Promise.all([
     supabase.from('practitioners').select('*', { count: 'exact', head: true }),
     supabase.from('practitioners').select('*', { count: 'exact', head: true }).eq('status', 'published'),
@@ -61,12 +64,24 @@ async function fetchAdminMetrics(): Promise<AdminMetrics> {
       .eq('subscription_status', 'active').eq('tier', 'premium'),
     supabase.from('user_profiles').select('*', { count: 'exact', head: true })
       .eq('subscription_status', 'active').eq('tier', 'featured'),
+    supabase.from('user_profiles').select('stripe_price_id')
+      .eq('subscription_status', 'active'),
   ]);
 
   const claimedListings = (claimedPract ?? 0) + (claimedCent ?? 0);
   const newClaimsLast24h = (claims24hPract ?? 0) + (claims24hCent ?? 0);
   const newClaimsLast7d  = (claims7dPract  ?? 0) + (claims7dCent  ?? 0);
   const totalActiveSubscriptions = (activePremium ?? 0) + (activeFeatured ?? 0);
+
+  const PRICE_AMOUNTS: Record<string, number> = {
+    [STRIPE_PRICES.PREMIUM_MONTHLY]:         39,
+    [STRIPE_PRICES.FEATURED_MONTHLY]:        69,
+    [STRIPE_PRICES.CENTER_PREMIUM_MONTHLY]:  69,
+    [STRIPE_PRICES.CENTER_FEATURED_MONTHLY]: 109,
+  };
+  const mrr = (activeSubs ?? []).reduce((sum, sub) => {
+    return sum + (PRICE_AMOUNTS[sub.stripe_price_id ?? ''] ?? 0);
+  }, 0);
 
   return {
     totalPractitioners:     totalPract  ?? 0,
@@ -81,6 +96,7 @@ async function fetchAdminMetrics(): Promise<AdminMetrics> {
     activePremium:              activePremium  ?? 0,
     activeFeatured:             activeFeatured ?? 0,
     totalActiveSubscriptions,
+    mrr,
   };
 }
 

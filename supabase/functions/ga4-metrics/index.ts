@@ -123,13 +123,14 @@ Deno.serve(async (req) => {
 
     const token = await getAccessToken(clientId, clientSecret, refreshToken);
 
-    const [report7d, report30d] = await Promise.all([
+    const [reportToday, report7d, report30d] = await Promise.all([
+      runReport(propertyId, token, 'today', 'today'),
       runReport(propertyId, token, '7daysAgo', 'today'),
       runReport(propertyId, token, '30daysAgo', 'today'),
     ]);
 
     return new Response(
-      JSON.stringify({ last7d: extractRow(report7d), last30d: extractRow(report30d) }),
+      JSON.stringify({ today: extractRow(reportToday), last7d: extractRow(report7d), last30d: extractRow(report30d) }),
       { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
