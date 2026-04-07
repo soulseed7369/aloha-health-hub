@@ -36,7 +36,7 @@ export async function generateMetadata(
     return {};
   }
 
-  const title = `${modalityName} on ${ISLAND_DISPLAY_NAME} – ${SITE_NAME}`;
+  const title = `${modalityName} on ${ISLAND_DISPLAY_NAME}`;
   const description = `Find certified ${modalityName} practitioners and wellness centers on ${ISLAND_DISPLAY_NAME}. Browse verified providers, compare services, and book sessions directly.`;
   const url = canonicalUrl(`/${ISLAND_SLUG}/${resolvedParams.modality}`);
 
