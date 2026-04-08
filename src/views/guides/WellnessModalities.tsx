@@ -768,12 +768,15 @@ function CategorySection({
   cat,
   catIdx,
   counts,
+  expanded,
+  onToggle,
 }: {
   cat: Category;
   catIdx: number;
   counts: Record<string, number>;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const pullQuote = PULL_QUOTES[catIdx];
   const showCTA = catIdx === 3;
 
@@ -795,7 +798,7 @@ function CategorySection({
 
       {/* Expand/collapse toggle */}
       <button
-        onClick={() => setExpanded(!expanded)}
+        onClick={onToggle}
         className="flex items-center gap-2.5 mb-8 transition-opacity hover:opacity-70"
         aria-expanded={expanded}
       >
@@ -1050,19 +1053,46 @@ export default function WellnessModalities() {
   );
   const { data: modalityCounts = {} } = useModalityCounts();
 
-  // Cross-page hash navigation: when a user clicks a guide-section link from
-  // another route (e.g. /#bodywork from the homepage category band), React Router
-  // doesn't auto-scroll to the anchor. This effect handles that on mount + on
-  // hash changes within the same route.
+  // Category accordion state — lifted so hash navigation can auto-expand
+  // the category containing a linked modality anchor.
+  const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
+  const toggleCat = (id: string) =>
+    setExpandedCats((prev) => ({ ...prev, [id]: !prev[id] }));
+
+  // Cross-page hash navigation. React Router doesn't auto-scroll to anchors on
+  // client-side navigation. Two cases to handle:
+  //   1. Hash matches a category id (e.g. #bodywork) → scroll to that section.
+  //   2. Hash matches a modality anchor (e.g. #massage) → the modality lives
+  //      inside a collapsed accordion, so we first expand the parent category,
+  //      then wait for it to render before scrolling.
   const { hash } = useLocation();
   useEffect(() => {
     if (!hash) return;
     const id = hash.replace(/^#/, "");
-    // Defer to next frame so the section has mounted
-    const raf = requestAnimationFrame(() => {
+
+    // Find the category that owns this anchor, if any.
+    const parentCat = CATEGORIES.find(
+      (c) => c.id === id || c.modalities.some((m) => m.anchor === id)
+    );
+    const isModalityAnchor =
+      parentCat && parentCat.modalities.some((m) => m.anchor === id);
+
+    if (isModalityAnchor && parentCat) {
+      setExpandedCats((prev) => ({ ...prev, [parentCat.id]: true }));
+    }
+
+    // Poll briefly for the element to appear (handles accordion expansion
+    // render delay). Gives up after ~500ms.
+    let attempts = 0;
+    const tryScroll = () => {
       const el = document.getElementById(id);
-      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      if (attempts++ < 10) requestAnimationFrame(tryScroll);
+    };
+    const raf = requestAnimationFrame(tryScroll);
     return () => cancelAnimationFrame(raf);
   }, [hash]);
 
@@ -1138,7 +1168,14 @@ export default function WellnessModalities() {
 
         {/* ── Category sections (accordion) ── */}
         {CATEGORIES.map((cat, catIdx) => (
-          <CategorySection key={cat.id} cat={cat} catIdx={catIdx} counts={modalityCounts} />
+          <CategorySection
+            key={cat.id}
+            cat={cat}
+            catIdx={catIdx}
+            counts={modalityCounts}
+            expanded={!!expandedCats[cat.id]}
+            onToggle={() => toggleCat(cat.id)}
+          />
         ))}
 
         {/* ── Complementary Modalities ── */}
