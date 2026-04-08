@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { JsonLd } from "@/components/JsonLd";
-import { GUIDES, getPublishedGuides } from "@/lib/guides";
+import { getPublishedGuides } from "@/lib/guides";
 
 const PAGE_TITLE = "Hawaiʻi Wellness Guides";
 const PAGE_DESC =
@@ -100,6 +100,14 @@ const editorialCss = `
     font-style: italic;
   }
 
+  .hub-intro {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 500;
+    font-size: clamp(20px, 2.4vw, 28px);
+    line-height: 1.45;
+    letter-spacing: -0.010em;
+  }
+
   .hub-closing-h {
     font-family: 'Playfair Display', serif;
     font-weight: 500;
@@ -124,7 +132,6 @@ export default function GuidesHub() {
 
   const published = getPublishedGuides();
   const featured = published[0]; // Currently we feature the first published guide
-  const upcoming = GUIDES.filter((g) => !g.published);
 
   return (
     <>
@@ -138,8 +145,8 @@ export default function GuidesHub() {
           <br />
           <em>Guides</em>
         </h1>
-        <p className="hub-tagline mt-7 text-[15px] text-muted-foreground">
-          Your companion to holistic healing across the islands.
+        <p className="hub-tagline mt-7 text-[20px] text-muted-foreground">
+          Your Companion to Holistic Health Across the Islands
         </p>
       </header>
 
@@ -169,9 +176,9 @@ export default function GuidesHub() {
       {/* ── Dept intro ──────────────────────────────────────────────────────── */}
       <section className="px-6 pt-24 pb-12 text-center">
         <div className="mx-auto max-w-[760px]">
-          <h2 className="hub-headline text-foreground">
+          <p className="hub-intro text-foreground">
             From traditional Hawaiian healing to modern somatic practice, our guides are a living reference to what it means to care for the body, mind, and spirit in Hawaiʻi.
-          </h2>
+          </p>
         </div>
       </section>
 
@@ -191,11 +198,21 @@ export default function GuidesHub() {
 
               {/* Image + content */}
               <div className="grid items-stretch gap-12 md:grid-cols-[1fr_1.1fr] md:gap-16">
-                <img
-                  src="/complete-health-modalities-guide2-titled.jpg"
-                  alt={featured.coverAlt}
-                  className="block h-full w-full object-cover object-center shadow-[0_30px_80px_-30px_rgba(20,16,10,0.3)]"
-                />
+                {/* Guidebook-style frame */}
+                <div
+                  className="relative self-stretch rounded-2xl p-[7px] shadow-[0_40px_100px_-30px_rgba(20,16,10,0.38)]"
+                  style={{
+                    background: "linear-gradient(145deg, hsl(35,32%,90%) 0%, hsl(35,20%,76%) 50%, hsl(35,32%,90%) 100%)",
+                  }}
+                >
+                  <img
+                    src="/complete-health-modalities-guide2-titled.jpg"
+                    alt={featured.coverAlt}
+                    className="block h-full w-full rounded-xl object-cover object-center"
+                  />
+                  {/* Inner highlight ring — gives depth like a printed cover */}
+                  <div className="pointer-events-none absolute inset-[7px] rounded-xl ring-1 ring-inset ring-white/25" />
+                </div>
                 <div className="md:pr-4">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
                     The Complete Guide
@@ -235,43 +252,6 @@ export default function GuidesHub() {
                   </Link>
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* ── Also in the Library ─────────────────────────────────────────────── */}
-      {upcoming.length > 0 && (
-        <section className="border-y border-border bg-muted/40 px-6 py-24">
-          <div className="mx-auto max-w-[1240px]">
-            <div className="mb-16 text-center">
-              <div className="text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
-                More to Come
-              </div>
-              <h2 className="hub-upcoming-h mt-4 text-foreground">
-                Also in the <em>Library</em>
-              </h2>
-            </div>
-            <div className="mx-auto max-w-[880px]">
-              {upcoming.map((g, i) => (
-                <div
-                  key={g.slug}
-                  className={`grid grid-cols-[60px_1fr] items-center gap-6 border-t border-[hsl(35,18%,72%)] py-9 sm:grid-cols-[100px_1fr_160px] sm:gap-10 ${
-                    i === upcoming.length - 1 ? "border-b" : ""
-                  }`}
-                >
-                  <div className="hub-upcoming-no text-muted-foreground">—</div>
-                  <div>
-                    <h3 className="hub-upcoming-title text-foreground">{g.title}</h3>
-                    <p className="mt-2.5 text-[16px] leading-[1.5] text-muted-foreground">
-                      {g.teaser}
-                    </p>
-                  </div>
-                  <div className="col-start-2 text-left text-[11px] uppercase tracking-[0.22em] text-muted-foreground sm:col-start-3 sm:text-right">
-                    In Progress
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </section>
