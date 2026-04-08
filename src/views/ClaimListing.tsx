@@ -24,15 +24,18 @@ import { CheckCircle, Mail, Phone, AlertCircle, Loader2, HelpCircle } from 'luci
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { toast } from 'sonner';
 
-/** Mark the campaign_outreach row as claimed (fire-and-forget, non-blocking). */
+/**
+ * Mark the campaign_outreach row as claimed (fire-and-forget, non-blocking).
+ * Calls the `mark_campaign_claimed` RPC, which verifies the caller now owns
+ * the listing before updating the row. Direct table UPDATE is blocked by RLS.
+ */
 async function markCampaignClaimed(listingId: string): Promise<void> {
   if (!supabase || !listingId) return;
   try {
-    await supabase
-      .from('campaign_outreach')
-      .update({ status: 'claimed', has_owner: true })
-      .eq('listing_id', listingId)
-      .in('status', ['not_contacted', 'email_queued', 'email_1_sent', 'email_1_opened', 'email_1b_sent', 'email_2_sent', 'replied', 'claimed']);
+    const { error } = await supabase.rpc('mark_campaign_claimed', {
+      p_listing_id: listingId,
+    });
+    if (error) throw error;
   } catch (e) {
     // Non-critical — don't surface to user
     console.warn('Failed to update campaign_outreach on claim:', e);
