@@ -176,7 +176,7 @@ export default function GuidesHub() {
       {/* ── Dept intro ──────────────────────────────────────────────────────── */}
       <section className="px-6 pt-24 pb-12 text-center">
         <div className="mx-auto max-w-[760px]">
-          <p className="hub-intro text-foreground">
+          <p className="hub-subscribe-h text-foreground">
             From traditional Hawaiian healing to modern somatic practice, our guides are a living reference to what it means to care for the body, mind, and spirit in Hawaiʻi.
           </p>
         </div>
