@@ -241,7 +241,7 @@ export function IslandHome({ config }: IslandHomeProps) {
                 Not sure where to start?
               </h2>
               <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
-                Explore 44 wellness modalities by tradition — and find practitioners who offer them.
+                Explore 44 wellness modalities by category — and find practitioners who offer them.
               </p>
             </div>
             <Link

@@ -204,7 +204,7 @@ export default function GuidesHub() {
                     Wellness Modalities in Hawaiʻi
                   </h3>
                   <p className="hub-deck mt-6 text-muted-foreground">
-                    Forty-four practices, nine traditions, and the Hawaiian wisdom that shapes them all.
+                    Forty-four practices, nine categories, and the Hawaiian wisdom that shapes them all.
                   </p>
                   <p className="hub-body mt-9 text-[17px] leading-[1.7] text-muted-foreground">
                     {featured.teaser} From lomilomi and lāʻau lapaʻau to acupuncture, somatic experiencing, and breathwork — this is the most comprehensive guide to holistic wellness in Hawaiʻi. Each modality is explained in plain language: what it is, what it helps with, what to expect from your first session, and how to find a trusted practitioner across all four major islands.

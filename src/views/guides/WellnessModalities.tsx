@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   ChevronDown, ChevronUp,
   Hand, Sparkles, Brain, Leaf, Activity, Sun, Apple, Moon, Heart,
@@ -21,6 +21,13 @@ interface Modality {
   name: string;
   anchor: string;
   description: string;
+  /**
+   * Canonical DB modality name (one of the 44 in `.claude/rules/data-model.md`).
+   * Required when the display `name` differs from the canonical name — used for
+   * count lookups in `useModalityCounts` AND for the `?modality=...` directory
+   * filter URL. Without this, both will silently return zero.
+   */
+  dbName?: string;
 }
 
 interface Category {
@@ -39,6 +46,7 @@ const CATEGORIES: Category[] = [
     modalities: [
       {
         name: "Massage Therapy",
+        dbName: "Massage",
         anchor: "massage",
         description:
           "Massage therapy is the foundation of hands-on healing — the oldest, most universal form of therapeutic care practiced by virtually every culture on earth. At its core, it is the application of intentional, skilled touch to the body's soft tissues: muscles, tendons, fascia, and connective tissue. Through pressure, friction, and sustained contact, massage relieves chronic pain, reduces stress hormones, improves circulation, supports lymphatic drainage, and restores ease of movement. Research consistently demonstrates benefits for anxiety, sleep quality, immune function, and athletic recovery. In Hawaiʻi, where the spirit of aloha imbues every act of service with care and intention, therapeutic touch carries particular depth — and practitioners trained across multiple traditions are common. Within this broad tradition, dozens of distinct techniques have evolved to address specific needs. **Swedish massage** uses long gliding strokes to improve circulation and induce relaxation — the classic introductory massage. **Deep tissue massage** targets the deeper layers of muscle and connective tissue, applying sustained pressure to release chronic tension and knots. **Myofascial Release** works with the fascia — the connective tissue web surrounding every muscle and organ — using gentle sustained pressure to eliminate pain and restore motion. **Rolfing (Structural Integration)** is a more intensive form of fascia work developed by Ida Rolf, involving a systematic series of sessions that reorganize the body's alignment relative to gravity. **Manual Lymphatic Drainage (MLD)** uses feather-light circular strokes to stimulate the lymphatic system, reducing swelling, supporting immunity, and detoxifying tissues — especially valued post-surgery or for lymphedema. **Sports massage** combines techniques tailored to the physical demands of athletes, focusing on injury prevention, recovery, and performance. **Thai massage** is performed on a mat on the floor, with the practitioner using their hands, elbows, knees, and feet to move the recipient through assisted yoga-like stretches while applying acupressure along energy lines (sen). **Prenatal massage** adapts positioning and pressure for pregnant clients, addressing the unique discomforts of pregnancy such as lower back pain, hip tension, and swollen ankles. **Shiatsu** is a Japanese form of finger-pressure therapy applied along the body's meridian lines, similar in philosophy to acupuncture but without needles. **Reflexology** maps the hands, feet, and ears as microcosms of the entire body — applying targeted pressure to reflex points to support corresponding organs and systems.",
@@ -51,6 +59,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Craniosacral Therapy",
+        dbName: "Craniosacral",
         anchor: "craniosacral",
         description:
           "Craniosacral Therapy (CST) is an extraordinarily gentle form of bodywork that works with the rhythmic movement of cerebrospinal fluid around the brain and spinal cord. Practitioners use a touch lighter than the weight of a nickel to release restrictions in the craniosacral system, relieving tension deep in the body and improving central nervous system function. CST is particularly effective for headaches, migraines, chronic neck and back pain, TMJ disorders, post-traumatic stress, and sensory processing challenges in children.",
@@ -63,6 +72,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Osteopathic Medicine",
+        dbName: "Osteopathic",
         anchor: "osteopathic",
         description:
           "Osteopathic physicians (DOs) are fully licensed medical doctors who additionally train in Osteopathic Manipulative Treatment (OMT) — hands-on techniques to diagnose, treat, and prevent illness. OMT addresses the body as an integrated unit, recognizing that structure and function are interrelated. Techniques include muscle energy, counterstrain, high-velocity low-amplitude thrust, and myofascial release.",
@@ -115,6 +125,7 @@ const CATEGORIES: Category[] = [
     modalities: [
       {
         name: "Psychotherapy & Counseling",
+        dbName: "Psychotherapy",
         anchor: "psychotherapy",
         description:
           "Psychotherapy and counseling offer something no other wellness modality can fully replicate: a dedicated, confidential relationship in which to examine your inner life with skilled, compassionate guidance. The research is extensive — therapy reliably reduces symptoms of depression, anxiety, PTSD, and many other conditions, often with effects that outlast medication alone. Modern psychotherapy has evolved far beyond its origins: today's practitioners draw on neuroscience, attachment theory, somatic awareness, and decades of clinical research to offer precisely targeted approaches for specific conditions. Hawaiʻi's mental health community includes therapists trained across every major evidence-based school, many bringing cultural sensitivity shaped by the islands' diverse heritage. **Cognitive Behavioral Therapy (CBT)** addresses the relationship between thoughts, feelings, and behaviors — one of the most extensively researched therapeutic modalities for anxiety, depression, OCD, and PTSD. **EMDR (Eye Movement Desensitization and Reprocessing)** uses bilateral stimulation (often eye movements) to process traumatic memories, dramatically reducing their emotional charge. Originally developed for PTSD, EMDR is now used for phobias, grief, performance anxiety, and more. **IFS (Internal Family Systems)** views the psyche as a community of 'parts' — each with protective roles — and works to unburden wounded parts through compassionate internal dialogue. **ACT (Acceptance and Commitment Therapy)** uses mindfulness and values-based action to develop psychological flexibility rather than eliminating difficult thoughts and feelings. **DBT (Dialectical Behavior Therapy)** combines CBT with mindfulness and was originally developed for borderline personality disorder; it's now widely used for emotional dysregulation, self-harm, and eating disorders. **Psychodynamic therapy** explores how unconscious processes and early relational experiences shape present patterns. **Gestalt therapy** emphasizes present-moment awareness and the therapeutic relationship itself as the field of healing. **AEDP (Accelerated Experiential Dynamic Psychotherapy)** focuses on transforming trauma through moment-to-moment tracking of emotional experience and healing states. **Narrative therapy** helps clients re-author their life stories, separating person from problem. **Couples and relationship therapy** supports partners in developing communication, repairing ruptures, and rebuilding intimacy. **Group therapy** harnesses the healing power of shared experience, offering both community and mirrored insight.",
@@ -165,6 +176,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Traditional Chinese Medicine (TCM)",
+        dbName: "TCM (Traditional Chinese Medicine)",
         anchor: "tcm",
         description:
           "TCM is a complete medical system encompassing acupuncture, herbal medicine, dietary therapy, Tui Na massage, cupping, moxibustion, and Qi Gong. TCM views health as a dynamic balance of opposing forces (yin/yang) and the smooth flow of qi through meridian channels. Practitioners diagnose through pulse taking, tongue observation, and detailed intake. TCM excels in treating chronic and complex conditions that conventional medicine struggles with.",
@@ -177,6 +189,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Naturopathic Medicine",
+        dbName: "Naturopathic",
         anchor: "naturopathic",
         description:
           "Naturopathic doctors (NDs) are trained in a four-year graduate medical program and combine conventional diagnostics with natural therapeutics — clinical nutrition, botanical medicine, homeopathy, physical medicine, and lifestyle counseling. The guiding principles include treating the root cause, supporting the body's inherent healing capacity (vis medicatrix naturae), and first doing no harm. NDs in Hawaii often serve as primary care providers for patients seeking an integrative approach.",
@@ -209,6 +222,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Fitness & Movement Coaching",
+        dbName: "Fitness",
         anchor: "fitness",
         description:
           "Hawaii's active lifestyle culture has spawned a rich wellness fitness ecosystem. Movement coaches, personal trainers, and functional fitness instructors work in studios, gyms, outdoor parks, and clients' homes. Specializations include surf conditioning, paddling performance, hiking preparation, post-rehab training, and longevity-focused movement. Many practitioners in this category hold additional certifications in corrective exercise, Pilates, or strength and conditioning.",
@@ -229,12 +243,14 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Lāʻau Lapaʻau (Hawaiian Plant Medicine)",
+        dbName: "Herbalism",
         anchor: "laau-lapapau",
         description:
           "Lāʻau Lapaʻau is the Hawaiian tradition of using medicinal plants for healing. Native Hawaiian healers (kahuna lāʻau lapaʻau) had an encyclopedic knowledge of hundreds of indigenous plants and their therapeutic applications. Many traditional remedies have since been validated by modern phytochemistry. Today, a small number of dedicated practitioners — most with Native Hawaiian lineage — continue to practice this sacred art. Plants such as ʻōlena (turmeric), noni, kava, mamaki, and kukui are central to the pharmacopoeia.",
       },
       {
         name: "Hoʻoponopono",
+        dbName: "Lomilomi / Hawaiian Healing",
         anchor: "hooponopono",
         description:
           "Hoʻoponopono is a Native Hawaiian practice of reconciliation, forgiveness, and healing relationships. Traditionally facilitated by a kahuna (healing priest) within a family group, modern adaptations include individual therapeutic practice using the four-phrase protocol: 'I love you. I'm sorry. Please forgive me. Thank you.' Whether used in group settings, individual therapy, or as a personal daily practice, Hoʻoponopono addresses the energetic and relational roots of illness, conflict, and suffering.",
@@ -261,12 +277,14 @@ const CATEGORIES: Category[] = [
     modalities: [
       {
         name: "Nutrition Counseling",
+        dbName: "Nutrition",
         anchor: "nutrition",
         description:
           "Registered Dietitians (RDs) and Certified Nutrition Specialists (CNS) in Hawaii offer evidence-based nutritional counseling for a wide range of conditions — metabolic syndrome, gut health, hormonal imbalances, eating disorders, and athletic performance. Many practitioners integrate functional nutrition testing (microbiome analysis, food sensitivity panels, nutrient status) with dietary counseling. Hawaii's traditional diet — centered on poi, fish, sweet potato, and taro — is increasingly recognized as a highly nutritious, anti-inflammatory template.",
       },
       {
         name: "Longevity & Preventive Medicine",
+        dbName: "Longevity",
         anchor: "longevity",
         description:
           "Longevity medicine focuses on extending healthspan — the number of years lived in good health — rather than simply lifespan. Hawaii already has one of the longest life expectancies in the United States, often attributed to its multicultural diet, strong social connections, and outdoor lifestyle. Longevity practitioners offer comprehensive health optimization: advanced biomarker testing, HRV assessment, sleep optimization, hormone balancing, peptide protocols, and evidence-based supplementation strategies.",
@@ -287,6 +305,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Soul Guidance & Intuitive Healing",
+        dbName: "Soul Guidance",
         anchor: "soul-guidance",
         description:
           "Soul guidance encompasses readings, energy assessments, akashic record work, channeling, and intuitive coaching that address the soul's journey, purpose, and growth. Practitioners in this category work at the intersection of spirituality, psychology, and energy awareness. Hawaii's sacred land and strong spiritual traditions attract many gifted intuitives and soul workers from around the world.",
@@ -299,6 +318,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Psychic & Intuitive Services",
+        dbName: "Psychic",
         anchor: "psychic",
         description:
           "Hawaii has a rich tradition of psychic and intuitive practitioners — tarot readers, mediums, oracle card practitioners, and clairvoyants. Whether approached as tools for self-reflection, spiritual guidance, or literal communication with other dimensions of reality, these practices have served human beings across every culture for millennia. Hawaii's open, spiritually-oriented culture creates a welcoming environment for these services.",
@@ -313,6 +333,7 @@ const CATEGORIES: Category[] = [
     modalities: [
       {
         name: "Womenʻs Health",
+        dbName: "Women's Health",
         anchor: "womens-health",
         description:
           "Practitioners specializing in womenʻs health address the unique physiological, hormonal, and psychosocial dimensions of the feminine experience. This includes functional gynecology, hormonal balance, pelvic floor physical therapy, fertility support, endometriosis and PCOS care, perimenopause and menopause navigation, and sexual health. Many Hawaii practitioners bring both clinical expertise and a holistic, trauma-informed lens to this deeply personal work.",
@@ -325,6 +346,7 @@ const CATEGORIES: Category[] = [
       },
       {
         name: "Midwifery",
+        dbName: "Midwife",
         anchor: "midwifery",
         description:
           "Certified Nurse-Midwives (CNMs) and Licensed Midwives (LMs) in Hawaii provide comprehensive maternity care — from prenatal visits through birth and postpartum care. Home birth and birth center births attended by midwives are increasingly popular in Hawaii as an alternative to hospital birth. Hawaii's midwifery community has strong roots in both indigenous Hawaiian birth traditions and evidence-based midwifery practice.",
@@ -694,6 +716,7 @@ function PullQuote({ text, attribution }: { text: string; attribution: string })
 
 function ModalityCard({ mod, count }: { mod: Modality; count?: number }) {
   const { lead, subs } = parseDescription(mod.description);
+  const filterName = mod.dbName ?? mod.name;
   const ctaLabel =
     count && count > 0
       ? `Find ${count} ${mod.name} practitioner${count === 1 ? "" : "s"} in Hawaiʻi →`
@@ -728,7 +751,7 @@ function ModalityCard({ mod, count }: { mod: Modality; count?: number }) {
             )}
             <div className="mt-5 pt-4 border-t border-[hsl(35,18%,82%)]">
               <Link
-                to={`/directory?modality=${encodeURIComponent(mod.name)}`}
+                to={`/directory?modality=${encodeURIComponent(filterName)}`}
                 className="mod-chapter transition-opacity hover:opacity-60"
               >
                 {ctaLabel}
@@ -790,7 +813,7 @@ function CategorySection({
       {expanded && (
         <div className="space-y-5">
           {cat.modalities.map((mod) => (
-            <ModalityCard key={mod.anchor} mod={mod} count={counts[mod.name]} />
+            <ModalityCard key={mod.anchor} mod={mod} count={counts[mod.dbName ?? mod.name]} />
           ))}
 
           {showCTA && (
@@ -1027,6 +1050,22 @@ export default function WellnessModalities() {
   );
   const { data: modalityCounts = {} } = useModalityCounts();
 
+  // Cross-page hash navigation: when a user clicks a guide-section link from
+  // another route (e.g. /#bodywork from the homepage category band), React Router
+  // doesn't auto-scroll to the anchor. This effect handles that on mount + on
+  // hash changes within the same route.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (!hash) return;
+    const id = hash.replace(/^#/, "");
+    // Defer to next frame so the section has mounted
+    const raf = requestAnimationFrame(() => {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [hash]);
+
   return (
     <>
       <JsonLd id="guide-article" data={articleSchema} />
@@ -1067,7 +1106,7 @@ export default function WellnessModalities() {
             Wellness Modalities<br />in Hawaiʻi
           </h1>
           <p className="mt-4 max-w-2xl text-white/75 text-[15px] sm:text-base leading-relaxed">
-            Your definitive reference for holistic healing across the Hawaiian Islands — 44 modalities, 9 traditions, island-by-island guidance.
+            Your definitive reference for holistic healing across the Hawaiian Islands — 44 modalities, 9 categories, island-by-island guidance.
           </p>
           <div className="mt-5 flex flex-wrap gap-x-5 gap-y-1 text-[11px] uppercase tracking-[0.18em] text-white/55">
             <span>44 Modalities</span>
