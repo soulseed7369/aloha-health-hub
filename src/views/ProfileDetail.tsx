@@ -1372,7 +1372,7 @@ const ProfileDetail = () => {
                     <ContactReveal listingId={p.id} listingType="practitioner" type="email" />
                   )}
                   {p.website && (
-                    <a href={p.website} onClick={() => trackClick('website')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0" target="_blank" rel="noopener noreferrer">
+                    <a href={/^https?:\/\//i.test(p.website) ? p.website : `https://${p.website}`} onClick={() => trackClick('website')} className="flex items-center gap-2 font-medium text-primary hover:text-primary/80 transition-colors min-w-0" target="_blank" rel="noopener noreferrer">
                       <Globe className="h-4 w-4 flex-shrink-0" />
                       <span className="truncate">{p.website.replace(/^https?:\/\//, '').replace(/\/$/, '')}</span>
                     </a>

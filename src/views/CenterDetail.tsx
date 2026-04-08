@@ -947,7 +947,7 @@ export default function CenterDetail() {
                     <ContactReveal listingId={c.id} listingType="center" type="email" />
                   )}
                   {c.website && (
-                    <a href={c.website} onClick={() => trackClick('website')} target="_blank" rel="noopener noreferrer"
+                    <a href={/^https?:\/\//i.test(c.website) ? c.website : `https://${c.website}`} onClick={() => trackClick('website')} target="_blank" rel="noopener noreferrer"
                       className="flex items-center gap-2 hover:text-foreground">
                       <Globe className="h-4 w-4" /> Website
                     </a>
