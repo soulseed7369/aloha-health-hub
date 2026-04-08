@@ -9,6 +9,7 @@ import { useModalityCounts } from "@/hooks/useModalityCounts";
 import { JsonLd } from "@/components/JsonLd";
 import { GuideCTA } from "@/components/GuideCTA";
 import { getGuideBySlug } from "@/lib/guides";
+import { supabase } from "@/lib/supabase";
 
 const guide = getGuideBySlug("wellness-modalities-hawaii")!;
 const CANONICAL = `https://hawaiiwellness.net/guides/${guide.slug}`;
@@ -703,6 +704,92 @@ const PULL_QUOTES: Record<number, { text: string; attribution: string }> = {
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
+function GuideEmailCapture() {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = email.trim().toLowerCase();
+    if (!trimmed || state === "loading" || state === "done") return;
+    setState("loading");
+    try {
+      if (supabase) {
+        // Mirror Footer.tsx usage — plain email upsert. Source tagging can be
+        // added later once a `source` column is added to newsletter_subscribers.
+        await supabase.from("newsletter_subscribers").upsert({ email: trimmed });
+      }
+      setState("done");
+    } catch {
+      // Optimistic UX — still mark done so the user isn't stuck.
+      setState("done");
+    }
+  };
+
+  return (
+    <aside
+      className="my-16 border-y-2 border-foreground bg-[hsl(35,30%,96%)] px-6 py-12 sm:px-12"
+      aria-labelledby="guide-capture-heading"
+    >
+      <div className="mx-auto max-w-[620px] text-center">
+        <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+          The Hawaiʻi Wellness Dispatch
+        </div>
+        <h3
+          id="guide-capture-heading"
+          className="font-serif text-foreground"
+          style={{
+            fontFamily: "'Playfair Display', Georgia, serif",
+            fontWeight: 500,
+            fontSize: "clamp(26px, 3.2vw, 36px)",
+            lineHeight: 1.15,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Keep this guide in your pocket.
+        </h3>
+        <p className="mx-auto mt-4 max-w-[520px] text-[15.5px] leading-[1.7] text-muted-foreground">
+          Occasional dispatches on holistic wellness in Hawaiʻi — new modality guides,
+          featured practitioners, and stories from across the islands. No spam, ever.
+        </p>
+
+        {state === "done" ? (
+          <div className="mx-auto mt-7 inline-flex items-center gap-2 rounded-md border border-primary/30 bg-primary/5 px-4 py-3 text-sm text-foreground">
+            <span className="text-primary">✓</span>
+            Mahalo! You're on the list — check your inbox.
+          </div>
+        ) : (
+          <form
+            onSubmit={handleSubmit}
+            className="mx-auto mt-7 flex max-w-[440px] flex-col gap-2 sm:flex-row"
+          >
+            <input
+              type="email"
+              required
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              aria-label="Email address"
+              className="flex-1 border border-foreground/30 bg-background px-4 py-3 text-[15px] text-foreground outline-none transition-colors focus:border-primary"
+            />
+            <button
+              type="submit"
+              disabled={state === "loading"}
+              className="bg-foreground px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.18em] text-background transition-colors hover:bg-primary disabled:opacity-60"
+            >
+              {state === "loading" ? "Subscribing…" : "Subscribe"}
+            </button>
+          </form>
+        )}
+
+        <div className="mt-4 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+          Unsubscribe anytime
+        </div>
+      </div>
+    </aside>
+  );
+}
+
 function PullQuote({ text, attribution }: { text: string; attribution: string }) {
   return (
     <blockquote className="my-14 pl-7 border-l-[3px] border-primary py-1">
@@ -915,7 +1002,7 @@ function ComplementarySection() {
 }
 
 function TableOfContents() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   return (
     <nav className="mb-12 border border-[hsl(35,18%,80%)]" style={{ background: "hsl(35, 22%, 97%)" }}>
       <button
@@ -1182,6 +1269,9 @@ export default function WellnessModalities() {
         <div id="complementary" className="scroll-mt-20">
           <ComplementarySection />
         </div>
+
+        {/* ── Mid-guide email capture ── */}
+        <GuideEmailCapture />
 
         {/* ── By Island ── */}
         <section id="by-island" className="mb-20 scroll-mt-20">

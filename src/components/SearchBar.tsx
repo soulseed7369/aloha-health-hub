@@ -28,18 +28,15 @@ function detectIslandFromCoords(lat: number, lng: number): string | null {
   return null;
 }
 
-// Top 10 modalities — shown as quick-tap chips below the hero search box
+// Top 6 modalities — quick-tap chips below the hero search box.
+// Kept to one row to reduce homepage density. Full 44 live in the guide.
 const POPULAR_SEARCHES = [
   'Yoga',
   'Massage',
-  'Reiki',
   'Acupuncture',
-  'Breathwork',
+  'Reiki',
   'Meditation',
-  'Sound Healing',
-  'Life Coaching',
-  'Naturopathic',
-  'Energy Healing',
+  'Breathwork',
 ];
 
 const AXIS_LABELS: Record<string, string> = {
