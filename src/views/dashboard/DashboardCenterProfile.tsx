@@ -11,6 +11,18 @@ import { ExternalLink, Loader2, Lock, Crown } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { useMyCenters, useSaveCenter, uploadCenterPhoto, type CenterFormData } from "@/hooks/useMyCenters";
+import { DuplicateListingError, type DuplicateCandidate } from "@/lib/duplicateDetection";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useNavigate } from "react-router-dom";
 import { useMyBillingProfile } from "@/hooks/useStripe";
 import MultiPhotoUpload, { type PhotoSlot } from "@/components/MultiPhotoUpload";
 import { RankedModalities, type ModalityTier } from "@/components/RankedModalities";
@@ -71,6 +83,7 @@ export default function DashboardCenterProfile() {
   const { data: centers, isLoading } = useMyCenters();
   const { data: billing } = useMyBillingProfile();
   const saveMutation = useSaveCenter();
+  const navigate = useNavigate();
   const [form, setForm] = useState<CenterFormData>(emptyForm);
   const [photoSlots, setPhotoSlots] = useState<PhotoSlot[]>([]);
   const [profilePhotoIndex, setProfilePhotoIndex] = useState(0);
@@ -79,6 +92,10 @@ export default function DashboardCenterProfile() {
   const [initialPhotos, setInitialPhotos] = useState<string[]>([]);
   const [initialProfileIdx, setInitialProfileIdx] = useState(0);
   const [photoKey, setPhotoKey] = useState(0);
+  const [dupDialog, setDupDialog] = useState<
+    | { code: 'DUPLICATE_UNCLAIMED' | 'DUPLICATE_CLAIMED'; candidate: DuplicateCandidate; pendingPhotos: string[]; pendingAvatar: string | null }
+    | null
+  >(null);
 
   const center = centers?.[0] ?? null;
 
@@ -147,11 +164,15 @@ export default function DashboardCenterProfile() {
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error('Center name is required.'); return; }
+    // Hoisted so the catch block below can read post-upload URLs when
+    // building `pendingPhotos` for the duplicate dialog. `photoSlots`
+    // (state) would still hold the pre-upload slot objects at that point
+    // because React state updates are async.
+    const finalSlots: PhotoSlot[] = [];
     try {
       setUploading(true);
 
       // Upload pending photos sequentially
-      const finalSlots: PhotoSlot[] = [];
       for (const slot of photoSlots) {
         if (slot.file) {
           try {
@@ -194,11 +215,57 @@ export default function DashboardCenterProfile() {
 
       toast.success('Center profile saved! It will appear in the directory once reviewed.');
     } catch (err: any) {
+      // Duplicate-listing guardrail: show dialog instead of a plain error toast.
+      if (err instanceof DuplicateListingError) {
+        const uploadedUrls = finalSlots.map(s => s.url).filter(Boolean);
+        const idx = uploadedUrls.length > 0
+          ? Math.min(profilePhotoIndex, uploadedUrls.length - 1)
+          : 0;
+        setDupDialog({
+          code: err.code,
+          candidate: err.candidate,
+          pendingPhotos: uploadedUrls,
+          pendingAvatar: uploadedUrls[idx] ?? null,
+        });
+        setUploading(false);
+        return;
+      }
       console.error('Center save error:', err);
       toast.error(`Failed to save: ${err?.message ?? 'unknown error'}`);
     } finally {
       setUploading(false);
     }
+  };
+
+  /** User chose "Create new anyway" in the duplicate dialog. */
+  const handleCreateAnyway = async () => {
+    if (!dupDialog) return;
+    const photos = dupDialog.pendingPhotos;
+    const avatar = dupDialog.pendingAvatar;
+    setDupDialog(null);
+    try {
+      setUploading(true);
+      await saveMutation.mutateAsync({
+        ...form,
+        avatar_url: avatar,
+        photos,
+        overrideDuplicate: true,
+      });
+      toast.success('Center profile saved. Admin will review for possible duplicate.');
+    } catch (err: any) {
+      console.error('Center save error (override):', err);
+      toast.error(`Failed to save: ${err?.message ?? 'unknown error'}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  /** User chose "Claim existing" in the duplicate dialog. */
+  const handleClaimExisting = () => {
+    if (!dupDialog) return;
+    const candidateId = dupDialog.candidate.id;
+    setDupDialog(null);
+    navigate(`/claim/${candidateId}`);
   };
 
   if (isLoading) {
@@ -736,6 +803,62 @@ export default function DashboardCenterProfile() {
           )}
         </Button>
       </div>
+
+      {/* Duplicate-listing dialog */}
+      <AlertDialog open={!!dupDialog} onOpenChange={(open) => !open && setDupDialog(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {dupDialog?.code === 'DUPLICATE_UNCLAIMED'
+                ? 'This listing already exists'
+                : 'A listing with this email exists'}
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3 text-sm">
+                <p>
+                  We found an existing listing that matches the email you entered:
+                </p>
+                <div className="rounded-md border border-border bg-muted/30 p-3">
+                  <div className="font-medium text-foreground">{dupDialog?.candidate.name}</div>
+                  {(dupDialog?.candidate.city || dupDialog?.candidate.island) && (
+                    <div className="text-xs text-muted-foreground">
+                      {[dupDialog?.candidate.city, dupDialog?.candidate.island?.replace('_', ' ')]
+                        .filter(Boolean)
+                        .join(' · ')}
+                    </div>
+                  )}
+                </div>
+                {dupDialog?.code === 'DUPLICATE_UNCLAIMED' ? (
+                  <p>
+                    To avoid creating a duplicate, please claim the existing listing instead. You'll
+                    verify ownership by email, then you can edit it directly.
+                  </p>
+                ) : (
+                  <p>
+                    This listing is already owned by another account. If you believe this is an
+                    error or a duplicate, please contact{' '}
+                    <a href="mailto:aloha@hawaiiwellness.net" className="underline">
+                      aloha@hawaiiwellness.net
+                    </a>
+                    . You may still create a new listing — it will be flagged for admin review.
+                  </p>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            {dupDialog?.code === 'DUPLICATE_UNCLAIMED' && (
+              <AlertDialogAction onClick={handleClaimExisting}>
+                Claim existing listing
+              </AlertDialogAction>
+            )}
+            <Button variant="outline" onClick={handleCreateAnyway}>
+              Create new anyway
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

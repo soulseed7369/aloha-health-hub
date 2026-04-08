@@ -147,51 +147,84 @@ Not interested? Just reply and I'll remove you."""
     return subject, html_body, text_body
 
 
-# ─── PHASE 2 TRACK A: Premium for Website Owners ─────────────────────────────
+# ─── PHASE 2 TRACK A: Premium Early Claimant Offer ───────────────────────────
 
 def phase2_track_a(contact: dict) -> tuple:
     name = contact.get("name", "there")
-    island = _island_name(contact.get("island", ""))
-    island_with_article = ISLAND_DISPLAY_WITH_ARTICLE.get(contact.get("island", ""), island)
-    modality = _primary_modality(contact.get("modalities", []))
     upgrade_link = _upgrade_url()
 
-    subject = f"More {island} clients from Hawaii Wellness"
+    subject = f"A free month of Premium on Hawaii Wellness — {name}"
 
     text_body = f"""Hi {name},
 
-You claimed your listing on Hawaii Wellness — thanks for that.
+I wanted to personally thank you for being one of our early claimants on Hawaii Wellness — it genuinely means a lot to have practitioners like you on the directory from the start.
 
-I see you already have a website, which is great. What most practitioners don't realize is that hundreds of people search our directory every week looking for {modality} on {island_with_article}.
+As a small thank you, I'm giving the first 3 practitioners who reply a coupon code for a free first month of Premium. Premium gets you:
 
-Right now your listing is basic. Upgrading to Premium ($39/mo) adds your class schedule, offerings, testimonials, and a booking button — so when people find you on the directory, they can book directly or visit your site.
+- Priority placement in search results
+- Verified badge
+- Unlimited bio
+- 5 photos + social links
+- Direct booking link on your profile
+- Analytics on who's finding you
 
-Your website does the converting. Hawaii Wellness does the finding.
+Just hit reply and I'll send the code right over. You can upgrade here: {upgrade_link}
 
-{upgrade_link}
-
-Aloha,
+Mahalo,
 Marcus
-Hawaii Wellness"""
+HawaiiWellness.net"""
 
-    html_body = f"""<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b; line-height: 1.6;">
-  <p>Hi {name},</p>
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">A thank you for early claimants — free first month of Premium, first 3 who reply.&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌</div>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
 
-  <p>You claimed your listing on <a href="{SITE_URL}" style="color: #0369a1;">Hawaii Wellness</a> — thanks for that.</p>
+  <!-- Logo header -->
+  <div style="background: #f0f9ff; padding: 24px 32px; text-align: center; border-bottom: 1px solid #e0f2fe;">
+    <a href="{SITE_URL}" style="text-decoration: none;">
+      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="120" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
+    </a>
+  </div>
 
-  <p>I see you already have a website, which is great. What most practitioners don't realize is that hundreds of people search our directory every week looking for {modality} on {island_with_article}.</p>
+  <!-- Body -->
+  <div style="padding: 32px; color: #1e293b; line-height: 1.7;">
+    <p style="margin-top:0;">Hi {name},</p>
 
-  <p>Right now your listing is basic. Upgrading to Premium ($39/mo) adds your class schedule, offerings, testimonials, and a booking button — so when people find you on the directory, they can book directly or visit your site.</p>
+    <p>I wanted to personally thank you for being one of our early claimants on <a href="{SITE_URL}" style="color: #0369a1;">Hawaii Wellness</a> — it genuinely means a lot to have practitioners like you on the directory from the start.</p>
 
-  <p><strong>Your website does the converting. Hawaii Wellness does the finding.</strong></p>
+    <p>As a small thank you, I'm giving the first 3 practitioners who reply a coupon code for a free first month of Premium. Premium gets you:</p>
 
-  <p style="margin: 24px 0;">
-    <a href="{upgrade_link}" style="background: #0369a1; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600;">Upgrade to Premium</a>
-  </p>
+    <ul style="color: #334155; padding-left: 20px; line-height: 2;">
+      <li>Priority placement in search results</li>
+      <li>Verified badge</li>
+      <li>Unlimited bio</li>
+      <li>5 photos + social links</li>
+      <li>Direct booking link on your profile</li>
+      <li>Analytics on who's finding you</li>
+    </ul>
 
-  <p>Aloha,<br>Marcus<br>
-  <span style="color: #64748b; font-size: 14px;">Hawaii Wellness</span></p>
-</div>"""
+    <p>Just hit reply and I'll send the code right over.</p>
+
+    <p style="margin: 28px 0;">
+      <a href="{upgrade_link}" style="background: #0369a1; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">Upgrade to Premium</a>
+    </p>
+
+    <p style="margin-bottom:0;">Mahalo,<br><strong>Marcus</strong><br>
+    <a href="{SITE_URL}" style="color: #0369a1; text-decoration: none;">HawaiiWellness.net</a></p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+    <p style="margin: 0 0 4px 0;"><a href="{SITE_URL}" style="color: #94a3b8;">Hawai'i Wellness</a> · PO Box 44368, Kamuela, HI 96743</p>
+    <p style="margin: 0;">You're receiving this because you claimed your listing on our wellness directory.<br>Not interested? Just reply and I'll remove you.</p>
+  </div>
+
+</div>
+</body>
+</html>"""
 
     return subject, html_body, text_body
 
@@ -294,6 +327,83 @@ Hawaii Wellness"""
   <p>Aloha,<br>Marcus<br>
   <span style="color: #64748b; font-size: 14px;">Hawaii Wellness</span></p>
 </div>"""
+
+    return subject, html_body, text_body
+
+
+# ─── PHASE 1 SOCIAL PROOF: "Your neighbors claimed theirs" ──────────────────
+
+def phase1_social_proof(contact: dict) -> tuple:
+    name = contact.get("name", "there")
+    listing_id = _listing_id(contact)
+    listing_type = contact.get("listing_type", "practitioner")
+    claim_link = _claim_url(listing_id, listing_type)
+
+    subject = f"Krista in Honokaa claimed hers. Gloria in Pahoa claimed hers. — {name}"
+
+    text_body = f"""Hi {name},
+
+Over the past few weeks, 41 Big Island wellness practitioners quietly claimed their free listings on Hawaii Wellness.
+
+Krista at Ola Acupuncture in Honokaa. Gloria at Shiva Kali Yoga in Pahoa. Carly Ko in Captain Cook. Dawn in Waikoloa. Practitioners from Kona to Hilo to Waimea — all showing up when someone searches for wellness on the Big Island.
+
+Your listing is still here, still showing up in searches. Still unclaimed.
+
+Takes 2 minutes. It's free. Here's yours:
+{claim_link}
+
+Mahalo,
+Marcus
+HawaiiWellness.net
+
+---
+Hawai'i Wellness · PO Box 44368, Kamuela, HI 96743
+Not interested? Just reply and I'll remove you."""
+
+    html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">41 Big Island wellness practitioners claimed their free listing. Yours is still waiting.&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌&nbsp;‌</div>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);">
+
+  <!-- Logo header -->
+  <div style="background: #f0f9ff; padding: 24px 32px; text-align: center; border-bottom: 1px solid #e0f2fe;">
+    <a href="{SITE_URL}" style="text-decoration: none;">
+      <img src="{SITE_URL}/hawaii-wellness-logo.png" alt="Hawai'i Wellness" width="120" style="width:120px;max-width:120px;height:auto;display:block;margin:0 auto;" />
+    </a>
+  </div>
+
+  <!-- Body -->
+  <div style="padding: 32px; color: #1e293b; line-height: 1.7;">
+    <p style="margin-top:0;">Hi {name},</p>
+
+    <p>Over the past few weeks, 41 Big Island wellness practitioners quietly claimed their free listings on <a href="{SITE_URL}" style="color: #0369a1;">Hawaii Wellness</a>.</p>
+
+    <p>Krista at Ola Acupuncture in Honokaa. Gloria at Shiva Kali Yoga in Pahoa. Carly Ko in Captain Cook. Dawn in Waikoloa. Practitioners from Kona to Hilo to Waimea — all showing up when someone searches for wellness on the Big Island.</p>
+
+    <p>Your listing is still here, still showing up in searches. Still unclaimed.</p>
+
+    <p>Takes 2 minutes. It's free.</p>
+
+    <p style="margin: 28px 0;">
+      <a href="{claim_link}" style="background: #0369a1; color: #fff; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">Claim Your Listing</a>
+    </p>
+
+    <p style="margin-bottom:0;">Mahalo,<br><strong>Marcus</strong><br>
+    <a href="{SITE_URL}" style="color: #0369a1; text-decoration: none;">HawaiiWellness.net</a></p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; text-align: center; color: #94a3b8; font-size: 12px; line-height: 1.6;">
+    <p style="margin: 0 0 4px 0;"><a href="{SITE_URL}" style="color: #94a3b8;">Hawai'i Wellness</a> · PO Box 44368, Kamuela, HI 96743</p>
+    <p style="margin: 0;">You're receiving this because your practice appears in our wellness directory.<br>Not interested? Just reply and I'll remove you.</p>
+  </div>
+
+</div>
+</body>
+</html>"""
 
     return subject, html_body, text_body
 
@@ -427,6 +537,7 @@ Hawaii Wellness"""
 TEMPLATE_MAP = {
     "phase1_claim": phase1_claim,
     "phase1b_claim": phase1b_claim,
+    "phase1_social_proof": phase1_social_proof,
     "phase2_track_a": phase2_track_a,
     "phase2_track_b": phase2_track_b,
     "phase2_track_c": phase2_track_c,

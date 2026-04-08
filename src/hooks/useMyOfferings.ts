@@ -34,13 +34,17 @@ export function useMyOfferings() {
     queryFn: async () => {
       if (!supabase || !user) return [];
 
-      const { data: practitioner, error: practitionerError } = await supabase
+      // Oldest-row-wins — user may own 2+ practitioners after a
+      // duplicate-dialog override (see #5).
+      const { data: practitionerRows, error: practitionerError } = await supabase
         .from('practitioners')
         .select('id')
         .eq('owner_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: true })
+        .limit(1);
 
       if (practitionerError) throw practitionerError;
+      const practitioner = practitionerRows?.[0] ?? null;
       if (!practitioner) return [];
 
       const { data, error } = await supabase

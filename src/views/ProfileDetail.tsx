@@ -33,6 +33,7 @@ import { FlagListingButton } from "@/components/FlagListingButton";
 import { RequestInfoModal } from "@/components/RequestInfoModal";
 import { BookingEmbed } from "@/components/BookingEmbed";
 import { GalleryLightbox } from "@/components/GalleryLightbox";
+import { getModalityGuideUrl } from "@/lib/guides";
 import { ContactReveal } from "@/components/ContactReveal";
 import { ShareButtons } from "@/components/ShareButtons";
 import { usePageMeta } from "@/hooks/usePageMeta";
@@ -566,6 +567,35 @@ const ProfileDetail = () => {
                     ))}
                   </div>
                 )}
+
+                {/* Guide cross-link — internal link from each profile to relevant modality sections */}
+                {(() => {
+                  const guideLinks = (p.modalities ?? [])
+                    .map((m) => ({ name: m, url: getModalityGuideUrl(m) }))
+                    .filter((x): x is { name: string; url: string } => x.url !== null)
+                    // dedupe by URL (e.g. Counseling + Psychotherapy both map to /psychotherapy)
+                    .filter((x, i, arr) => arr.findIndex((y) => y.url === x.url) === i)
+                    .slice(0, 4);
+                  if (guideLinks.length === 0) return null;
+                  return (
+                    <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                      Learn about{" "}
+                      {guideLinks.map((g, i) => (
+                        <span key={g.url}>
+                          <Link
+                            to={g.url}
+                            className="underline decoration-dotted underline-offset-2 hover:text-foreground hover:decoration-solid transition-colors"
+                          >
+                            {g.name}
+                          </Link>
+                          {i < guideLinks.length - 1 ? " · " : ""}
+                        </span>
+                      ))}
+                      {" "}
+                      <span className="text-muted-foreground/70">in our guide →</span>
+                    </p>
+                  );
+                })()}
               </div>
             </div>
 

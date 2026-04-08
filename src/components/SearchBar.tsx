@@ -28,18 +28,15 @@ function detectIslandFromCoords(lat: number, lng: number): string | null {
   return null;
 }
 
-// Top 10 modalities — shown as quick-tap chips below the hero search box
+// Top 6 modalities — quick-tap chips below the hero search box.
+// Kept to one row to reduce homepage density. Full 44 live in the guide.
 const POPULAR_SEARCHES = [
   'Yoga',
   'Massage',
-  'Reiki',
   'Acupuncture',
-  'Breathwork',
+  'Reiki',
   'Meditation',
-  'Sound Healing',
-  'Life Coaching',
-  'Naturopathic',
-  'Energy Healing',
+  'Breathwork',
 ];
 
 const AXIS_LABELS: Record<string, string> = {
@@ -365,7 +362,19 @@ export function SearchBar({
     navigate(`/directory?${params.toString()}`);
   };
 
-  const handleChipClick = (label: string) => handleSearch(label);
+  // Chip clicks navigate with `?modality=` (not `?q=`) so the Directory's
+  // contextual guide banner picks them up — each chip is a canonical modality.
+  const handleChipClick = (label: string) => {
+    setIsOpen(false);
+    const params = new URLSearchParams();
+    params.set('modality', label);
+    if (island && island !== 'all') params.set('island', island);
+    if (userLat !== null && userLng !== null) {
+      params.set('ulat', String(userLat));
+      params.set('ulng', String(userLng));
+    }
+    navigate(`/directory?${params.toString()}`);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') { setIsOpen(false); return; }

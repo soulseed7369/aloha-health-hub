@@ -1,0 +1,12 @@
+{
+  "/_global-error/page": "app/_global-error/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/contact/route": "app/api/contact/route.js",
+  "/api/spa/route": "app/api/spa/route.js",
+  "/big-island/[modality]/page": "app/big-island/[modality]/page.js",
+  "/kauai/[modality]/page": "app/kauai/[modality]/page.js",
+  "/maui/[modality]/page": "app/maui/[modality]/page.js",
+  "/oahu/[modality]/page": "app/oahu/[modality]/page.js",
+  "/robots.txt/route": "app/robots.txt/route.js",
+  "/sitemap.xml/route": "app/sitemap.xml/route.js"
+}

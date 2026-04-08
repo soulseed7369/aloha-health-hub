@@ -1,0 +1,7147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hawaii Wellness Knowledge Graph</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f1117; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; overflow: hidden; }
+  #graph-container { position: fixed; inset: 0; }
+  svg { width: 100%; height: 100%; }
+  .link { stroke: #334155; stroke-opacity: 0.6; }
+  .node circle { cursor: pointer; stroke: rgba(255,255,255,0.15); stroke-width: 1.5px; transition: opacity 0.2s; }
+  .node text { pointer-events: none; font-size: 11px; fill: #cbd5e1; text-shadow: 0 1px 3px #000; }
+  .node:hover circle { stroke: #fff; stroke-width: 2px; }
+  #panel { position: fixed; top: 0; right: 0; width: 320px; height: 100vh; background: rgba(15,17,23,0.95); border-left: 1px solid #1e293b; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; backdrop-filter: blur(8px); }
+  h1 { font-size: 16px; font-weight: 700; color: #f8fafc; }
+  .subtitle { font-size: 11px; color: #64748b; }
+  .search-box { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; width: 100%; outline: none; }
+  .search-box:focus { border-color: #0EA5E9; }
+  select { background: #1e293b; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; color: #e2e8f0; font-size: 13px; width: 100%; outline: none; cursor: pointer; }
+  .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { background: #1e293b; border-radius: 8px; padding: 10px; }
+  .stat-value { font-size: 22px; font-weight: 700; color: #0EA5E9; }
+  .stat-label { font-size: 10px; color: #64748b; margin-top: 2px; }
+  #node-detail { background: #1e293b; border-radius: 10px; padding: 14px; display: none; }
+  #node-detail h3 { font-size: 14px; font-weight: 700; color: #f8fafc; margin-bottom: 8px; }
+  .detail-row { display: flex; justify-content: space-between; font-size: 12px; padding: 3px 0; border-bottom: 1px solid #334155; }
+  .detail-label { color: #94a3b8; }
+  .detail-value { color: #e2e8f0; font-weight: 600; }
+  .files-list { margin-top: 8px; font-size: 11px; color: #64748b; }
+  .cluster-tag { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; margin-top: 6px; }
+  .god-node-badge { background: linear-gradient(135deg, #F59E0B, #EF4444); color: #fff; display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; margin-left: 6px; }
+  .legend { display: flex; flex-direction: column; gap: 4px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #94a3b8; cursor: pointer; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .section-title { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
+  #tooltip { position: fixed; pointer-events: none; background: rgba(15,17,23,0.95); border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 12px; display: none; z-index: 100; max-width: 200px; }
+</style>
+</head>
+<body>
+<div id="graph-container"><svg id="svg"></svg></div>
+
+<div id="panel">
+  <div>
+    <h1>🌺 Hawaii Wellness</h1>
+    <div class="subtitle">Knowledge Graph · Corpus 1: Content + Research</div>
+  </div>
+
+  <input class="search-box" id="search" placeholder="Search concepts..." />
+
+  <select id="cluster-filter">
+    <option value="">All clusters</option>
+    <option value="Content & SEO">Content & SEO</option>
+<option value="Monetization">Monetization</option>
+<option value="Wellness Modalities">Wellness Modalities</option>
+  </select>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-value" id="node-count">0</div><div class="stat-label">Concepts</div></div>
+    <div class="stat-card"><div class="stat-value" id="edge-count">0</div><div class="stat-label">Connections</div></div>
+    <div class="stat-card"><div class="stat-value" id="cluster-count">0</div><div class="stat-label">Clusters</div></div>
+    <div class="stat-card"><div class="stat-value" id="file-count">0</div><div class="stat-label">Docs indexed</div></div>
+  </div>
+
+  <div id="node-detail"></div>
+
+  <div>
+    <div class="section-title" style="margin-bottom:8px">Clusters</div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div style="font-size:10px;color:#334155;margin-top:auto">
+    Scroll to zoom · Drag to pan · Click node for details
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+const GRAPH = {
+  "nodes": [
+    {
+      "id": "Practitioners",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.4,
+      "degree": 1.0,
+      "betweenness": 0.0,
+      "pagerank": 0.0,
+      "mentions": 305,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "audit-report.md",
+        "CLAIM_FEATURE_INDEX.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "SETUP_EMAIL_TEMPLATES.md",
+        "DELIVERABLES.md",
+        "soft-launch-plan.md",
+        "verification-step-by-step.md",
+        "pricing-market-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "README.md",
+        "lessons.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Claims",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3574,
+      "degree": 0.8868,
+      "betweenness": 0.0067,
+      "pagerank": 0.0,
+      "mentions": 190,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "verification-step-by-step.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "outreach-template.md",
+        "CLAIM_FEATURE_INDEX.md",
+        "pricing-market-analysis-v2.md",
+        "SETUP_EMAIL_TEMPLATES.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md",
+        "DELIVERABLES.md"
+      ]
+    },
+    {
+      "id": "Soft Launch",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3359,
+      "degree": 0.8113,
+      "betweenness": 0.0283,
+      "pagerank": 0.0,
+      "mentions": 40,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "verified-testimonials-plan.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Big Island",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3795,
+      "degree": 0.9434,
+      "betweenness": 0.0054,
+      "pagerank": 0.0,
+      "mentions": 120,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "audit-report.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "marketing-website-sales-campaign.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Outreach",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3281,
+      "degree": 0.8113,
+      "betweenness": 0.009,
+      "pagerank": 0.0,
+      "mentions": 82,
+      "files": [
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "outreach-contacts.md",
+        "outreach-template.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Supabase",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3399,
+      "degree": 0.8491,
+      "betweenness": 0.0008,
+      "pagerank": 0.0,
+      "mentions": 156,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "audit-report.md",
+        "CLAIM_FEATURE_INDEX.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "tier-strategy-recommendation.md",
+        "pricing-market-analysis-v2.md",
+        "SETUP_EMAIL_TEMPLATES.md",
+        "DELIVERABLES.md",
+        "soft-launch-plan.md",
+        "verification-step-by-step.md",
+        "pricing-market-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "README.md",
+        "lessons.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Meditation",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3279,
+      "degree": 0.7925,
+      "betweenness": 0.0273,
+      "pagerank": 0.0,
+      "mentions": 23,
+      "files": [
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Trust",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3619,
+      "degree": 0.8868,
+      "betweenness": 0.018,
+      "pagerank": 0.0,
+      "mentions": 41,
+      "files": [
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "soft-launch-plan.md",
+        "pricing-and-positioning-strategy.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "outreach-contacts.md",
+        "provider-center-separation-analysis.md",
+        "outreach-template.md",
+        "pricing-market-analysis-v2.md"
+      ]
+    },
+    {
+      "id": "Acupuncture",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3193,
+      "degree": 0.7925,
+      "betweenness": 0.0058,
+      "pagerank": 0.0,
+      "mentions": 30,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "campaign-command-center-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Yoga",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3402,
+      "degree": 0.8491,
+      "betweenness": 0.0015,
+      "pagerank": 0.0,
+      "mentions": 38,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "OFFERINGS_RESEARCH.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "provider-center-separation-analysis.md",
+        "outreach-contacts.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "campaign-command-center-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Social Media",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3798,
+      "degree": 0.9434,
+      "betweenness": 0.0062,
+      "pagerank": 0.0,
+      "mentions": 67,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "soft-launch-plan.md",
+        "pricing-and-positioning-strategy.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "tier-strategy-recommendation.md",
+        "phase-b-spec.md",
+        "provider-center-separation-analysis.md",
+        "outreach-template.md",
+        "pricing-market-analysis-v2.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Residents",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3649,
+      "degree": 0.9057,
+      "betweenness": 0.0066,
+      "pagerank": 0.0,
+      "mentions": 53,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "soft-launch-plan.md",
+        "verification-step-by-step.md",
+        "pricing-market-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Energy Healing",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.2713,
+      "degree": 0.6415,
+      "betweenness": 0.0367,
+      "pagerank": 0.0,
+      "mentions": 22,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "marketing-website-sales-campaign.md",
+        "soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md"
+      ]
+    },
+    {
+      "id": "Hawaiian Healing",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3253,
+      "degree": 0.8113,
+      "betweenness": 0.002,
+      "pagerank": 0.0,
+      "mentions": 29,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Pipeline",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.385,
+      "degree": 0.9434,
+      "betweenness": 0.0191,
+      "pagerank": 0.0,
+      "mentions": 62,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "pricing-promotion-centers-plan.md",
+        "tier-strategy-recommendation.md",
+        "soft-launch-plan.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "lessons.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "campaign-command-center-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Referrals",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.2405,
+      "degree": 0.5849,
+      "betweenness": 0.0164,
+      "pagerank": 0.0,
+      "mentions": 22,
+      "files": [
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "phase-b-spec.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis-v2.md"
+      ]
+    },
+    {
+      "id": "Free Tier",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.2765,
+      "degree": 0.6792,
+      "betweenness": 0.012,
+      "pagerank": 0.0,
+      "mentions": 32,
+      "files": [
+        "OFFERINGS_RESEARCH.md",
+        "pricing-and-positioning-strategy.md",
+        "tier-strategy-recommendation.md",
+        "soft-launch-plan.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "provider-center-separation-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Oahu",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3626,
+      "degree": 0.9057,
+      "betweenness": 0.0009,
+      "pagerank": 0.0,
+      "mentions": 56,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "audit-report.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "marketing-website-sales-campaign.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "lessons.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Kauai",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.2501,
+      "degree": 0.6038,
+      "betweenness": 0.0215,
+      "pagerank": 0.0,
+      "mentions": 22,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "tier-strategy-recommendation.md",
+        "soft-launch-plan.md",
+        "lessons.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "audit-report.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Maui",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3795,
+      "degree": 0.9434,
+      "betweenness": 0.0053,
+      "pagerank": 0.0,
+      "mentions": 52,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "audit-report.md",
+        "SEARCH_TAXONOMY.md",
+        "marketing-website-sales-campaign.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "soft-launch-plan.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "lessons.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "AI/LLM",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3638,
+      "degree": 0.8868,
+      "betweenness": 0.0227,
+      "pagerank": 0.0,
+      "mentions": 70,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "lessons.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "LM_STUDIO_SETUP.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "audit-report.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "verified-testimonials-plan.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "SEO",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3636,
+      "degree": 0.9057,
+      "betweenness": 0.0035,
+      "pagerank": 0.0,
+      "mentions": 38,
+      "files": [
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "phase-b-spec.md",
+        "provider-center-separation-analysis.md",
+        "outreach-contacts.md",
+        "audit-report.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md"
+      ]
+    },
+    {
+      "id": "Massage",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3423,
+      "degree": 0.8491,
+      "betweenness": 0.0066,
+      "pagerank": 0.0,
+      "mentions": 40,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "campaign-command-center-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Wellness Seekers",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.4015,
+      "degree": 0.9811,
+      "betweenness": 0.0226,
+      "pagerank": 0.0,
+      "mentions": 76,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "marketing-website-sales-campaign.md",
+        "tier-strategy-recommendation.md",
+        "pricing-market-analysis-v2.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "verified-testimonials-plan.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "lessons.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Visitors",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.2892,
+      "degree": 0.717,
+      "betweenness": 0.006,
+      "pagerank": 0.0,
+      "mentions": 25,
+      "files": [
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "outreach-contacts.md",
+        "audit-report.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Wellness Centers",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3563,
+      "degree": 0.8868,
+      "betweenness": 0.0041,
+      "pagerank": 0.0,
+      "mentions": 112,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "OPENCLAW_BRIEF.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "SETUP_EMAIL_TEMPLATES.md",
+        "DELIVERABLES.md",
+        "soft-launch-plan.md",
+        "verification-step-by-step.md",
+        "pricing-market-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "monetization-analysis.md",
+        "phase-b-spec.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Testimonials",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3841,
+      "degree": 0.9434,
+      "betweenness": 0.0168,
+      "pagerank": 0.0,
+      "mentions": 116,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "OPENCLAW_BRIEF.md",
+        "LM_STUDIO_SETUP.md",
+        "audit-report.md",
+        "CLAIM_FEATURE_INDEX.md",
+        "OFFERINGS_RESEARCH.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "DELIVERABLES.md",
+        "soft-launch-plan.md",
+        "verification-step-by-step.md",
+        "pricing-market-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "verified-testimonials-plan.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Brand Voice",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.2695,
+      "degree": 0.6604,
+      "betweenness": 0.0134,
+      "pagerank": 0.0,
+      "mentions": 32,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "verification-step-by-step.md",
+        "provider-center-separation-analysis.md",
+        "outreach-template.md",
+        "CLAIM_FEATURE_INDEX.md",
+        "pricing-market-analysis-v2.md",
+        "SETUP_EMAIL_TEMPLATES.md",
+        "DELIVERABLES.md"
+      ]
+    },
+    {
+      "id": "Pricing",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3665,
+      "degree": 0.9057,
+      "betweenness": 0.0106,
+      "pagerank": 0.0,
+      "mentions": 83,
+      "files": [
+        "OFFERINGS_RESEARCH.md",
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "tier-strategy-recommendation.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "phase-b-spec.md",
+        "lessons.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "provider-center-separation-analysis.md",
+        "audit-report.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "verified-testimonials-plan.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Community",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.2111,
+      "degree": 0.4717,
+      "betweenness": 0.056,
+      "pagerank": 0.0,
+      "mentions": 11,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "pricing-and-positioning-strategy.md",
+        "soft-launch-plan.md",
+        "outreach-contacts.md",
+        "outreach-template.md"
+      ]
+    },
+    {
+      "id": "Map",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3626,
+      "degree": 0.9057,
+      "betweenness": 0.0008,
+      "pagerank": 0.0,
+      "mentions": 79,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "soft-launch-plan.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "lessons.md",
+        "provider-center-separation-analysis.md",
+        "outreach-contacts.md",
+        "audit-report.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Featured Tier",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3893,
+      "degree": 0.9623,
+      "betweenness": 0.0109,
+      "pagerank": 0.0,
+      "mentions": 101,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "audit-report.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "tier-strategy-recommendation.md",
+        "outreach-contacts.md",
+        "pricing-market-analysis-v2.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "verified-testimonials-plan.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Search",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3708,
+      "degree": 0.9245,
+      "betweenness": 0.0026,
+      "pagerank": 0.0,
+      "mentions": 85,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "LM_STUDIO_SETUP.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "audit-report.md",
+        "SEARCH_TAXONOMY.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-market-analysis-v2.md",
+        "soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "phase-b-spec.md",
+        "lessons.md",
+        "30-day-soft-launch-plan.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Sprint",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3234,
+      "degree": 0.7358,
+      "betweenness": 0.0727,
+      "pagerank": 0.0,
+      "mentions": 27,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "SCRAPING_PLAYBOOK.md",
+        "pricing-promotion-centers-plan.md",
+        "pricing-and-positioning-strategy.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "provider-center-separation-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "verified-testimonials-plan.md",
+        "SYSTEM_PLAN.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "React",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3297,
+      "degree": 0.8113,
+      "betweenness": 0.013,
+      "pagerank": 0.0,
+      "mentions": 95,
+      "files": [
+        "DEPLOYMENT_CHECKLIST.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "audit-report.md",
+        "CLAIM_FEATURE_INDEX.md",
+        "OFFERINGS_RESEARCH.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "marketing-website-sales-campaign.md",
+        "CLAIM_SYSTEM_SUMMARY.md",
+        "outreach-contacts.md",
+        "SETUP_EMAIL_TEMPLATES.md",
+        "DELIVERABLES.md",
+        "pricing-market-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "verified-testimonials-plan.md",
+        "SPRINT_5_COMPLETION_REPORT.md",
+        "phase-b-spec.md",
+        "lessons.md",
+        "README.md",
+        "provider-center-separation-analysis.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Spas",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.285,
+      "degree": 0.6981,
+      "betweenness": 0.0143,
+      "pagerank": 0.0,
+      "mentions": 21,
+      "files": [
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "pricing-promotion-centers-plan.md",
+        "README.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "provider-center-separation-analysis.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Stripe",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.304,
+      "degree": 0.7547,
+      "betweenness": 0.0053,
+      "pagerank": 0.0,
+      "mentions": 63,
+      "files": [
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "pricing-and-positioning-strategy.md",
+        "tier-strategy-recommendation.md",
+        "lessons.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "outreach-contacts.md",
+        "provider-center-separation-analysis.md",
+        "audit-report.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "pricing-market-analysis-v2.md",
+        "campaign-command-center-plan.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Retreats",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3678,
+      "degree": 0.9057,
+      "betweenness": 0.0139,
+      "pagerank": 0.0,
+      "mentions": 53,
+      "files": [
+        "OFFERINGS_RESEARCH.md",
+        "SCRAPING_PLAYBOOK.md",
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "pricing-promotion-centers-plan.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "provider-center-separation-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SYSTEM_PLAN.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Psychotherapy",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3126,
+      "degree": 0.7547,
+      "betweenness": 0.0267,
+      "pagerank": 0.0,
+      "mentions": 34,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SEARCH_TAXONOMY.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md"
+      ]
+    },
+    {
+      "id": "Keywords",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3104,
+      "degree": 0.7358,
+      "betweenness": 0.0402,
+      "pagerank": 0.0,
+      "mentions": 13,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "30-day-soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Chiropractic",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.1908,
+      "degree": 0.4717,
+      "betweenness": 0.0054,
+      "pagerank": 0.0,
+      "mentions": 13,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Nutrition",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.275,
+      "degree": 0.6604,
+      "betweenness": 0.0272,
+      "pagerank": 0.0,
+      "mentions": 19,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "SEARCH_TAXONOMY.md",
+        "30-day-soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md"
+      ]
+    },
+    {
+      "id": "Life Coaching",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.165,
+      "degree": 0.3774,
+      "betweenness": 0.035,
+      "pagerank": 0.0,
+      "mentions": 15,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "SPRINT_2_SEO_PLAN.md"
+      ]
+    },
+    {
+      "id": "Fitness",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 40,
+      "composite": 0.3276,
+      "degree": 0.7736,
+      "betweenness": 0.0454,
+      "pagerank": 0.0,
+      "mentions": 15,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "pricing-promotion-centers-plan.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "provider-center-separation-analysis.md",
+        "outreach-template.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Ayurveda",
+      "group": 2,
+      "label": "Wellness Modalities",
+      "color": "#F59E0B",
+      "size": 37.5,
+      "composite": 0.1475,
+      "degree": 0.3585,
+      "betweenness": 0.0102,
+      "pagerank": 0.0,
+      "mentions": 7,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SEARCH_REBUILD_ARCHITECTURE.md",
+        "audit-big-island-centers-2026-03-15.md",
+        "SPRINT_5_COMPLETION_REPORT.md"
+      ]
+    },
+    {
+      "id": "Blog",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3877,
+      "degree": 0.9434,
+      "betweenness": 0.0259,
+      "pagerank": 0.0,
+      "mentions": 61,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "README.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "SECURITY_AUDIT_REPORT.md",
+        "outreach-contacts.md",
+        "provider-center-separation-analysis.md",
+        "outreach-template.md",
+        "audit-report.md",
+        "pricing-market-analysis-v2.md",
+        "SYSTEM_PLAN.md"
+      ]
+    },
+    {
+      "id": "Google Business",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.2474,
+      "degree": 0.6038,
+      "betweenness": 0.0148,
+      "pagerank": 0.0,
+      "mentions": 11,
+      "files": [
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "lessons.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-template.md",
+        "pricing-market-analysis-v2.md"
+      ]
+    },
+    {
+      "id": "Backlinks",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.2022,
+      "degree": 0.4906,
+      "betweenness": 0.0149,
+      "pagerank": 0.0,
+      "mentions": 7,
+      "files": [
+        "outreach-contacts.md",
+        "30-day-soft-launch-plan.md",
+        "SPRINT_2_SEO_PLAN.md"
+      ]
+    },
+    {
+      "id": "Content Strategy",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.3099,
+      "degree": 0.6415,
+      "betweenness": 0.1331,
+      "pagerank": 0.0,
+      "mentions": 8,
+      "files": [
+        "monetization-analysis.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "SPRINT_2_SEO_PLAN.md",
+        "outreach-contacts.md"
+      ]
+    },
+    {
+      "id": "Revenue",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.3254,
+      "degree": 0.8113,
+      "betweenness": 0.0021,
+      "pagerank": 0.0,
+      "mentions": 54,
+      "files": [
+        "pricing-promotion-centers-plan.md",
+        "monetization-analysis.md",
+        "marketing-website-sales-campaign.md",
+        "pricing-and-positioning-strategy.md",
+        "30-day-soft-launch-plan.md",
+        "pricing-market-analysis.md",
+        "provider-center-separation-analysis.md",
+        "audit-report.md",
+        "pricing-market-analysis-v2.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Email Marketing",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.2391,
+      "degree": 0.5849,
+      "betweenness": 0.0129,
+      "pagerank": 0.0,
+      "mentions": 11,
+      "files": [
+        "SEARCH_TAXONOMY.md",
+        "monetization-analysis.md",
+        "pricing-market-analysis.md",
+        "provider-center-separation-analysis.md",
+        "campaign-command-center-plan.md"
+      ]
+    },
+    {
+      "id": "Premium Tier",
+      "group": 0,
+      "label": "Monetization",
+      "color": "#0EA5E9",
+      "size": 40,
+      "composite": 0.1847,
+      "degree": 0.434,
+      "betweenness": 0.0278,
+      "pagerank": 0.0,
+      "mentions": 6,
+      "files": [
+        "provider-center-separation-analysis.md",
+        "OFFERINGS_RESEARCH.md",
+        "pricing-market-analysis.md"
+      ]
+    },
+    {
+      "id": "Local SEO",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 32.3,
+      "composite": 0.1213,
+      "degree": 0.283,
+      "betweenness": 0.0202,
+      "pagerank": 0.0,
+      "mentions": 4,
+      "files": [
+        "marketing-website-sales-campaign.md",
+        "campaign-command-center-plan.md",
+        "pricing-market-analysis-v2.md"
+      ]
+    },
+    {
+      "id": "OpenClaw",
+      "group": 1,
+      "label": "Content & SEO",
+      "color": "#10B981",
+      "size": 40,
+      "composite": 0.2368,
+      "degree": 0.566,
+      "betweenness": 0.026,
+      "pagerank": 0.0,
+      "mentions": 18,
+      "files": [
+        "OPENCLAW_BRIEF.md",
+        "30-day-soft-launch-plan.md"
+      ]
+    }
+  ],
+  "links": [
+    {
+      "source": "Practitioners",
+      "target": "Claims",
+      "weight": 94
+    },
+    {
+      "source": "Practitioners",
+      "target": "Soft Launch",
+      "weight": 22
+    },
+    {
+      "source": "Practitioners",
+      "target": "Big Island",
+      "weight": 73
+    },
+    {
+      "source": "Practitioners",
+      "target": "Outreach",
+      "weight": 42
+    },
+    {
+      "source": "Practitioners",
+      "target": "Supabase",
+      "weight": 64
+    },
+    {
+      "source": "Practitioners",
+      "target": "Meditation",
+      "weight": 9
+    },
+    {
+      "source": "Practitioners",
+      "target": "Trust",
+      "weight": 23
+    },
+    {
+      "source": "Practitioners",
+      "target": "Acupuncture",
+      "weight": 10
+    },
+    {
+      "source": "Practitioners",
+      "target": "Yoga",
+      "weight": 24
+    },
+    {
+      "source": "Practitioners",
+      "target": "Social Media",
+      "weight": 42
+    },
+    {
+      "source": "Practitioners",
+      "target": "Residents",
+      "weight": 26
+    },
+    {
+      "source": "Practitioners",
+      "target": "Energy Healing",
+      "weight": 8
+    },
+    {
+      "source": "Practitioners",
+      "target": "Hawaiian Healing",
+      "weight": 13
+    },
+    {
+      "source": "Practitioners",
+      "target": "Pipeline",
+      "weight": 30
+    },
+    {
+      "source": "Practitioners",
+      "target": "Referrals",
+      "weight": 11
+    },
+    {
+      "source": "Practitioners",
+      "target": "Massage",
+      "weight": 22
+    },
+    {
+      "source": "Practitioners",
+      "target": "Wellness Seekers",
+      "weight": 49
+    },
+    {
+      "source": "Practitioners",
+      "target": "Free Tier",
+      "weight": 22
+    },
+    {
+      "source": "Practitioners",
+      "target": "Visitors",
+      "weight": 19
+    },
+    {
+      "source": "Practitioners",
+      "target": "Wellness Centers",
+      "weight": 83
+    },
+    {
+      "source": "Practitioners",
+      "target": "AI/LLM",
+      "weight": 29
+    },
+    {
+      "source": "Practitioners",
+      "target": "Testimonials",
+      "weight": 61
+    },
+    {
+      "source": "Practitioners",
+      "target": "Pricing",
+      "weight": 59
+    },
+    {
+      "source": "Practitioners",
+      "target": "Brand Voice",
+      "weight": 19
+    },
+    {
+      "source": "Practitioners",
+      "target": "Community",
+      "weight": 8
+    },
+    {
+      "source": "Practitioners",
+      "target": "Oahu",
+      "weight": 31
+    },
+    {
+      "source": "Practitioners",
+      "target": "Featured Tier",
+      "weight": 64
+    },
+    {
+      "source": "Practitioners",
+      "target": "Search",
+      "weight": 36
+    },
+    {
+      "source": "Practitioners",
+      "target": "React",
+      "weight": 26
+    },
+    {
+      "source": "Practitioners",
+      "target": "Spas",
+      "weight": 16
+    },
+    {
+      "source": "Practitioners",
+      "target": "Stripe",
+      "weight": 32
+    },
+    {
+      "source": "Practitioners",
+      "target": "Map",
+      "weight": 24
+    },
+    {
+      "source": "Practitioners",
+      "target": "Retreats",
+      "weight": 35
+    },
+    {
+      "source": "Practitioners",
+      "target": "Psychotherapy",
+      "weight": 9
+    },
+    {
+      "source": "Practitioners",
+      "target": "Maui",
+      "weight": 28
+    },
+    {
+      "source": "Practitioners",
+      "target": "Blog",
+      "weight": 25
+    },
+    {
+      "source": "Practitioners",
+      "target": "SEO",
+      "weight": 22
+    },
+    {
+      "source": "Practitioners",
+      "target": "Google Business",
+      "weight": 8
+    },
+    {
+      "source": "Practitioners",
+      "target": "Backlinks",
+      "weight": 4
+    },
+    {
+      "source": "Practitioners",
+      "target": "Sprint",
+      "weight": 10
+    },
+    {
+      "source": "Practitioners",
+      "target": "Content Strategy",
+      "weight": 3
+    },
+    {
+      "source": "Practitioners",
+      "target": "Keywords",
+      "weight": 6
+    },
+    {
+      "source": "Practitioners",
+      "target": "Kauai",
+      "weight": 8
+    },
+    {
+      "source": "Practitioners",
+      "target": "Chiropractic",
+      "weight": 6
+    },
+    {
+      "source": "Practitioners",
+      "target": "Ayurveda",
+      "weight": 2
+    },
+    {
+      "source": "Practitioners",
+      "target": "Nutrition",
+      "weight": 8
+    },
+    {
+      "source": "Practitioners",
+      "target": "Life Coaching",
+      "weight": 1
+    },
+    {
+      "source": "Practitioners",
+      "target": "Fitness",
+      "weight": 10
+    },
+    {
+      "source": "Practitioners",
+      "target": "Revenue",
+      "weight": 36
+    },
+    {
+      "source": "Practitioners",
+      "target": "Email Marketing",
+      "weight": 6
+    },
+    {
+      "source": "Practitioners",
+      "target": "Premium Tier",
+      "weight": 5
+    },
+    {
+      "source": "Practitioners",
+      "target": "Local SEO",
+      "weight": 2
+    },
+    {
+      "source": "Practitioners",
+      "target": "OpenClaw",
+      "weight": 7
+    },
+    {
+      "source": "Claims",
+      "target": "Soft Launch",
+      "weight": 21
+    },
+    {
+      "source": "Claims",
+      "target": "Big Island",
+      "weight": 45
+    },
+    {
+      "source": "Claims",
+      "target": "Supabase",
+      "weight": 41
+    },
+    {
+      "source": "Claims",
+      "target": "Meditation",
+      "weight": 2
+    },
+    {
+      "source": "Claims",
+      "target": "Trust",
+      "weight": 16
+    },
+    {
+      "source": "Claims",
+      "target": "Acupuncture",
+      "weight": 4
+    },
+    {
+      "source": "Claims",
+      "target": "Yoga",
+      "weight": 5
+    },
+    {
+      "source": "Claims",
+      "target": "Social Media",
+      "weight": 29
+    },
+    {
+      "source": "Claims",
+      "target": "Residents",
+      "weight": 10
+    },
+    {
+      "source": "Claims",
+      "target": "Energy Healing",
+      "weight": 3
+    },
+    {
+      "source": "Claims",
+      "target": "Hawaiian Healing",
+      "weight": 4
+    },
+    {
+      "source": "Claims",
+      "target": "Pipeline",
+      "weight": 21
+    },
+    {
+      "source": "Claims",
+      "target": "Referrals",
+      "weight": 16
+    },
+    {
+      "source": "Claims",
+      "target": "Outreach",
+      "weight": 46
+    },
+    {
+      "source": "Claims",
+      "target": "Free Tier",
+      "weight": 14
+    },
+    {
+      "source": "Claims",
+      "target": "Oahu",
+      "weight": 9
+    },
+    {
+      "source": "Claims",
+      "target": "Kauai",
+      "weight": 1
+    },
+    {
+      "source": "Claims",
+      "target": "Maui",
+      "weight": 11
+    },
+    {
+      "source": "Claims",
+      "target": "AI/LLM",
+      "weight": 18
+    },
+    {
+      "source": "Claims",
+      "target": "SEO",
+      "weight": 5
+    },
+    {
+      "source": "Claims",
+      "target": "Massage",
+      "weight": 5
+    },
+    {
+      "source": "Claims",
+      "target": "Wellness Seekers",
+      "weight": 10
+    },
+    {
+      "source": "Claims",
+      "target": "Testimonials",
+      "weight": 40
+    },
+    {
+      "source": "Claims",
+      "target": "Brand Voice",
+      "weight": 9
+    },
+    {
+      "source": "Claims",
+      "target": "Wellness Centers",
+      "weight": 20
+    },
+    {
+      "source": "Claims",
+      "target": "Pricing",
+      "weight": 14
+    },
+    {
+      "source": "Claims",
+      "target": "Community",
+      "weight": 4
+    },
+    {
+      "source": "Claims",
+      "target": "Map",
+      "weight": 5
+    },
+    {
+      "source": "Claims",
+      "target": "Featured Tier",
+      "weight": 9
+    },
+    {
+      "source": "Claims",
+      "target": "Visitors",
+      "weight": 4
+    },
+    {
+      "source": "Claims",
+      "target": "Stripe",
+      "weight": 14
+    },
+    {
+      "source": "Claims",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Claims",
+      "target": "React",
+      "weight": 16
+    },
+    {
+      "source": "Claims",
+      "target": "Revenue",
+      "weight": 11
+    },
+    {
+      "source": "Claims",
+      "target": "Blog",
+      "weight": 12
+    },
+    {
+      "source": "Claims",
+      "target": "Retreats",
+      "weight": 4
+    },
+    {
+      "source": "Claims",
+      "target": "Search",
+      "weight": 10
+    },
+    {
+      "source": "Claims",
+      "target": "Google Business",
+      "weight": 1
+    },
+    {
+      "source": "Claims",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Claims",
+      "target": "Keywords",
+      "weight": 3
+    },
+    {
+      "source": "Claims",
+      "target": "Chiropractic",
+      "weight": 1
+    },
+    {
+      "source": "Claims",
+      "target": "OpenClaw",
+      "weight": 10
+    },
+    {
+      "source": "Claims",
+      "target": "Sprint",
+      "weight": 2
+    },
+    {
+      "source": "Claims",
+      "target": "Backlinks",
+      "weight": 3
+    },
+    {
+      "source": "Claims",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Claims",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Big Island",
+      "weight": 13
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Outreach",
+      "weight": 11
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Supabase",
+      "weight": 10
+    },
+    {
+      "source": "Soft Launch",
+      "target": "AI/LLM",
+      "weight": 3
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Testimonials",
+      "weight": 11
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Pricing",
+      "weight": 15
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Trust",
+      "weight": 5
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Brand Voice",
+      "weight": 7
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Social Media",
+      "weight": 10
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Pipeline",
+      "weight": 9
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Oahu",
+      "weight": 4
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Massage",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Wellness Centers",
+      "weight": 8
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Acupuncture",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Residents",
+      "weight": 3
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Wellness Seekers",
+      "weight": 6
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Referrals",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Blog",
+      "weight": 7
+    },
+    {
+      "source": "Soft Launch",
+      "target": "React",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Free Tier",
+      "weight": 4
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Revenue",
+      "weight": 11
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Email Marketing",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Stripe",
+      "weight": 9
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Featured Tier",
+      "weight": 9
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Hawaiian Healing",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Search",
+      "weight": 5
+    },
+    {
+      "source": "Soft Launch",
+      "target": "SEO",
+      "weight": 5
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Visitors",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Map",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Retreats",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "OpenClaw",
+      "weight": 4
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Backlinks",
+      "weight": 2
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Maui",
+      "weight": 3
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Meditation",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Yoga",
+      "weight": 1
+    },
+    {
+      "source": "Soft Launch",
+      "target": "Keywords",
+      "weight": 2
+    },
+    {
+      "source": "Big Island",
+      "target": "Supabase",
+      "weight": 20
+    },
+    {
+      "source": "Big Island",
+      "target": "Meditation",
+      "weight": 9
+    },
+    {
+      "source": "Big Island",
+      "target": "Trust",
+      "weight": 9
+    },
+    {
+      "source": "Big Island",
+      "target": "Acupuncture",
+      "weight": 14
+    },
+    {
+      "source": "Big Island",
+      "target": "Yoga",
+      "weight": 14
+    },
+    {
+      "source": "Big Island",
+      "target": "Social Media",
+      "weight": 17
+    },
+    {
+      "source": "Big Island",
+      "target": "Residents",
+      "weight": 16
+    },
+    {
+      "source": "Big Island",
+      "target": "Energy Healing",
+      "weight": 7
+    },
+    {
+      "source": "Big Island",
+      "target": "Hawaiian Healing",
+      "weight": 12
+    },
+    {
+      "source": "Big Island",
+      "target": "Pipeline",
+      "weight": 17
+    },
+    {
+      "source": "Big Island",
+      "target": "Free Tier",
+      "weight": 13
+    },
+    {
+      "source": "Big Island",
+      "target": "Oahu",
+      "weight": 41
+    },
+    {
+      "source": "Big Island",
+      "target": "Outreach",
+      "weight": 23
+    },
+    {
+      "source": "Big Island",
+      "target": "Kauai",
+      "weight": 19
+    },
+    {
+      "source": "Big Island",
+      "target": "Maui",
+      "weight": 32
+    },
+    {
+      "source": "Big Island",
+      "target": "AI/LLM",
+      "weight": 12
+    },
+    {
+      "source": "Big Island",
+      "target": "SEO",
+      "weight": 7
+    },
+    {
+      "source": "Big Island",
+      "target": "Referrals",
+      "weight": 4
+    },
+    {
+      "source": "Big Island",
+      "target": "Massage",
+      "weight": 21
+    },
+    {
+      "source": "Big Island",
+      "target": "Wellness Seekers",
+      "weight": 12
+    },
+    {
+      "source": "Big Island",
+      "target": "Visitors",
+      "weight": 11
+    },
+    {
+      "source": "Big Island",
+      "target": "Wellness Centers",
+      "weight": 27
+    },
+    {
+      "source": "Big Island",
+      "target": "Testimonials",
+      "weight": 16
+    },
+    {
+      "source": "Big Island",
+      "target": "Pricing",
+      "weight": 13
+    },
+    {
+      "source": "Big Island",
+      "target": "Brand Voice",
+      "weight": 6
+    },
+    {
+      "source": "Big Island",
+      "target": "Community",
+      "weight": 4
+    },
+    {
+      "source": "Big Island",
+      "target": "Search",
+      "weight": 22
+    },
+    {
+      "source": "Big Island",
+      "target": "Retreats",
+      "weight": 13
+    },
+    {
+      "source": "Big Island",
+      "target": "Psychotherapy",
+      "weight": 9
+    },
+    {
+      "source": "Big Island",
+      "target": "React",
+      "weight": 5
+    },
+    {
+      "source": "Big Island",
+      "target": "Map",
+      "weight": 18
+    },
+    {
+      "source": "Big Island",
+      "target": "Featured Tier",
+      "weight": 17
+    },
+    {
+      "source": "Big Island",
+      "target": "Revenue",
+      "weight": 6
+    },
+    {
+      "source": "Big Island",
+      "target": "Stripe",
+      "weight": 9
+    },
+    {
+      "source": "Big Island",
+      "target": "Spas",
+      "weight": 4
+    },
+    {
+      "source": "Big Island",
+      "target": "Keywords",
+      "weight": 5
+    },
+    {
+      "source": "Big Island",
+      "target": "Life Coaching",
+      "weight": 1
+    },
+    {
+      "source": "Big Island",
+      "target": "Blog",
+      "weight": 9
+    },
+    {
+      "source": "Big Island",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Big Island",
+      "target": "Nutrition",
+      "weight": 5
+    },
+    {
+      "source": "Big Island",
+      "target": "Chiropractic",
+      "weight": 4
+    },
+    {
+      "source": "Big Island",
+      "target": "Ayurveda",
+      "weight": 1
+    },
+    {
+      "source": "Big Island",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Big Island",
+      "target": "OpenClaw",
+      "weight": 7
+    },
+    {
+      "source": "Big Island",
+      "target": "Sprint",
+      "weight": 3
+    },
+    {
+      "source": "Big Island",
+      "target": "Backlinks",
+      "weight": 2
+    },
+    {
+      "source": "Big Island",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Supabase",
+      "weight": 11
+    },
+    {
+      "source": "Outreach",
+      "target": "Trust",
+      "weight": 13
+    },
+    {
+      "source": "Outreach",
+      "target": "Referrals",
+      "weight": 13
+    },
+    {
+      "source": "Outreach",
+      "target": "Social Media",
+      "weight": 22
+    },
+    {
+      "source": "Outreach",
+      "target": "Free Tier",
+      "weight": 5
+    },
+    {
+      "source": "Outreach",
+      "target": "Oahu",
+      "weight": 7
+    },
+    {
+      "source": "Outreach",
+      "target": "Kauai",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Maui",
+      "weight": 8
+    },
+    {
+      "source": "Outreach",
+      "target": "AI/LLM",
+      "weight": 12
+    },
+    {
+      "source": "Outreach",
+      "target": "SEO",
+      "weight": 9
+    },
+    {
+      "source": "Outreach",
+      "target": "Pipeline",
+      "weight": 11
+    },
+    {
+      "source": "Outreach",
+      "target": "Massage",
+      "weight": 3
+    },
+    {
+      "source": "Outreach",
+      "target": "Residents",
+      "weight": 8
+    },
+    {
+      "source": "Outreach",
+      "target": "Wellness Seekers",
+      "weight": 11
+    },
+    {
+      "source": "Outreach",
+      "target": "Hawaiian Healing",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Meditation",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Yoga",
+      "weight": 2
+    },
+    {
+      "source": "Outreach",
+      "target": "Energy Healing",
+      "weight": 2
+    },
+    {
+      "source": "Outreach",
+      "target": "Visitors",
+      "weight": 2
+    },
+    {
+      "source": "Outreach",
+      "target": "Wellness Centers",
+      "weight": 8
+    },
+    {
+      "source": "Outreach",
+      "target": "Brand Voice",
+      "weight": 14
+    },
+    {
+      "source": "Outreach",
+      "target": "Testimonials",
+      "weight": 13
+    },
+    {
+      "source": "Outreach",
+      "target": "Pricing",
+      "weight": 6
+    },
+    {
+      "source": "Outreach",
+      "target": "Map",
+      "weight": 2
+    },
+    {
+      "source": "Outreach",
+      "target": "Community",
+      "weight": 2
+    },
+    {
+      "source": "Outreach",
+      "target": "Acupuncture",
+      "weight": 2
+    },
+    {
+      "source": "Outreach",
+      "target": "Featured Tier",
+      "weight": 6
+    },
+    {
+      "source": "Outreach",
+      "target": "Revenue",
+      "weight": 7
+    },
+    {
+      "source": "Outreach",
+      "target": "Retreats",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Backlinks",
+      "weight": 5
+    },
+    {
+      "source": "Outreach",
+      "target": "Blog",
+      "weight": 11
+    },
+    {
+      "source": "Outreach",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Google Business",
+      "weight": 1
+    },
+    {
+      "source": "Outreach",
+      "target": "Search",
+      "weight": 8
+    },
+    {
+      "source": "Outreach",
+      "target": "OpenClaw",
+      "weight": 7
+    },
+    {
+      "source": "Outreach",
+      "target": "Sprint",
+      "weight": 3
+    },
+    {
+      "source": "Outreach",
+      "target": "Stripe",
+      "weight": 4
+    },
+    {
+      "source": "Outreach",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Supabase",
+      "target": "Meditation",
+      "weight": 3
+    },
+    {
+      "source": "Supabase",
+      "target": "Trust",
+      "weight": 6
+    },
+    {
+      "source": "Supabase",
+      "target": "Acupuncture",
+      "weight": 3
+    },
+    {
+      "source": "Supabase",
+      "target": "Yoga",
+      "weight": 4
+    },
+    {
+      "source": "Supabase",
+      "target": "Social Media",
+      "weight": 6
+    },
+    {
+      "source": "Supabase",
+      "target": "Residents",
+      "weight": 10
+    },
+    {
+      "source": "Supabase",
+      "target": "Energy Healing",
+      "weight": 2
+    },
+    {
+      "source": "Supabase",
+      "target": "Hawaiian Healing",
+      "weight": 4
+    },
+    {
+      "source": "Supabase",
+      "target": "Pipeline",
+      "weight": 20
+    },
+    {
+      "source": "Supabase",
+      "target": "Pricing",
+      "weight": 16
+    },
+    {
+      "source": "Supabase",
+      "target": "Testimonials",
+      "weight": 16
+    },
+    {
+      "source": "Supabase",
+      "target": "Brand Voice",
+      "weight": 5
+    },
+    {
+      "source": "Supabase",
+      "target": "Referrals",
+      "weight": 2
+    },
+    {
+      "source": "Supabase",
+      "target": "Wellness Centers",
+      "weight": 26
+    },
+    {
+      "source": "Supabase",
+      "target": "React",
+      "weight": 39
+    },
+    {
+      "source": "Supabase",
+      "target": "Spas",
+      "weight": 5
+    },
+    {
+      "source": "Supabase",
+      "target": "Search",
+      "weight": 16
+    },
+    {
+      "source": "Supabase",
+      "target": "Wellness Seekers",
+      "weight": 21
+    },
+    {
+      "source": "Supabase",
+      "target": "Featured Tier",
+      "weight": 23
+    },
+    {
+      "source": "Supabase",
+      "target": "Map",
+      "weight": 13
+    },
+    {
+      "source": "Supabase",
+      "target": "Stripe",
+      "weight": 22
+    },
+    {
+      "source": "Supabase",
+      "target": "AI/LLM",
+      "weight": 16
+    },
+    {
+      "source": "Supabase",
+      "target": "Blog",
+      "weight": 13
+    },
+    {
+      "source": "Supabase",
+      "target": "SEO",
+      "weight": 6
+    },
+    {
+      "source": "Supabase",
+      "target": "Oahu",
+      "weight": 8
+    },
+    {
+      "source": "Supabase",
+      "target": "Massage",
+      "weight": 4
+    },
+    {
+      "source": "Supabase",
+      "target": "Kauai",
+      "weight": 6
+    },
+    {
+      "source": "Supabase",
+      "target": "Maui",
+      "weight": 8
+    },
+    {
+      "source": "Supabase",
+      "target": "Sprint",
+      "weight": 14
+    },
+    {
+      "source": "Supabase",
+      "target": "Free Tier",
+      "weight": 5
+    },
+    {
+      "source": "Supabase",
+      "target": "Visitors",
+      "weight": 3
+    },
+    {
+      "source": "Supabase",
+      "target": "Revenue",
+      "weight": 9
+    },
+    {
+      "source": "Supabase",
+      "target": "Keywords",
+      "weight": 3
+    },
+    {
+      "source": "Supabase",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "Supabase",
+      "target": "Retreats",
+      "weight": 12
+    },
+    {
+      "source": "Supabase",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Supabase",
+      "target": "OpenClaw",
+      "weight": 5
+    },
+    {
+      "source": "Supabase",
+      "target": "Nutrition",
+      "weight": 2
+    },
+    {
+      "source": "Supabase",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Supabase",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Trust",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Acupuncture",
+      "weight": 7
+    },
+    {
+      "source": "Meditation",
+      "target": "Yoga",
+      "weight": 16
+    },
+    {
+      "source": "Meditation",
+      "target": "Social Media",
+      "weight": 2
+    },
+    {
+      "source": "Meditation",
+      "target": "Residents",
+      "weight": 2
+    },
+    {
+      "source": "Meditation",
+      "target": "Energy Healing",
+      "weight": 12
+    },
+    {
+      "source": "Meditation",
+      "target": "Hawaiian Healing",
+      "weight": 11
+    },
+    {
+      "source": "Meditation",
+      "target": "Pipeline",
+      "weight": 3
+    },
+    {
+      "source": "Meditation",
+      "target": "React",
+      "weight": 3
+    },
+    {
+      "source": "Meditation",
+      "target": "Massage",
+      "weight": 10
+    },
+    {
+      "source": "Meditation",
+      "target": "Psychotherapy",
+      "weight": 8
+    },
+    {
+      "source": "Meditation",
+      "target": "Chiropractic",
+      "weight": 6
+    },
+    {
+      "source": "Meditation",
+      "target": "Nutrition",
+      "weight": 6
+    },
+    {
+      "source": "Meditation",
+      "target": "Life Coaching",
+      "weight": 4
+    },
+    {
+      "source": "Meditation",
+      "target": "Fitness",
+      "weight": 5
+    },
+    {
+      "source": "Meditation",
+      "target": "Ayurveda",
+      "weight": 4
+    },
+    {
+      "source": "Meditation",
+      "target": "Blog",
+      "weight": 4
+    },
+    {
+      "source": "Meditation",
+      "target": "Wellness Seekers",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Oahu",
+      "weight": 4
+    },
+    {
+      "source": "Meditation",
+      "target": "Featured Tier",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Map",
+      "weight": 6
+    },
+    {
+      "source": "Meditation",
+      "target": "Kauai",
+      "weight": 2
+    },
+    {
+      "source": "Meditation",
+      "target": "Maui",
+      "weight": 4
+    },
+    {
+      "source": "Meditation",
+      "target": "Wellness Centers",
+      "weight": 6
+    },
+    {
+      "source": "Meditation",
+      "target": "Pricing",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Retreats",
+      "weight": 6
+    },
+    {
+      "source": "Meditation",
+      "target": "Visitors",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Meditation",
+      "target": "Spas",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Referrals",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Testimonials",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Search",
+      "weight": 2
+    },
+    {
+      "source": "Meditation",
+      "target": "AI/LLM",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "SEO",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Meditation",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Acupuncture",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Yoga",
+      "weight": 4
+    },
+    {
+      "source": "Trust",
+      "target": "Social Media",
+      "weight": 19
+    },
+    {
+      "source": "Trust",
+      "target": "Residents",
+      "weight": 8
+    },
+    {
+      "source": "Trust",
+      "target": "Energy Healing",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Hawaiian Healing",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Pipeline",
+      "weight": 6
+    },
+    {
+      "source": "Trust",
+      "target": "Referrals",
+      "weight": 4
+    },
+    {
+      "source": "Trust",
+      "target": "AI/LLM",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Brand Voice",
+      "weight": 3
+    },
+    {
+      "source": "Trust",
+      "target": "Pricing",
+      "weight": 7
+    },
+    {
+      "source": "Trust",
+      "target": "Testimonials",
+      "weight": 9
+    },
+    {
+      "source": "Trust",
+      "target": "Map",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Blog",
+      "weight": 6
+    },
+    {
+      "source": "Trust",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Search",
+      "weight": 7
+    },
+    {
+      "source": "Trust",
+      "target": "Spas",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Massage",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Visitors",
+      "weight": 6
+    },
+    {
+      "source": "Trust",
+      "target": "Featured Tier",
+      "weight": 10
+    },
+    {
+      "source": "Trust",
+      "target": "Retreats",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Wellness Seekers",
+      "weight": 7
+    },
+    {
+      "source": "Trust",
+      "target": "SEO",
+      "weight": 4
+    },
+    {
+      "source": "Trust",
+      "target": "React",
+      "weight": 3
+    },
+    {
+      "source": "Trust",
+      "target": "Free Tier",
+      "weight": 3
+    },
+    {
+      "source": "Trust",
+      "target": "Revenue",
+      "weight": 7
+    },
+    {
+      "source": "Trust",
+      "target": "Stripe",
+      "weight": 8
+    },
+    {
+      "source": "Trust",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Nutrition",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Community",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "Maui",
+      "weight": 6
+    },
+    {
+      "source": "Trust",
+      "target": "Oahu",
+      "weight": 5
+    },
+    {
+      "source": "Trust",
+      "target": "Kauai",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Google Business",
+      "weight": 3
+    },
+    {
+      "source": "Trust",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Trust",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Backlinks",
+      "weight": 2
+    },
+    {
+      "source": "Trust",
+      "target": "Wellness Centers",
+      "weight": 1
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Yoga",
+      "weight": 11
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Social Media",
+      "weight": 4
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Residents",
+      "weight": 4
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Energy Healing",
+      "weight": 7
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Hawaiian Healing",
+      "weight": 11
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Pipeline",
+      "weight": 5
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Free Tier",
+      "weight": 1
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Massage",
+      "weight": 14
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Oahu",
+      "weight": 8
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Brand Voice",
+      "weight": 1
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Wellness Centers",
+      "weight": 4
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Wellness Seekers",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Visitors",
+      "weight": 2
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Retreats",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Psychotherapy",
+      "weight": 13
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Maui",
+      "weight": 9
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Map",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Keywords",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "AI/LLM",
+      "weight": 4
+    },
+    {
+      "source": "Acupuncture",
+      "target": "React",
+      "weight": 2
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Chiropractic",
+      "weight": 6
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Nutrition",
+      "weight": 8
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Life Coaching",
+      "weight": 5
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "SEO",
+      "weight": 4
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Ayurveda",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Blog",
+      "weight": 3
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Referrals",
+      "weight": 1
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Featured Tier",
+      "weight": 2
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Testimonials",
+      "weight": 2
+    },
+    {
+      "source": "Acupuncture",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Acupuncture",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Yoga",
+      "target": "Social Media",
+      "weight": 5
+    },
+    {
+      "source": "Yoga",
+      "target": "Residents",
+      "weight": 6
+    },
+    {
+      "source": "Yoga",
+      "target": "Energy Healing",
+      "weight": 9
+    },
+    {
+      "source": "Yoga",
+      "target": "Hawaiian Healing",
+      "weight": 16
+    },
+    {
+      "source": "Yoga",
+      "target": "Pipeline",
+      "weight": 6
+    },
+    {
+      "source": "Yoga",
+      "target": "Free Tier",
+      "weight": 1
+    },
+    {
+      "source": "Yoga",
+      "target": "Massage",
+      "weight": 18
+    },
+    {
+      "source": "Yoga",
+      "target": "Oahu",
+      "weight": 12
+    },
+    {
+      "source": "Yoga",
+      "target": "Referrals",
+      "weight": 2
+    },
+    {
+      "source": "Yoga",
+      "target": "Wellness Centers",
+      "weight": 10
+    },
+    {
+      "source": "Yoga",
+      "target": "React",
+      "weight": 3
+    },
+    {
+      "source": "Yoga",
+      "target": "Psychotherapy",
+      "weight": 6
+    },
+    {
+      "source": "Yoga",
+      "target": "Chiropractic",
+      "weight": 6
+    },
+    {
+      "source": "Yoga",
+      "target": "Nutrition",
+      "weight": 7
+    },
+    {
+      "source": "Yoga",
+      "target": "Life Coaching",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Fitness",
+      "weight": 7
+    },
+    {
+      "source": "Yoga",
+      "target": "Ayurveda",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Blog",
+      "weight": 5
+    },
+    {
+      "source": "Yoga",
+      "target": "Wellness Seekers",
+      "weight": 3
+    },
+    {
+      "source": "Yoga",
+      "target": "Featured Tier",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Map",
+      "weight": 5
+    },
+    {
+      "source": "Yoga",
+      "target": "Kauai",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Maui",
+      "weight": 9
+    },
+    {
+      "source": "Yoga",
+      "target": "SEO",
+      "weight": 3
+    },
+    {
+      "source": "Yoga",
+      "target": "Testimonials",
+      "weight": 1
+    },
+    {
+      "source": "Yoga",
+      "target": "Spas",
+      "weight": 6
+    },
+    {
+      "source": "Yoga",
+      "target": "Visitors",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Retreats",
+      "weight": 13
+    },
+    {
+      "source": "Yoga",
+      "target": "Search",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Pricing",
+      "weight": 4
+    },
+    {
+      "source": "Yoga",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Yoga",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Yoga",
+      "target": "Community",
+      "weight": 2
+    },
+    {
+      "source": "Yoga",
+      "target": "Keywords",
+      "weight": 2
+    },
+    {
+      "source": "Yoga",
+      "target": "AI/LLM",
+      "weight": 2
+    },
+    {
+      "source": "Yoga",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "Residents",
+      "weight": 8
+    },
+    {
+      "source": "Social Media",
+      "target": "Energy Healing",
+      "weight": 3
+    },
+    {
+      "source": "Social Media",
+      "target": "Hawaiian Healing",
+      "weight": 4
+    },
+    {
+      "source": "Social Media",
+      "target": "Pipeline",
+      "weight": 10
+    },
+    {
+      "source": "Social Media",
+      "target": "Referrals",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Free Tier",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Oahu",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Kauai",
+      "weight": 2
+    },
+    {
+      "source": "Social Media",
+      "target": "Maui",
+      "weight": 7
+    },
+    {
+      "source": "Social Media",
+      "target": "AI/LLM",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Brand Voice",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Testimonials",
+      "weight": 33
+    },
+    {
+      "source": "Social Media",
+      "target": "Pricing",
+      "weight": 21
+    },
+    {
+      "source": "Social Media",
+      "target": "Massage",
+      "weight": 5
+    },
+    {
+      "source": "Social Media",
+      "target": "Wellness Centers",
+      "weight": 13
+    },
+    {
+      "source": "Social Media",
+      "target": "Map",
+      "weight": 4
+    },
+    {
+      "source": "Social Media",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "Featured Tier",
+      "weight": 22
+    },
+    {
+      "source": "Social Media",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Visitors",
+      "weight": 4
+    },
+    {
+      "source": "Social Media",
+      "target": "Revenue",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Stripe",
+      "weight": 7
+    },
+    {
+      "source": "Social Media",
+      "target": "Spas",
+      "weight": 2
+    },
+    {
+      "source": "Social Media",
+      "target": "Retreats",
+      "weight": 5
+    },
+    {
+      "source": "Social Media",
+      "target": "Wellness Seekers",
+      "weight": 12
+    },
+    {
+      "source": "Social Media",
+      "target": "SEO",
+      "weight": 12
+    },
+    {
+      "source": "Social Media",
+      "target": "Google Business",
+      "weight": 4
+    },
+    {
+      "source": "Social Media",
+      "target": "Blog",
+      "weight": 12
+    },
+    {
+      "source": "Social Media",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "React",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Social Media",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "Keywords",
+      "weight": 3
+    },
+    {
+      "source": "Social Media",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Social Media",
+      "target": "OpenClaw",
+      "weight": 9
+    },
+    {
+      "source": "Social Media",
+      "target": "Backlinks",
+      "weight": 4
+    },
+    {
+      "source": "Social Media",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "Premium Tier",
+      "weight": 2
+    },
+    {
+      "source": "Social Media",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Social Media",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "Energy Healing",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "Hawaiian Healing",
+      "weight": 3
+    },
+    {
+      "source": "Residents",
+      "target": "Pipeline",
+      "weight": 3
+    },
+    {
+      "source": "Residents",
+      "target": "Referrals",
+      "weight": 2
+    },
+    {
+      "source": "Residents",
+      "target": "Massage",
+      "weight": 4
+    },
+    {
+      "source": "Residents",
+      "target": "Wellness Seekers",
+      "weight": 11
+    },
+    {
+      "source": "Residents",
+      "target": "Free Tier",
+      "weight": 2
+    },
+    {
+      "source": "Residents",
+      "target": "Testimonials",
+      "weight": 7
+    },
+    {
+      "source": "Residents",
+      "target": "Community",
+      "weight": 4
+    },
+    {
+      "source": "Residents",
+      "target": "Brand Voice",
+      "weight": 7
+    },
+    {
+      "source": "Residents",
+      "target": "Featured Tier",
+      "weight": 7
+    },
+    {
+      "source": "Residents",
+      "target": "Oahu",
+      "weight": 12
+    },
+    {
+      "source": "Residents",
+      "target": "Wellness Centers",
+      "weight": 10
+    },
+    {
+      "source": "Residents",
+      "target": "AI/LLM",
+      "weight": 3
+    },
+    {
+      "source": "Residents",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Residents",
+      "target": "Blog",
+      "weight": 10
+    },
+    {
+      "source": "Residents",
+      "target": "Google Business",
+      "weight": 5
+    },
+    {
+      "source": "Residents",
+      "target": "Pricing",
+      "weight": 6
+    },
+    {
+      "source": "Residents",
+      "target": "Map",
+      "weight": 5
+    },
+    {
+      "source": "Residents",
+      "target": "SEO",
+      "weight": 5
+    },
+    {
+      "source": "Residents",
+      "target": "Stripe",
+      "weight": 6
+    },
+    {
+      "source": "Residents",
+      "target": "Local SEO",
+      "weight": 4
+    },
+    {
+      "source": "Residents",
+      "target": "Revenue",
+      "weight": 5
+    },
+    {
+      "source": "Residents",
+      "target": "Retreats",
+      "weight": 11
+    },
+    {
+      "source": "Residents",
+      "target": "Maui",
+      "weight": 13
+    },
+    {
+      "source": "Residents",
+      "target": "Visitors",
+      "weight": 5
+    },
+    {
+      "source": "Residents",
+      "target": "Spas",
+      "weight": 6
+    },
+    {
+      "source": "Residents",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Residents",
+      "target": "React",
+      "weight": 4
+    },
+    {
+      "source": "Residents",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "Kauai",
+      "weight": 4
+    },
+    {
+      "source": "Residents",
+      "target": "Fitness",
+      "weight": 4
+    },
+    {
+      "source": "Residents",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Residents",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Hawaiian Healing",
+      "weight": 11
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Pipeline",
+      "weight": 3
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Massage",
+      "weight": 8
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Visitors",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Retreats",
+      "weight": 3
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Search",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Wellness Centers",
+      "weight": 4
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Psychotherapy",
+      "weight": 10
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Maui",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "React",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Chiropractic",
+      "weight": 4
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Nutrition",
+      "weight": 6
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Life Coaching",
+      "weight": 8
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Fitness",
+      "weight": 5
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Ayurveda",
+      "weight": 5
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Blog",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Wellness Seekers",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Pricing",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Map",
+      "weight": 8
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Oahu",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "Featured Tier",
+      "weight": 2
+    },
+    {
+      "source": "Energy Healing",
+      "target": "AI/LLM",
+      "weight": 1
+    },
+    {
+      "source": "Energy Healing",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Pipeline",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Referrals",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Massage",
+      "weight": 19
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Wellness Seekers",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Oahu",
+      "weight": 7
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Wellness Centers",
+      "weight": 8
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Visitors",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Retreats",
+      "weight": 7
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Search",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Psychotherapy",
+      "weight": 10
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Maui",
+      "weight": 5
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Map",
+      "weight": 9
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "React",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Chiropractic",
+      "weight": 4
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Nutrition",
+      "weight": 5
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Life Coaching",
+      "weight": 8
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Ayurveda",
+      "weight": 5
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Blog",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Featured Tier",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Kauai",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Pricing",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Testimonials",
+      "weight": 1
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "SEO",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "AI/LLM",
+      "weight": 2
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Hawaiian Healing",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "AI/LLM",
+      "weight": 7
+    },
+    {
+      "source": "Pipeline",
+      "target": "Free Tier",
+      "weight": 6
+    },
+    {
+      "source": "Pipeline",
+      "target": "SEO",
+      "weight": 6
+    },
+    {
+      "source": "Pipeline",
+      "target": "Pricing",
+      "weight": 6
+    },
+    {
+      "source": "Pipeline",
+      "target": "Testimonials",
+      "weight": 11
+    },
+    {
+      "source": "Pipeline",
+      "target": "Brand Voice",
+      "weight": 3
+    },
+    {
+      "source": "Pipeline",
+      "target": "Oahu",
+      "weight": 5
+    },
+    {
+      "source": "Pipeline",
+      "target": "Referrals",
+      "weight": 3
+    },
+    {
+      "source": "Pipeline",
+      "target": "Massage",
+      "weight": 5
+    },
+    {
+      "source": "Pipeline",
+      "target": "Wellness Centers",
+      "weight": 10
+    },
+    {
+      "source": "Pipeline",
+      "target": "React",
+      "weight": 7
+    },
+    {
+      "source": "Pipeline",
+      "target": "Featured Tier",
+      "weight": 8
+    },
+    {
+      "source": "Pipeline",
+      "target": "Map",
+      "weight": 6
+    },
+    {
+      "source": "Pipeline",
+      "target": "Stripe",
+      "weight": 7
+    },
+    {
+      "source": "Pipeline",
+      "target": "Blog",
+      "weight": 11
+    },
+    {
+      "source": "Pipeline",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Pipeline",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Sprint",
+      "weight": 8
+    },
+    {
+      "source": "Pipeline",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Pipeline",
+      "target": "Spas",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Maui",
+      "weight": 4
+    },
+    {
+      "source": "Pipeline",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Wellness Seekers",
+      "weight": 6
+    },
+    {
+      "source": "Pipeline",
+      "target": "Chiropractic",
+      "weight": 3
+    },
+    {
+      "source": "Pipeline",
+      "target": "Ayurveda",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Nutrition",
+      "weight": 3
+    },
+    {
+      "source": "Pipeline",
+      "target": "Life Coaching",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "Pipeline",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "Visitors",
+      "weight": 3
+    },
+    {
+      "source": "Pipeline",
+      "target": "Revenue",
+      "weight": 9
+    },
+    {
+      "source": "Pipeline",
+      "target": "Email Marketing",
+      "weight": 2
+    },
+    {
+      "source": "Pipeline",
+      "target": "Retreats",
+      "weight": 1
+    },
+    {
+      "source": "Pipeline",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Pipeline",
+      "target": "Kauai",
+      "weight": 1
+    },
+    {
+      "source": "Referrals",
+      "target": "Massage",
+      "weight": 3
+    },
+    {
+      "source": "Referrals",
+      "target": "Wellness Seekers",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "AI/LLM",
+      "weight": 5
+    },
+    {
+      "source": "Referrals",
+      "target": "Brand Voice",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "Testimonials",
+      "weight": 1
+    },
+    {
+      "source": "Referrals",
+      "target": "Oahu",
+      "weight": 3
+    },
+    {
+      "source": "Referrals",
+      "target": "Wellness Centers",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "Blog",
+      "weight": 1
+    },
+    {
+      "source": "Referrals",
+      "target": "Pricing",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "Stripe",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "Featured Tier",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "Retreats",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "Search",
+      "weight": 2
+    },
+    {
+      "source": "Referrals",
+      "target": "SEO",
+      "weight": 1
+    },
+    {
+      "source": "Referrals",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Referrals",
+      "target": "Maui",
+      "weight": 1
+    },
+    {
+      "source": "Referrals",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Free Tier",
+      "target": "Oahu",
+      "weight": 4
+    },
+    {
+      "source": "Free Tier",
+      "target": "Kauai",
+      "weight": 2
+    },
+    {
+      "source": "Free Tier",
+      "target": "Maui",
+      "weight": 2
+    },
+    {
+      "source": "Free Tier",
+      "target": "AI/LLM",
+      "weight": 1
+    },
+    {
+      "source": "Free Tier",
+      "target": "SEO",
+      "weight": 4
+    },
+    {
+      "source": "Free Tier",
+      "target": "Visitors",
+      "weight": 4
+    },
+    {
+      "source": "Free Tier",
+      "target": "Wellness Centers",
+      "weight": 7
+    },
+    {
+      "source": "Free Tier",
+      "target": "Testimonials",
+      "weight": 14
+    },
+    {
+      "source": "Free Tier",
+      "target": "Massage",
+      "weight": 1
+    },
+    {
+      "source": "Free Tier",
+      "target": "Wellness Seekers",
+      "weight": 8
+    },
+    {
+      "source": "Free Tier",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Free Tier",
+      "target": "Pricing",
+      "weight": 10
+    },
+    {
+      "source": "Free Tier",
+      "target": "Featured Tier",
+      "weight": 10
+    },
+    {
+      "source": "Free Tier",
+      "target": "Revenue",
+      "weight": 7
+    },
+    {
+      "source": "Free Tier",
+      "target": "Stripe",
+      "weight": 7
+    },
+    {
+      "source": "Free Tier",
+      "target": "React",
+      "weight": 2
+    },
+    {
+      "source": "Free Tier",
+      "target": "Search",
+      "weight": 2
+    },
+    {
+      "source": "Free Tier",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Free Tier",
+      "target": "Map",
+      "weight": 3
+    },
+    {
+      "source": "Free Tier",
+      "target": "Premium Tier",
+      "weight": 3
+    },
+    {
+      "source": "Free Tier",
+      "target": "Retreats",
+      "weight": 2
+    },
+    {
+      "source": "Free Tier",
+      "target": "Spas",
+      "weight": 1
+    },
+    {
+      "source": "Free Tier",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Free Tier",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Oahu",
+      "target": "Kauai",
+      "weight": 18
+    },
+    {
+      "source": "Oahu",
+      "target": "Maui",
+      "weight": 30
+    },
+    {
+      "source": "Oahu",
+      "target": "Massage",
+      "weight": 13
+    },
+    {
+      "source": "Oahu",
+      "target": "Wellness Centers",
+      "weight": 15
+    },
+    {
+      "source": "Oahu",
+      "target": "Brand Voice",
+      "weight": 3
+    },
+    {
+      "source": "Oahu",
+      "target": "Wellness Seekers",
+      "weight": 9
+    },
+    {
+      "source": "Oahu",
+      "target": "Psychotherapy",
+      "weight": 7
+    },
+    {
+      "source": "Oahu",
+      "target": "SEO",
+      "weight": 9
+    },
+    {
+      "source": "Oahu",
+      "target": "React",
+      "weight": 4
+    },
+    {
+      "source": "Oahu",
+      "target": "Map",
+      "weight": 10
+    },
+    {
+      "source": "Oahu",
+      "target": "Featured Tier",
+      "weight": 13
+    },
+    {
+      "source": "Oahu",
+      "target": "Pricing",
+      "weight": 9
+    },
+    {
+      "source": "Oahu",
+      "target": "AI/LLM",
+      "weight": 8
+    },
+    {
+      "source": "Oahu",
+      "target": "Testimonials",
+      "weight": 9
+    },
+    {
+      "source": "Oahu",
+      "target": "Spas",
+      "weight": 2
+    },
+    {
+      "source": "Oahu",
+      "target": "Visitors",
+      "weight": 5
+    },
+    {
+      "source": "Oahu",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Oahu",
+      "target": "Stripe",
+      "weight": 4
+    },
+    {
+      "source": "Oahu",
+      "target": "Blog",
+      "weight": 4
+    },
+    {
+      "source": "Oahu",
+      "target": "Premium Tier",
+      "weight": 3
+    },
+    {
+      "source": "Oahu",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Oahu",
+      "target": "Revenue",
+      "weight": 4
+    },
+    {
+      "source": "Oahu",
+      "target": "Retreats",
+      "weight": 7
+    },
+    {
+      "source": "Oahu",
+      "target": "Keywords",
+      "weight": 4
+    },
+    {
+      "source": "Oahu",
+      "target": "Content Strategy",
+      "weight": 2
+    },
+    {
+      "source": "Oahu",
+      "target": "Nutrition",
+      "weight": 5
+    },
+    {
+      "source": "Oahu",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Oahu",
+      "target": "Chiropractic",
+      "weight": 3
+    },
+    {
+      "source": "Oahu",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Oahu",
+      "target": "Email Marketing",
+      "weight": 2
+    },
+    {
+      "source": "Oahu",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Maui",
+      "weight": 18
+    },
+    {
+      "source": "Kauai",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "Kauai",
+      "target": "React",
+      "weight": 2
+    },
+    {
+      "source": "Kauai",
+      "target": "Map",
+      "weight": 5
+    },
+    {
+      "source": "Kauai",
+      "target": "Wellness Centers",
+      "weight": 4
+    },
+    {
+      "source": "Kauai",
+      "target": "Massage",
+      "weight": 2
+    },
+    {
+      "source": "Kauai",
+      "target": "Featured Tier",
+      "weight": 3
+    },
+    {
+      "source": "Kauai",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Visitors",
+      "weight": 4
+    },
+    {
+      "source": "Kauai",
+      "target": "Chiropractic",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Retreats",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Testimonials",
+      "weight": 2
+    },
+    {
+      "source": "Kauai",
+      "target": "Pricing",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "AI/LLM",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Kauai",
+      "target": "Wellness Seekers",
+      "weight": 2
+    },
+    {
+      "source": "Kauai",
+      "target": "Search",
+      "weight": 1
+    },
+    {
+      "source": "Maui",
+      "target": "Massage",
+      "weight": 7
+    },
+    {
+      "source": "Maui",
+      "target": "Visitors",
+      "weight": 5
+    },
+    {
+      "source": "Maui",
+      "target": "Retreats",
+      "weight": 7
+    },
+    {
+      "source": "Maui",
+      "target": "Search",
+      "weight": 11
+    },
+    {
+      "source": "Maui",
+      "target": "Wellness Centers",
+      "weight": 12
+    },
+    {
+      "source": "Maui",
+      "target": "Psychotherapy",
+      "weight": 6
+    },
+    {
+      "source": "Maui",
+      "target": "SEO",
+      "weight": 7
+    },
+    {
+      "source": "Maui",
+      "target": "Blog",
+      "weight": 9
+    },
+    {
+      "source": "Maui",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Maui",
+      "target": "React",
+      "weight": 4
+    },
+    {
+      "source": "Maui",
+      "target": "Backlinks",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Sprint",
+      "weight": 2
+    },
+    {
+      "source": "Maui",
+      "target": "Spas",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Content Strategy",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Keywords",
+      "weight": 5
+    },
+    {
+      "source": "Maui",
+      "target": "Map",
+      "weight": 5
+    },
+    {
+      "source": "Maui",
+      "target": "Featured Tier",
+      "weight": 8
+    },
+    {
+      "source": "Maui",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Maui",
+      "target": "Wellness Seekers",
+      "weight": 7
+    },
+    {
+      "source": "Maui",
+      "target": "Brand Voice",
+      "weight": 1
+    },
+    {
+      "source": "Maui",
+      "target": "Revenue",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Email Marketing",
+      "weight": 2
+    },
+    {
+      "source": "Maui",
+      "target": "Community",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Chiropractic",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Nutrition",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Maui",
+      "target": "AI/LLM",
+      "weight": 6
+    },
+    {
+      "source": "Maui",
+      "target": "Testimonials",
+      "weight": 6
+    },
+    {
+      "source": "Maui",
+      "target": "OpenClaw",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Pricing",
+      "weight": 3
+    },
+    {
+      "source": "Maui",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "AI/LLM",
+      "target": "SEO",
+      "weight": 5
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Testimonials",
+      "weight": 21
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Brand Voice",
+      "weight": 2
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Wellness Centers",
+      "weight": 7
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Search",
+      "weight": 16
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Map",
+      "weight": 4
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Keywords",
+      "weight": 4
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Pricing",
+      "weight": 5
+    },
+    {
+      "source": "AI/LLM",
+      "target": "React",
+      "weight": 6
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Wellness Seekers",
+      "weight": 13
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Sprint",
+      "weight": 3
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Massage",
+      "weight": 4
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Spas",
+      "weight": 1
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Visitors",
+      "weight": 1
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Stripe",
+      "weight": 2
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Blog",
+      "weight": 5
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Featured Tier",
+      "weight": 6
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Revenue",
+      "weight": 4
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Retreats",
+      "weight": 4
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Chiropractic",
+      "weight": 1
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "AI/LLM",
+      "target": "OpenClaw",
+      "weight": 4
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Nutrition",
+      "weight": 2
+    },
+    {
+      "source": "AI/LLM",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "SEO",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "SEO",
+      "target": "Blog",
+      "weight": 13
+    },
+    {
+      "source": "SEO",
+      "target": "Google Business",
+      "weight": 6
+    },
+    {
+      "source": "SEO",
+      "target": "React",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Backlinks",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Sprint",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Search",
+      "weight": 13
+    },
+    {
+      "source": "SEO",
+      "target": "Spas",
+      "weight": 4
+    },
+    {
+      "source": "SEO",
+      "target": "Content Strategy",
+      "weight": 5
+    },
+    {
+      "source": "SEO",
+      "target": "Keywords",
+      "weight": 4
+    },
+    {
+      "source": "SEO",
+      "target": "Map",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Wellness Centers",
+      "weight": 5
+    },
+    {
+      "source": "SEO",
+      "target": "Pricing",
+      "weight": 14
+    },
+    {
+      "source": "SEO",
+      "target": "Brand Voice",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Wellness Seekers",
+      "weight": 10
+    },
+    {
+      "source": "SEO",
+      "target": "Stripe",
+      "weight": 8
+    },
+    {
+      "source": "SEO",
+      "target": "Testimonials",
+      "weight": 11
+    },
+    {
+      "source": "SEO",
+      "target": "Massage",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Visitors",
+      "weight": 4
+    },
+    {
+      "source": "SEO",
+      "target": "Featured Tier",
+      "weight": 14
+    },
+    {
+      "source": "SEO",
+      "target": "Retreats",
+      "weight": 5
+    },
+    {
+      "source": "SEO",
+      "target": "Revenue",
+      "weight": 10
+    },
+    {
+      "source": "SEO",
+      "target": "Local SEO",
+      "weight": 2
+    },
+    {
+      "source": "SEO",
+      "target": "OpenClaw",
+      "weight": 3
+    },
+    {
+      "source": "SEO",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "SEO",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "SEO",
+      "target": "Premium Tier",
+      "weight": 2
+    },
+    {
+      "source": "SEO",
+      "target": "Email Marketing",
+      "weight": 2
+    },
+    {
+      "source": "SEO",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Massage",
+      "target": "Wellness Seekers",
+      "weight": 8
+    },
+    {
+      "source": "Massage",
+      "target": "Wellness Centers",
+      "weight": 11
+    },
+    {
+      "source": "Massage",
+      "target": "Testimonials",
+      "weight": 8
+    },
+    {
+      "source": "Massage",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Massage",
+      "target": "Map",
+      "weight": 12
+    },
+    {
+      "source": "Massage",
+      "target": "Visitors",
+      "weight": 6
+    },
+    {
+      "source": "Massage",
+      "target": "Retreats",
+      "weight": 9
+    },
+    {
+      "source": "Massage",
+      "target": "Psychotherapy",
+      "weight": 11
+    },
+    {
+      "source": "Massage",
+      "target": "React",
+      "weight": 3
+    },
+    {
+      "source": "Massage",
+      "target": "Chiropractic",
+      "weight": 7
+    },
+    {
+      "source": "Massage",
+      "target": "Nutrition",
+      "weight": 8
+    },
+    {
+      "source": "Massage",
+      "target": "Life Coaching",
+      "weight": 6
+    },
+    {
+      "source": "Massage",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Massage",
+      "target": "Ayurveda",
+      "weight": 4
+    },
+    {
+      "source": "Massage",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Massage",
+      "target": "Blog",
+      "weight": 3
+    },
+    {
+      "source": "Massage",
+      "target": "Featured Tier",
+      "weight": 4
+    },
+    {
+      "source": "Massage",
+      "target": "Spas",
+      "weight": 3
+    },
+    {
+      "source": "Massage",
+      "target": "Pricing",
+      "weight": 2
+    },
+    {
+      "source": "Massage",
+      "target": "Stripe",
+      "weight": 2
+    },
+    {
+      "source": "Massage",
+      "target": "Revenue",
+      "weight": 1
+    },
+    {
+      "source": "Massage",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Massage",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Wellness Centers",
+      "weight": 12
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Testimonials",
+      "weight": 25
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Brand Voice",
+      "weight": 5
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "React",
+      "weight": 15
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Spas",
+      "weight": 7
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Search",
+      "weight": 21
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Map",
+      "weight": 6
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Featured Tier",
+      "weight": 20
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Blog",
+      "weight": 8
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Chiropractic",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Ayurveda",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Life Coaching",
+      "weight": 2
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Pricing",
+      "weight": 17
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Stripe",
+      "weight": 13
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Visitors",
+      "weight": 7
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Retreats",
+      "weight": 6
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Sprint",
+      "weight": 3
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Revenue",
+      "weight": 12
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Google Business",
+      "weight": 4
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Premium Tier",
+      "weight": 3
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Local SEO",
+      "weight": 2
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Seekers",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Visitors",
+      "target": "Wellness Centers",
+      "weight": 4
+    },
+    {
+      "source": "Visitors",
+      "target": "Retreats",
+      "weight": 9
+    },
+    {
+      "source": "Visitors",
+      "target": "Search",
+      "weight": 9
+    },
+    {
+      "source": "Visitors",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "Visitors",
+      "target": "Map",
+      "weight": 2
+    },
+    {
+      "source": "Visitors",
+      "target": "Pricing",
+      "weight": 6
+    },
+    {
+      "source": "Visitors",
+      "target": "Testimonials",
+      "weight": 7
+    },
+    {
+      "source": "Visitors",
+      "target": "Featured Tier",
+      "weight": 6
+    },
+    {
+      "source": "Visitors",
+      "target": "Revenue",
+      "weight": 8
+    },
+    {
+      "source": "Visitors",
+      "target": "Stripe",
+      "weight": 7
+    },
+    {
+      "source": "Visitors",
+      "target": "Spas",
+      "weight": 3
+    },
+    {
+      "source": "Visitors",
+      "target": "React",
+      "weight": 1
+    },
+    {
+      "source": "Visitors",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Visitors",
+      "target": "Blog",
+      "weight": 3
+    },
+    {
+      "source": "Visitors",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Testimonials",
+      "weight": 21
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Brand Voice",
+      "weight": 7
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Featured Tier",
+      "weight": 26
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Stripe",
+      "weight": 14
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Retreats",
+      "weight": 20
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Search",
+      "weight": 7
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Psychotherapy",
+      "weight": 5
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Map",
+      "weight": 17
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "React",
+      "weight": 14
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Spas",
+      "weight": 14
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Blog",
+      "weight": 9
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Google Business",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Pricing",
+      "weight": 28
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Revenue",
+      "weight": 19
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Sprint",
+      "weight": 6
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Email Marketing",
+      "weight": 4
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Chiropractic",
+      "weight": 6
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Nutrition",
+      "weight": 2
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Ayurveda",
+      "weight": 1
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Wellness Centers",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "Pricing",
+      "weight": 27
+    },
+    {
+      "source": "Testimonials",
+      "target": "Brand Voice",
+      "weight": 7
+    },
+    {
+      "source": "Testimonials",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "Featured Tier",
+      "weight": 31
+    },
+    {
+      "source": "Testimonials",
+      "target": "Search",
+      "weight": 14
+    },
+    {
+      "source": "Testimonials",
+      "target": "Map",
+      "weight": 8
+    },
+    {
+      "source": "Testimonials",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "React",
+      "weight": 11
+    },
+    {
+      "source": "Testimonials",
+      "target": "Google Business",
+      "weight": 4
+    },
+    {
+      "source": "Testimonials",
+      "target": "Revenue",
+      "weight": 9
+    },
+    {
+      "source": "Testimonials",
+      "target": "Stripe",
+      "weight": 12
+    },
+    {
+      "source": "Testimonials",
+      "target": "Spas",
+      "weight": 3
+    },
+    {
+      "source": "Testimonials",
+      "target": "Retreats",
+      "weight": 3
+    },
+    {
+      "source": "Testimonials",
+      "target": "Email Marketing",
+      "weight": 4
+    },
+    {
+      "source": "Testimonials",
+      "target": "Blog",
+      "weight": 8
+    },
+    {
+      "source": "Testimonials",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "Sprint",
+      "weight": 3
+    },
+    {
+      "source": "Testimonials",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "Chiropractic",
+      "weight": 2
+    },
+    {
+      "source": "Testimonials",
+      "target": "Nutrition",
+      "weight": 2
+    },
+    {
+      "source": "Testimonials",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "OpenClaw",
+      "weight": 4
+    },
+    {
+      "source": "Testimonials",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Testimonials",
+      "target": "Premium Tier",
+      "weight": 2
+    },
+    {
+      "source": "Testimonials",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Pricing",
+      "weight": 8
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Featured Tier",
+      "weight": 4
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Map",
+      "weight": 2
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Blog",
+      "weight": 5
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Revenue",
+      "weight": 4
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Search",
+      "weight": 2
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Stripe",
+      "weight": 4
+    },
+    {
+      "source": "Brand Voice",
+      "target": "React",
+      "weight": 1
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Spas",
+      "weight": 1
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Retreats",
+      "weight": 2
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Brand Voice",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Backlinks",
+      "weight": 2
+    },
+    {
+      "source": "Brand Voice",
+      "target": "Sprint",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "Community",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "Search",
+      "weight": 8
+    },
+    {
+      "source": "Pricing",
+      "target": "Google Business",
+      "weight": 5
+    },
+    {
+      "source": "Pricing",
+      "target": "Map",
+      "weight": 3
+    },
+    {
+      "source": "Pricing",
+      "target": "Stripe",
+      "weight": 33
+    },
+    {
+      "source": "Pricing",
+      "target": "Featured Tier",
+      "weight": 25
+    },
+    {
+      "source": "Pricing",
+      "target": "Revenue",
+      "weight": 23
+    },
+    {
+      "source": "Pricing",
+      "target": "Sprint",
+      "weight": 5
+    },
+    {
+      "source": "Pricing",
+      "target": "Spas",
+      "weight": 7
+    },
+    {
+      "source": "Pricing",
+      "target": "Email Marketing",
+      "weight": 4
+    },
+    {
+      "source": "Pricing",
+      "target": "Blog",
+      "weight": 12
+    },
+    {
+      "source": "Pricing",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "React",
+      "weight": 10
+    },
+    {
+      "source": "Pricing",
+      "target": "Premium Tier",
+      "weight": 6
+    },
+    {
+      "source": "Pricing",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "Retreats",
+      "weight": 16
+    },
+    {
+      "source": "Pricing",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "OpenClaw",
+      "weight": 3
+    },
+    {
+      "source": "Pricing",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Pricing",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Community",
+      "target": "Featured Tier",
+      "weight": 2
+    },
+    {
+      "source": "Community",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Community",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Community",
+      "target": "Retreats",
+      "weight": 1
+    },
+    {
+      "source": "Community",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Community",
+      "target": "Revenue",
+      "weight": 1
+    },
+    {
+      "source": "Community",
+      "target": "Stripe",
+      "weight": 1
+    },
+    {
+      "source": "Map",
+      "target": "React",
+      "weight": 9
+    },
+    {
+      "source": "Map",
+      "target": "Featured Tier",
+      "weight": 7
+    },
+    {
+      "source": "Map",
+      "target": "Stripe",
+      "weight": 4
+    },
+    {
+      "source": "Map",
+      "target": "Search",
+      "weight": 10
+    },
+    {
+      "source": "Map",
+      "target": "Retreats",
+      "weight": 9
+    },
+    {
+      "source": "Map",
+      "target": "Psychotherapy",
+      "weight": 13
+    },
+    {
+      "source": "Map",
+      "target": "Keywords",
+      "weight": 4
+    },
+    {
+      "source": "Map",
+      "target": "Sprint",
+      "weight": 5
+    },
+    {
+      "source": "Map",
+      "target": "Life Coaching",
+      "weight": 11
+    },
+    {
+      "source": "Map",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Map",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Map",
+      "target": "Nutrition",
+      "weight": 7
+    },
+    {
+      "source": "Map",
+      "target": "Chiropractic",
+      "weight": 4
+    },
+    {
+      "source": "Map",
+      "target": "Ayurveda",
+      "weight": 3
+    },
+    {
+      "source": "Map",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Map",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Map",
+      "target": "Blog",
+      "weight": 4
+    },
+    {
+      "source": "Map",
+      "target": "Spas",
+      "weight": 4
+    },
+    {
+      "source": "Map",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Map",
+      "target": "Premium Tier",
+      "weight": 2
+    },
+    {
+      "source": "Featured Tier",
+      "target": "React",
+      "weight": 15
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Stripe",
+      "weight": 15
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Revenue",
+      "weight": 20
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Spas",
+      "weight": 5
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Retreats",
+      "weight": 10
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Search",
+      "weight": 16
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Sprint",
+      "weight": 2
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Google Business",
+      "weight": 3
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Blog",
+      "weight": 7
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Life Coaching",
+      "weight": 1
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Psychotherapy",
+      "weight": 3
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Local SEO",
+      "weight": 2
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Featured Tier",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Premium Tier",
+      "weight": 2
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Featured Tier",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Search",
+      "target": "Sprint",
+      "weight": 6
+    },
+    {
+      "source": "Search",
+      "target": "React",
+      "weight": 15
+    },
+    {
+      "source": "Search",
+      "target": "Spas",
+      "weight": 6
+    },
+    {
+      "source": "Search",
+      "target": "Retreats",
+      "weight": 8
+    },
+    {
+      "source": "Search",
+      "target": "Psychotherapy",
+      "weight": 5
+    },
+    {
+      "source": "Search",
+      "target": "Keywords",
+      "weight": 6
+    },
+    {
+      "source": "Search",
+      "target": "Blog",
+      "weight": 13
+    },
+    {
+      "source": "Search",
+      "target": "Google Business",
+      "weight": 6
+    },
+    {
+      "source": "Search",
+      "target": "Backlinks",
+      "weight": 3
+    },
+    {
+      "source": "Search",
+      "target": "Content Strategy",
+      "weight": 2
+    },
+    {
+      "source": "Search",
+      "target": "Stripe",
+      "weight": 10
+    },
+    {
+      "source": "Search",
+      "target": "Revenue",
+      "weight": 8
+    },
+    {
+      "source": "Search",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Search",
+      "target": "Life Coaching",
+      "weight": 2
+    },
+    {
+      "source": "Search",
+      "target": "Local SEO",
+      "weight": 2
+    },
+    {
+      "source": "Search",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Search",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Search",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Sprint",
+      "target": "React",
+      "weight": 9
+    },
+    {
+      "source": "Sprint",
+      "target": "Life Coaching",
+      "weight": 1
+    },
+    {
+      "source": "Sprint",
+      "target": "Psychotherapy",
+      "weight": 1
+    },
+    {
+      "source": "Sprint",
+      "target": "Blog",
+      "weight": 6
+    },
+    {
+      "source": "Sprint",
+      "target": "Keywords",
+      "weight": 3
+    },
+    {
+      "source": "Sprint",
+      "target": "Google Business",
+      "weight": 1
+    },
+    {
+      "source": "Sprint",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Sprint",
+      "target": "Spas",
+      "weight": 3
+    },
+    {
+      "source": "Sprint",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Sprint",
+      "target": "Revenue",
+      "weight": 3
+    },
+    {
+      "source": "Sprint",
+      "target": "Retreats",
+      "weight": 3
+    },
+    {
+      "source": "Sprint",
+      "target": "Stripe",
+      "weight": 3
+    },
+    {
+      "source": "React",
+      "target": "Spas",
+      "weight": 4
+    },
+    {
+      "source": "React",
+      "target": "Stripe",
+      "weight": 11
+    },
+    {
+      "source": "React",
+      "target": "Psychotherapy",
+      "weight": 2
+    },
+    {
+      "source": "React",
+      "target": "Blog",
+      "weight": 7
+    },
+    {
+      "source": "React",
+      "target": "Google Business",
+      "weight": 1
+    },
+    {
+      "source": "React",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "React",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "React",
+      "target": "Keywords",
+      "weight": 2
+    },
+    {
+      "source": "React",
+      "target": "Revenue",
+      "weight": 3
+    },
+    {
+      "source": "React",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "React",
+      "target": "Retreats",
+      "weight": 8
+    },
+    {
+      "source": "React",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Spas",
+      "target": "Blog",
+      "weight": 6
+    },
+    {
+      "source": "Spas",
+      "target": "Google Business",
+      "weight": 1
+    },
+    {
+      "source": "Spas",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Spas",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Spas",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Spas",
+      "target": "Retreats",
+      "weight": 12
+    },
+    {
+      "source": "Spas",
+      "target": "Stripe",
+      "weight": 2
+    },
+    {
+      "source": "Spas",
+      "target": "Revenue",
+      "weight": 6
+    },
+    {
+      "source": "Spas",
+      "target": "Email Marketing",
+      "weight": 3
+    },
+    {
+      "source": "Spas",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Spas",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Revenue",
+      "weight": 19
+    },
+    {
+      "source": "Stripe",
+      "target": "Email Marketing",
+      "weight": 4
+    },
+    {
+      "source": "Stripe",
+      "target": "Google Business",
+      "weight": 3
+    },
+    {
+      "source": "Stripe",
+      "target": "Blog",
+      "weight": 10
+    },
+    {
+      "source": "Stripe",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Retreats",
+      "weight": 3
+    },
+    {
+      "source": "Stripe",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Stripe",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Stripe",
+      "target": "Fitness",
+      "weight": 1
+    },
+    {
+      "source": "Retreats",
+      "target": "Psychotherapy",
+      "weight": 4
+    },
+    {
+      "source": "Retreats",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Retreats",
+      "target": "Keywords",
+      "weight": 3
+    },
+    {
+      "source": "Retreats",
+      "target": "Premium Tier",
+      "weight": 3
+    },
+    {
+      "source": "Retreats",
+      "target": "Blog",
+      "weight": 16
+    },
+    {
+      "source": "Retreats",
+      "target": "Revenue",
+      "weight": 13
+    },
+    {
+      "source": "Retreats",
+      "target": "Email Marketing",
+      "weight": 5
+    },
+    {
+      "source": "Retreats",
+      "target": "Chiropractic",
+      "weight": 1
+    },
+    {
+      "source": "Retreats",
+      "target": "Nutrition",
+      "weight": 2
+    },
+    {
+      "source": "Retreats",
+      "target": "Ayurveda",
+      "weight": 1
+    },
+    {
+      "source": "Retreats",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Keywords",
+      "weight": 1
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Chiropractic",
+      "weight": 7
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Nutrition",
+      "weight": 8
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Life Coaching",
+      "weight": 6
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Fitness",
+      "weight": 6
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Ayurveda",
+      "weight": 4
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Blog",
+      "weight": 2
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Psychotherapy",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Keywords",
+      "target": "Blog",
+      "weight": 5
+    },
+    {
+      "source": "Keywords",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Keywords",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Keywords",
+      "target": "Content Strategy",
+      "weight": 2
+    },
+    {
+      "source": "Keywords",
+      "target": "Fitness",
+      "weight": 2
+    },
+    {
+      "source": "Keywords",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Keywords",
+      "target": "Nutrition",
+      "weight": 1
+    },
+    {
+      "source": "Chiropractic",
+      "target": "Nutrition",
+      "weight": 6
+    },
+    {
+      "source": "Chiropractic",
+      "target": "Life Coaching",
+      "weight": 4
+    },
+    {
+      "source": "Chiropractic",
+      "target": "Fitness",
+      "weight": 4
+    },
+    {
+      "source": "Chiropractic",
+      "target": "Ayurveda",
+      "weight": 3
+    },
+    {
+      "source": "Chiropractic",
+      "target": "Blog",
+      "weight": 1
+    },
+    {
+      "source": "Nutrition",
+      "target": "Life Coaching",
+      "weight": 5
+    },
+    {
+      "source": "Nutrition",
+      "target": "Fitness",
+      "weight": 4
+    },
+    {
+      "source": "Nutrition",
+      "target": "Ayurveda",
+      "weight": 4
+    },
+    {
+      "source": "Nutrition",
+      "target": "Blog",
+      "weight": 2
+    },
+    {
+      "source": "Nutrition",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Nutrition",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Life Coaching",
+      "target": "Fitness",
+      "weight": 3
+    },
+    {
+      "source": "Life Coaching",
+      "target": "Ayurveda",
+      "weight": 3
+    },
+    {
+      "source": "Life Coaching",
+      "target": "Blog",
+      "weight": 1
+    },
+    {
+      "source": "Fitness",
+      "target": "Blog",
+      "weight": 1
+    },
+    {
+      "source": "Fitness",
+      "target": "Ayurveda",
+      "weight": 2
+    },
+    {
+      "source": "Fitness",
+      "target": "Google Business",
+      "weight": 2
+    },
+    {
+      "source": "Fitness",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Fitness",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Fitness",
+      "target": "Email Marketing",
+      "weight": 1
+    },
+    {
+      "source": "Ayurveda",
+      "target": "Blog",
+      "weight": 1
+    },
+    {
+      "source": "Blog",
+      "target": "Google Business",
+      "weight": 5
+    },
+    {
+      "source": "Blog",
+      "target": "Backlinks",
+      "weight": 6
+    },
+    {
+      "source": "Blog",
+      "target": "Content Strategy",
+      "weight": 3
+    },
+    {
+      "source": "Blog",
+      "target": "Revenue",
+      "weight": 10
+    },
+    {
+      "source": "Blog",
+      "target": "Premium Tier",
+      "weight": 1
+    },
+    {
+      "source": "Blog",
+      "target": "Local SEO",
+      "weight": 1
+    },
+    {
+      "source": "Blog",
+      "target": "Email Marketing",
+      "weight": 2
+    },
+    {
+      "source": "Blog",
+      "target": "OpenClaw",
+      "weight": 9
+    },
+    {
+      "source": "Google Business",
+      "target": "Backlinks",
+      "weight": 1
+    },
+    {
+      "source": "Google Business",
+      "target": "Content Strategy",
+      "weight": 2
+    },
+    {
+      "source": "Google Business",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Google Business",
+      "target": "Local SEO",
+      "weight": 2
+    },
+    {
+      "source": "Backlinks",
+      "target": "Content Strategy",
+      "weight": 1
+    },
+    {
+      "source": "Backlinks",
+      "target": "OpenClaw",
+      "weight": 2
+    },
+    {
+      "source": "Backlinks",
+      "target": "Revenue",
+      "weight": 3
+    },
+    {
+      "source": "Content Strategy",
+      "target": "Revenue",
+      "weight": 2
+    },
+    {
+      "source": "Revenue",
+      "target": "Email Marketing",
+      "weight": 7
+    },
+    {
+      "source": "Revenue",
+      "target": "OpenClaw",
+      "weight": 1
+    },
+    {
+      "source": "Revenue",
+      "target": "Premium Tier",
+      "weight": 2
+    },
+    {
+      "source": "Email Marketing",
+      "target": "Premium Tier",
+      "weight": 2
+    }
+  ]
+};
+
+const width  = window.innerWidth - 320;
+const height = window.innerHeight;
+
+const svg = d3.select("#svg")
+  .attr("viewBox", [0, 0, width, height]);
+
+const g = svg.append("g");
+
+// Zoom
+svg.call(d3.zoom()
+  .scaleExtent([0.2, 4])
+  .on("zoom", e => g.attr("transform", e.transform)));
+
+// Stats
+const allClusters = [...new Set(GRAPH.nodes.map(n => n.group))];
+const allFiles    = new Set(GRAPH.nodes.flatMap(n => n.files));
+document.getElementById("node-count").textContent    = GRAPH.nodes.length;
+document.getElementById("edge-count").textContent    = GRAPH.links.length;
+document.getElementById("cluster-count").textContent = allClusters.length;
+document.getElementById("file-count").textContent    = allFiles.size;
+
+// Legend
+const legendEl = document.getElementById("legend");
+const clusterInfo = {};
+GRAPH.nodes.forEach(n => { clusterInfo[n.group] = {label: n.label, color: n.color}; });
+Object.entries(clusterInfo).forEach(([id, {label, color}]) => {
+  const div = document.createElement("div");
+  div.className = "legend-item";
+  div.dataset.cluster = id;
+  div.innerHTML = `<span class="legend-dot" style="background:${color}"></span><span>${label}</span>`;
+  div.onclick = () => filterByCluster(label);
+  legendEl.appendChild(div);
+});
+
+// Simulation
+const simulation = d3.forceSimulation(GRAPH.nodes)
+  .force("link", d3.forceLink(GRAPH.links).id(d => d.id).distance(d => 80 / Math.sqrt(d.weight || 1)))
+  .force("charge", d3.forceManyBody().strength(d => -120 - d.size * 3))
+  .force("center", d3.forceCenter(width / 2, height / 2))
+  .force("collision", d3.forceCollide().radius(d => d.size + 6));
+
+// Links
+const link = g.append("g")
+  .selectAll("line")
+  .data(GRAPH.links)
+  .join("line")
+  .attr("class", "link")
+  .attr("stroke-width", d => Math.sqrt(d.weight));
+
+// Nodes
+const node = g.append("g")
+  .selectAll("g")
+  .data(GRAPH.nodes)
+  .join("g")
+  .attr("class", "node")
+  .call(d3.drag()
+    .on("start", dragStart)
+    .on("drag",  dragged)
+    .on("end",   dragEnd))
+  .on("click", showDetail)
+  .on("mouseover", showTooltip)
+  .on("mouseout",  hideTooltip);
+
+node.append("circle")
+  .attr("r", d => d.size)
+  .attr("fill", d => d.color)
+  .attr("fill-opacity", 0.85);
+
+node.append("text")
+  .text(d => d.id)
+  .attr("x", d => d.size + 4)
+  .attr("y", 4)
+  .attr("font-size", d => d.composite > 0.05 ? "12px" : "10px")
+  .attr("font-weight", d => d.composite > 0.08 ? "700" : "400");
+
+simulation.on("tick", () => {
+  link
+    .attr("x1", d => d.source.x)
+    .attr("y1", d => d.source.y)
+    .attr("x2", d => d.target.x)
+    .attr("y2", d => d.target.y);
+  node.attr("transform", d => `translate(${d.x},${d.y})`);
+});
+
+// Drag
+function dragStart(e, d) { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+function dragged(e, d)    { d.fx = e.x; d.fy = e.y; }
+function dragEnd(e, d)    { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+
+// Tooltip
+const tooltip = document.getElementById("tooltip");
+function showTooltip(e, d) {
+  tooltip.style.display = "block";
+  tooltip.style.left = (e.clientX + 14) + "px";
+  tooltip.style.top  = (e.clientY - 28) + "px";
+  tooltip.innerHTML  = `<strong>${d.id}</strong><br>${d.label}<br>Mentions: ${d.mentions} · Connections: ${GRAPH.links.filter(l => l.source.id === d.id || l.target.id === d.id).length}`;
+}
+function hideTooltip() { tooltip.style.display = "none"; }
+
+// Node detail panel
+function showDetail(e, d) {
+  const panel = document.getElementById("node-detail");
+  const isGod = d.composite > 0.08;
+  const neighbors = GRAPH.links
+    .filter(l => l.source.id === d.id || l.target.id === d.id)
+    .map(l => l.source.id === d.id ? l.target.id : l.source.id)
+    .slice(0, 6).join(", ");
+
+  panel.style.display = "block";
+  panel.innerHTML = `
+    <h3>${d.id} ${isGod ? '<span class="god-node-badge">⚡ GOD NODE</span>' : ''}</h3>
+    <span class="cluster-tag" style="background:${d.color}22;color:${d.color};border:1px solid ${d.color}44">${d.label}</span>
+    <div style="margin-top:10px">
+      <div class="detail-row"><span class="detail-label">Composite score</span><span class="detail-value">${d.composite.toFixed(4)}</span></div>
+      <div class="detail-row"><span class="detail-label">Degree centrality</span><span class="detail-value">${d.degree.toFixed(4)}</span></div>
+      <div class="detail-row"><span class="detail-label">Betweenness</span><span class="detail-value">${d.betweenness.toFixed(4)}</span></div>
+      <div class="detail-row"><span class="detail-label">PageRank</span><span class="detail-value">${d.pagerank.toFixed(4)}</span></div>
+      <div class="detail-row"><span class="detail-label">Mentions</span><span class="detail-value">${d.mentions}</span></div>
+      <div class="detail-row"><span class="detail-label">Documents</span><span class="detail-value">${d.files.length}</span></div>
+    </div>
+    <div class="files-list"><strong>Connected to:</strong><br>${neighbors || "—"}</div>
+    <div class="files-list"><strong>Found in:</strong><br>${d.files.slice(0,4).join(", ")}${d.files.length > 4 ? ` +${d.files.length-4} more` : ''}</div>
+  `;
+}
+
+// Search
+document.getElementById("search").addEventListener("input", function() {
+  const q = this.value.toLowerCase();
+  node.selectAll("circle").attr("opacity", d => !q || d.id.toLowerCase().includes(q) ? 1 : 0.15);
+  node.selectAll("text").attr("opacity",   d => !q || d.id.toLowerCase().includes(q) ? 1 : 0.1);
+  link.attr("opacity", d => !q ? 0.6 : (
+    d.source.id.toLowerCase().includes(q) || d.target.id.toLowerCase().includes(q) ? 0.8 : 0.05
+  ));
+});
+
+// Cluster filter
+document.getElementById("cluster-filter").addEventListener("change", function() {
+  filterByCluster(this.value);
+});
+
+function filterByCluster(label) {
+  node.selectAll("circle").attr("opacity", d => !label || d.label === label ? 1 : 0.15);
+  node.selectAll("text").attr("opacity",   d => !label || d.label === label ? 1 : 0.1);
+  link.attr("opacity", d => !label ? 0.6 : (
+    d.source.label === label && d.target.label === label ? 0.8 : 0.05
+  ));
+  document.getElementById("cluster-filter").value = label;
+}
+</script>
+</body>
+</html>

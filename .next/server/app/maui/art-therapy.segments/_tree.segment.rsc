@@ -1,0 +1,3 @@
+:HL["/_next/static/chunks/0l-3po4x.qy~k.css","style"]
+:HL["https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"maui","param":null,"prefetchHints":0,"slots":{"children":{"name":"modality","param":{"type":"d","key":"art-therapy","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"boqPycJ7db0Z9M0NPJYQm"}

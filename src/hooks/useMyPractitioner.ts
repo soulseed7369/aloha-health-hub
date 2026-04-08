@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { optimizeImage } from '@/lib/imageOptimize';
+import { assertNoDuplicateByEmail } from '@/lib/duplicateDetection';
 import type { PractitionerRow, PractitionerInsert } from '@/types/database';
 
 export function useMyPractitioner() {
@@ -11,16 +12,22 @@ export function useMyPractitioner() {
     enabled: !!user && !!supabase,
     queryFn: async () => {
       if (!supabase || !user) return null;
+      // Ordered + limited instead of .maybeSingle() — a user can legitimately
+      // own 2+ rows (e.g. after the duplicate-dialog "create anyway" escape
+      // hatch) and .maybeSingle() would throw PGRST116 in that case. We
+      // always return the oldest row as the canonical one so edits stay
+      // stable. See `tasks/todo.md` fix #5 ("maybeSingle hygiene").
       const { data, error } = await supabase
         .from('practitioners')
         .select('*')
         .eq('owner_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: true })
+        .limit(1);
       if (error) {
         console.error('Failed to fetch practitioner profile:', error);
         return null;
       }
-      return data ?? null;
+      return data?.[0] ?? null;
     },
     staleTime: 1000 * 30,
   });
@@ -57,13 +64,25 @@ export type PractitionerFormData = {
   services_list?: Array<{ name: string; description?: string; price?: string }>;
 };
 
+export type SavePractitionerInput = PractitionerFormData & {
+  /**
+   * Escape hatch for the duplicate-detection dialog: if true, skip the
+   * `assertNoDuplicateByEmail` check and insert anyway. Set only after
+   * the user has explicitly chosen "Create new anyway" in the duplicate
+   * dialog. The insert will be flagged for admin review via
+   * `listing_flags` (reason='duplicate').
+   */
+  overrideDuplicate?: boolean;
+};
+
 export function useSavePractitioner() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (formData: PractitionerFormData) => {
+    mutationFn: async (input: SavePractitionerInput) => {
       if (!supabase || !user) throw new Error('Not authenticated');
+      const { overrideDuplicate, ...formData } = input;
 
       // Core fields that exist in the base practitioners table (always safe to write)
       const payload: Record<string, unknown> = {
@@ -99,11 +118,14 @@ export function useSavePractitioner() {
         ...(formData.services_list !== undefined && { services_list: formData.services_list }),
       };
 
-      const { data: existing } = await supabase
+      // Oldest-row-wins for users who already have duplicates (see #5).
+      const { data: existingRows } = await supabase
         .from('practitioners')
         .select('id, status, tier')
         .eq('owner_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: true })
+        .limit(1);
+      const existing = existingRows?.[0] ?? null;
 
       if (existing) {
         // DON'T overwrite status or tier on existing listings — those are
@@ -158,19 +180,51 @@ export function useSavePractitioner() {
           console.warn('Failed to sync modality ranks:', err);
         }
       } else {
+        // Dedup: before inserting a brand-new row, check whether a
+        // listing with this email already exists. See `tasks/todo.md`
+        // ("Duplicate Listings on Claim") — throws DuplicateListingError
+        // which the profile editor catches to show a claim-or-override
+        // dialog. Fails open if the lookup itself errors.
+        if (!overrideDuplicate) {
+          await assertNoDuplicateByEmail('practitioners', formData.email, user.id);
+        }
+
         // Only set status: 'draft' for brand-new listings
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('practitioners')
-          .insert({ ...payload, status: 'draft' } as PractitionerInsert);
+          .insert({ ...payload, status: 'draft' } as PractitionerInsert)
+          .select('id')
+          .single();
         if (error) throw error;
 
-        // After creating new listing: fetch tier and sync modality ranks
+        // If the user bypassed the duplicate dialog, file a listing_flags
+        // row so admin can review and merge if needed.
+        if (overrideDuplicate && inserted?.id) {
+          try {
+            await supabase.from('listing_flags').insert({
+              listing_id: inserted.id,
+              listing_type: 'practitioner',
+              listing_name: payload.name as string,
+              reason: 'duplicate',
+              reporter_email: user.email ?? null,
+              details: 'User bypassed duplicate-email dialog in profile editor (create-anyway override)',
+            });
+          } catch (flagErr) {
+            console.warn('Failed to file duplicate flag:', flagErr);
+          }
+        }
+
+        // After creating new listing: fetch tier and sync modality ranks.
+        // Use the freshly-inserted id directly to avoid .maybeSingle() on a
+        // user who may already have duplicates (see #5).
         try {
-          const { data: newListing } = await supabase
-            .from('practitioners')
-            .select('id, tier')
-            .eq('owner_id', user.id)
-            .maybeSingle();
+          const { data: newListing } = inserted?.id
+            ? await supabase
+                .from('practitioners')
+                .select('id, tier')
+                .eq('id', inserted.id)
+                .maybeSingle()
+            : { data: null };
 
           if (newListing) {
             const tier = newListing.tier || 'free';

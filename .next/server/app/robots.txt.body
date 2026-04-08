@@ -1,0 +1,11 @@
+User-Agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth
+Disallow: /api
+Disallow: /preview
+Disallow: /*.json$
+Disallow: /*?*sort=
+
+Sitemap: https://hawaiiwellness.net/sitemap.xml

@@ -13,6 +13,20 @@ import { SITE_URL } from "@/lib/siteConfig";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { Hand, Sparkles, Brain, Leaf, Activity, Sun, Apple, Moon, Heart } from "lucide-react";
+
+// Guide categories — links into the wellness modalities pillar guide anchors
+const GUIDE_CATEGORIES: { id: string; label: string; Icon: typeof Hand }[] = [
+  { id: "bodywork",            label: "Bodywork",        Icon: Hand },
+  { id: "energy",              label: "Energy",          Icon: Sparkles },
+  { id: "mind-nervous-system", label: "Mind & Nervous System", Icon: Brain },
+  { id: "eastern",             label: "Eastern Medicine", Icon: Leaf },
+  { id: "movement",            label: "Movement",        Icon: Activity },
+  { id: "hawaiian-nature",     label: "Hawaiian & Nature", Icon: Sun },
+  { id: "nutrition-longevity", label: "Nutrition & Longevity", Icon: Apple },
+  { id: "life-soul",           label: "Life & Soul",     Icon: Moon },
+  { id: "womens-health",       label: "Women's Health",  Icon: Heart },
+];
 
 
 // 8 high-value concern chips — for visitors who know the outcome, not the modality
@@ -27,7 +41,7 @@ const BROWSE_CONCERNS: { label: string; emoji: string }[] = [
   { label: 'Life Transitions',   emoji: '🌅' },
 ];
 
-// Top 20 modalities — shown as browse chips below the featured article
+// Top 20 modalities — shown as browse chips in the "Browse by Modality" section
 const BROWSE_MODALITIES = [
   'Yoga',
   'Massage',
@@ -204,10 +218,14 @@ export function IslandHome({ config }: IslandHomeProps) {
                   <div className="h-8 w-px bg-border" aria-hidden="true" />
                 </>
               )}
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary md:text-3xl">44</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Wellness Modalities</div>
-              </div>
+              <Link
+                to="/guides/wellness-modalities-hawaii"
+                className="group text-center transition-opacity hover:opacity-80"
+                aria-label="Read the complete guide to 44 wellness modalities in Hawaiʻi"
+              >
+                <div className="text-2xl font-bold text-primary md:text-3xl group-hover:underline">44</div>
+                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground group-hover:text-primary">Wellness Modalities</div>
+              </Link>
               <div className="h-8 w-px bg-border" aria-hidden="true" />
               <div className="text-center">
                 <div className="text-sm font-semibold text-foreground md:text-base">The {config.displayName}&apos;s Hub</div>
@@ -217,6 +235,42 @@ export function IslandHome({ config }: IslandHomeProps) {
           </div>
         </div>
       )}
+
+      {/* ── Not sure where to start? — guide entry band ─────────────────── */}
+      <section className="border-y border-border/60 bg-background py-8" aria-labelledby="guide-band-heading">
+        <div className="container">
+          <div className="mb-5 flex flex-wrap items-baseline justify-between gap-2">
+            <div>
+              <h2 id="guide-band-heading" className="font-display text-lg font-semibold text-foreground sm:text-xl">
+                Not sure where to start?
+              </h2>
+              <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+                Explore 44 wellness modalities by category — and find practitioners who offer them.
+              </p>
+            </div>
+            <Link
+              to="/guides/wellness-modalities-hawaii"
+              className="text-xs font-medium text-primary hover:underline sm:text-sm"
+            >
+              Read the full guide →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-9">
+            {GUIDE_CATEGORIES.map(({ id, label, Icon }) => (
+              <Link
+                key={id}
+                to={`/guides/wellness-modalities-hawaii#${id}`}
+                className="group flex flex-col items-center gap-1.5 rounded-lg border border-border/60 bg-background px-2 py-3 text-center transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+              >
+                <Icon className="h-4 w-4 text-primary transition-colors group-hover:text-primary" strokeWidth={1.5} />
+                <span className="text-[10.5px] font-medium leading-tight text-muted-foreground transition-colors group-hover:text-foreground sm:text-[11px]">
+                  {label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── Practitioners ────────────────────────────────────────────────── */}
       <section className="container py-12">
@@ -415,13 +469,22 @@ export function IslandHome({ config }: IslandHomeProps) {
             {BROWSE_MODALITIES.map((label) => (
               <Link
                 key={label}
-                to={`/directory?q=${encodeURIComponent(label)}&island=${config.island}`}
+                to={`/directory?modality=${encodeURIComponent(label)}&island=${config.island}`}
                 className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:border-primary/60 hover:bg-primary/5 hover:text-primary"
               >
                 {label}
               </Link>
             ))}
           </div>
+          <p className="mt-5 text-sm text-muted-foreground">
+            Not sure which modality is right for you?{" "}
+            <Link
+              to="/guides/wellness-modalities-hawaii"
+              className="font-medium text-primary hover:underline"
+            >
+              Read the Complete Guide to Wellness Modalities in Hawaiʻi →
+            </Link>
+          </p>
         </div>
       </section>
 

@@ -41,6 +41,8 @@ const CenterDetail      = lazyWithRetry(() => import("./views/CenterDetail"));
 const PrivacyPolicy     = lazyWithRetry(() => import("./views/PrivacyPolicy"));
 const TermsOfService    = lazyWithRetry(() => import("./views/TermsOfService"));
 const HelpCenter        = lazyWithRetry(() => import("./views/HelpCenter"));
+const GuidesHub         = lazyWithRetry(() => import("./views/guides/GuidesHub"));
+const WellnessModalities = lazyWithRetry(() => import("./views/guides/WellnessModalities"));
 
 // Dashboard pages (split separately — only loaded when user visits /dashboard)
 const AdminPanel        = lazyWithRetry(() => import("./views/admin/AdminPanel"));
@@ -173,6 +175,8 @@ const App = () => (
                 <Route path="/list-your-practice" element={<ListYourPractice />} />
                 <Route path="/concierge"          element={<Concierge />} />
                 <Route path="/about"              element={<About />} />
+                <Route path="/guides"             element={<GuidesHub />} />
+                <Route path="/guides/wellness-modalities-hawaii" element={<WellnessModalities />} />
                 <Route path="/website-packages"   element={<WebsitePackages />} />
                 <Route path="*"                   element={<NotFound />} />
               </Route>

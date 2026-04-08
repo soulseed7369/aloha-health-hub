@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guides Section Demo — Hawaii Wellness Homepage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ─── CSS variables matching the actual site (src/index.css) ─── */
+:root {
+  --background:        hsl(35, 30%, 97%);
+  --foreground:        hsl(15, 10%, 12%);
+  --primary:           hsl(15, 65%, 52%);
+  --primary-fg:        hsl(35, 30%, 97%);
+  --secondary:         hsl(143, 20%, 88%);
+  --secondary-fg:      hsl(143, 30%, 25%);
+  --muted:             hsl(35, 15%, 93%);
+  --muted-fg:          hsl(200, 10%, 45%);
+  --border:            hsl(35, 15%, 88%);
+  --sage:              hsl(143, 25%, 45%);
+  --sage-light:        hsl(143, 20%, 88%);
+  --terracotta:        hsl(15, 65%, 52%);
+  --terracotta-light:  hsl(15, 50%, 90%);
+  --card:              #fff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Source Sans 3', system-ui, sans-serif;
+  font-size: 16px;
+  background: var(--background);
+  color: var(--foreground);
+  line-height: 1.6;
+}
+
+/* ─── Annotation banner ─── */
+.annotation-banner {
+  background: #1e293b;
+  color: #94a3b8;
+  text-align: center;
+  padding: 10px 24px;
+  font-size: 12px;
+  font-family: monospace;
+  letter-spacing: 0.03em;
+}
+.annotation-banner strong { color: #f8fafc; }
+
+/* ─── Sticky nav (mirrors actual Header.tsx) ─── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--border);
+  background: rgba(253,250,246,0.95);
+  backdrop-filter: blur(8px);
+  height: 64px;
+  display: flex;
+  align-items: center;
+}
+.nav-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-logo { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--primary); text-decoration: none; }
+.nav-links { display: flex; gap: 24px; align-items: center; }
+.nav-link { font-size: 14px; font-weight: 500; color: var(--muted-fg); text-decoration: none; }
+.nav-link:hover { color: var(--primary); }
+.nav-link-new {
+  color: var(--sage);
+  font-weight: 600;
+  position: relative;
+}
+.nav-link-new::after {
+  content: 'NEW';
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--sage);
+  color: white;
+  padding: 1px 5px;
+  border-radius: 99px;
+  position: absolute;
+  top: -8px;
+  right: -24px;
+  letter-spacing: 0.05em;
+}
+.nav-btn-outline {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--foreground);
+  background: none;
+  cursor: pointer;
+  text-decoration: none;
+}
+.nav-btn-primary {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-fg);
+  background: var(--primary);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+/* ─── Container ─── */
+.container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; }
+
+/* ─── Section shared styles ─── */
+section { width: 100%; }
+
+/* ─── Context section above (Browse by Modality) ─── */
+.modality-section {
+  border-top: 1px solid var(--border);
+  background: hsl(143, 20%, 88%, 0.2);
+  padding: 40px 0;
+  opacity: 0.55;
+}
+.section-heading { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; margin-bottom: 20px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  border: 1px solid var(--border);
+  background: var(--card);
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* ─── GUIDES SECTION ─── */
+.guides-section {
+  border-top: 1px solid var(--border);
+  background: var(--background);
+  padding: 48px 0;
+  position: relative;
+}
+
+/* Highlight ring to show it's the new section */
+.guides-section::before {
+  content: '← NEW SECTION BEING ADDED HERE';
+  position: absolute;
+  top: 12px;
+  right: 2rem;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--sage);
+  letter-spacing: 0.06em;
+  font-family: monospace;
+}
+
+.guides-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+.guides-header-text {}
+.guides-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--sage);
+  margin-bottom: 6px;
+}
+.guides-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.guides-subtitle {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--muted-fg);
+}
+.view-all-link {
+  font-size: 13px;
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+/* ─── Guide cards grid ─── */
+.guides-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+/* Featured card — spans 2 columns */
+.guide-card-featured {
+  grid-column: span 2;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+.guide-card-featured:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  border-color: hsl(15, 65%, 52%, 0.35);
+}
+
+.guide-card-featured-image {
+  width: 220px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, hsl(143, 35%, 35%) 0%, hsl(143, 28%, 45%) 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  gap: 8px;
+}
+.guide-card-featured-image .guide-icon { font-size: 52px; }
+.guide-card-featured-image .guide-cat {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.75);
+}
+
+.guide-card-featured-body {
+  padding: 28px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.guide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--terracotta-light);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 99px;
+  width: fit-content;
+}
+
+.guide-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+
+.guide-card-desc {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--muted-fg);
+  flex: 1;
+}
+
+.guide-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted-fg);
+}
+.guide-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--border); }
+
+.guide-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  margin-top: 4px;
+  transition: gap 0.15s;
+}
+.guide-cta:hover { gap: 10px; }
+
+/* ─── Teaser cards (coming soon) ─── */
+.guide-card-teaser {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.guide-card-teaser-top {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  position: relative;
+}
+.guide-card-teaser-top-1 { background: linear-gradient(135deg, hsl(15, 55%, 78%) 0%, hsl(15, 60%, 68%) 100%); }
+.guide-card-teaser-top-2 { background: linear-gradient(135deg, hsl(200, 45%, 72%) 0%, hsl(200, 50%, 60%) 100%); }
+
+.coming-soon-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.85);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  color: var(--muted-fg);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.guide-card-teaser-body {
+  padding: 18px 20px 20px;
+  flex: 1;
+}
+.guide-card-teaser-body h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--foreground);
+  margin-bottom: 6px;
+}
+.guide-card-teaser-body p {
+  font-size: 13px;
+  color: var(--muted-fg);
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.guide-notify {
+  font-size: 12px;
+  color: var(--muted-fg);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.notify-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--secondary); flex-shrink: 0; }
+
+/* ─── Context section below (Areas Served) ─── */
+.areas-section {
+  border-top: 1px solid var(--border);
+  background: hsl(143, 20%, 88%, 0.2);
+  padding: 48px 0;
+  opacity: 0.55;
+}
+.areas-grid { display: grid; gap: 16px; grid-template-columns: repeat(3, 1fr); margin-top: 32px; }
+.area-card {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 20px;
+}
+.area-card-active { border: 2px solid var(--primary); background: hsl(15, 65%, 52%, 0.04); }
+.area-card p:first-child { font-weight: 600; }
+.area-card p:last-child { font-size: 13px; color: var(--muted-fg); margin-top: 4px; }
+
+/* ─── Integration map callout ─── */
+.integration-map {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin: 40px 2rem 0;
+  padding: 32px 36px;
+}
+.integration-map h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #0f172a;
+}
+.integration-map .subtitle { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+.integration-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.int-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.int-card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.int-file {
+  font-size: 11px;
+  font-family: monospace;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.int-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 99px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.tag-new { background: #dcfce7; color: #166534; }
+.tag-edit { background: #fef3c7; color: #92400e; }
+.int-card h4 { font-size: 13px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
+.int-card p { font-size: 12px; color: #64748b; line-height: 1.55; }
+.int-card ul { font-size: 12px; color: #64748b; padding-left: 14px; }
+.int-card li { margin-bottom: 3px; }
+
+.effort-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 12px;
+  color: #64748b;
+}
+.effort-pills { display: flex; gap: 8px; }
+.effort-pill {
+  padding: 4px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.effort-easy { background: #dcfce7; color: #166534; }
+.effort-medium { background: #fef3c7; color: #92400e; }
+.effort-hard { background: #fee2e2; color: #991b1b; }
+
+@media (max-width: 900px) {
+  .guides-grid { grid-template-columns: 1fr; }
+  .guide-card-featured { grid-column: span 1; flex-direction: column; }
+  .guide-card-featured-image { width: 100%; height: 140px; }
+  .integration-grid { grid-template-columns: 1fr; }
+  .areas-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="annotation-banner">
+  <strong>DEMO</strong> — Shows how the Guides section would appear in context on the homepage (IslandHome.tsx).
+  Sections above and below are faded to indicate existing content.
+</div>
+
+<!-- ─── Header (mirrors real Header.tsx) ─── -->
+<header>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">🌺 Hawaiʻi Wellness</a>
+    <nav class="nav-links">
+      <a href="#" class="nav-link">Directory</a>
+      <a href="#" class="nav-link">Blog</a>
+      <a href="#" class="nav-link nav-link-new">Guides</a>
+      <a href="#" class="nav-link">About</a>
+    </nav>
+    <div style="display:flex;gap:8px;align-items:center">
+      <a href="#" class="nav-btn-outline">Provider Login</a>
+      <a href="#" class="nav-btn-primary">List Your Practice</a>
+    </div>
+  </div>
+</header>
+
+<!-- ─── CONTEXT: Browse by Modality (existing section, above) ─── -->
+<section class="modality-section">
+  <div class="container">
+    <h2 class="section-heading">Browse by Modality</h2>
+    <div class="chips">
+      <span class="chip">Yoga</span>
+      <span class="chip">Massage</span>
+      <span class="chip">Reiki</span>
+      <span class="chip">Acupuncture</span>
+      <span class="chip">Breathwork</span>
+      <span class="chip">Meditation</span>
+      <span class="chip">Sound Healing</span>
+      <span class="chip">Life Coaching</span>
+      <span class="chip">Naturopathic</span>
+      <span class="chip">Energy Healing</span>
+      <span class="chip">Somatic Therapy</span>
+      <span class="chip">Nutrition</span>
+      <span class="chip">Lomilomi / Hawaiian Healing</span>
+      <span class="chip">Ayurveda</span>
+      <span class="chip">+ 30 more</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── NEW: GUIDES SECTION ─── -->
+<section class="guides-section">
+  <div class="container">
+
+    <div class="guides-header">
+      <div class="guides-header-text">
+        <div class="guides-label">Wellness Guides</div>
+        <h2 class="guides-title">Learn before you search</h2>
+        <p class="guides-subtitle">In-depth resources to help you find the right healing for you</p>
+      </div>
+      <a href="/guides" class="view-all-link">View all guides →</a>
+    </div>
+
+    <div class="guides-grid">
+
+      <!-- Featured guide card — 2 cols wide -->
+      <a href="/guides/wellness-modalities-hawaii" class="guide-card-featured" style="text-decoration:none;color:inherit">
+        <div class="guide-card-featured-image">
+          <span class="guide-icon">🌿</span>
+          <span class="guide-cat">Complete Guide</span>
+        </div>
+        <div class="guide-card-featured-body">
+          <div class="guide-badge">
+            <span>⭐</span> Featured Guide
+          </div>
+          <h3 class="guide-card-title">The Complete Guide to Wellness Modalities in Hawaiʻi</h3>
+          <p class="guide-card-desc">Every healing practice available across the islands — from lomilomi and Hawaiian healing traditions to acupuncture, somatic therapy, Rolfing, EMDR, and beyond. 44 modalities explained, island-by-island context, and a guide to choosing the right practitioner.</p>
+          <div class="guide-meta">
+            <span>44 modalities</span>
+            <span class="guide-meta-dot"></span>
+            <span>4 islands</span>
+            <span class="guide-meta-dot"></span>
+            <span>20 min read</span>
+            <span class="guide-meta-dot"></span>
+            <span>Updated 2026</span>
+          </div>
+          <span class="guide-cta">Read the guide →</span>
+        </div>
+      </a>
+
+      <!-- Teaser cards column -->
+      <div style="display:flex;flex-direction:column;gap:16px">
+
+        <div class="guide-card-teaser">
+          <div class="guide-card-teaser-top guide-card-teaser-top-1">
+            <span>🏝️</span>
+            <span class="coming-soon-badge">Coming Soon</span>
+          </div>
+          <div class="guide-card-teaser-body">
+            <h3>How to Choose a Retreat in Hawaiʻi</h3>
+            <p>Day spas, multi-day immersions, yoga teacher training — a practical guide to what's available and how to choose.</p>
+            <div class="guide-notify">
+              <span class="notify-dot"></span>
+              <span>Publishing Summer 2026</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="guide-card-teaser">
+          <div class="guide-card-teaser-top guide-card-teaser-top-2">
+            <span>🌺</span>
+            <span class="coming-soon-badge">Coming Soon</span>
+          </div>
+          <div class="guide-card-teaser-body">
+            <h3>A Guide to Hawaiian Healing Traditions</h3>
+            <p>Lomilomi, hoʻoponopono, laʻau lapaʻau — the indigenous healing arts of Hawaiʻi, explained with cultural context.</p>
+            <div class="guide-notify">
+              <span class="notify-dot"></span>
+              <span>Publishing Summer 2026</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /teaser col -->
+
+    </div><!-- /guides-grid -->
+  </div>
+</section>
+
+<!-- ─── CONTEXT: Areas Served (existing section, below) ─── -->
+<section class="areas-section">
+  <div class="container">
+    <h2 class="section-heading">Wellness Across Hawaiʻi</h2>
+    <p style="font-size:14px;color:var(--muted-fg)">Hawaiʻi Wellness covers practitioners and centers on every island.</p>
+    <div class="areas-grid">
+      <div class="area-card area-card-active">
+        <p style="color:var(--primary)">Big Island <span style="font-size:11px;font-weight:400;opacity:0.7">— you are here</span></p>
+        <p>Browse all practitioners &amp; centers</p>
+      </div>
+      <div class="area-card">
+        <p>Maui <span style="font-size:11px;font-weight:400;background:hsl(15,65%,52%,0.1);color:var(--primary);padding:1px 6px;border-radius:99px">Coming Soon</span></p>
+        <p>Lahaina, Kihei, Makawao &amp; more</p>
+      </div>
+      <div class="area-card">
+        <p>Oahu <span style="font-size:11px;font-weight:400;background:hsl(15,65%,52%,0.1);color:var(--primary);padding:1px 6px;border-radius:99px">Coming Soon</span></p>
+        <p>Honolulu, Kailua, Haleiwa &amp; more</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── INTEGRATION SCOPE MAP ─── -->
+<div class="integration-map">
+  <h2>Full Site Integration Scope</h2>
+  <p class="subtitle">Every file that needs to change, what changes, and the effort required</p>
+
+  <div class="integration-grid">
+
+    <div class="int-card">
+      <div class="int-card-header">
+        <div>
+          <div class="int-file">src/views/IslandHome.tsx</div>
+        </div>
+        <span class="int-tag tag-edit">Edit</span>
+      </div>
+      <h4>Add GuidesSection component</h4>
+      <p>Insert the guides section after the "Browse by Modality" chips. ~30 lines of JSX. Accepts a <code>guides</code> prop (array) so future guides auto-appear as they're added.</p>
+      <ul style="margin-top:8px">
+        <li>Applies to all 4 island home pages automatically</li>
+        <li>Featured guide hard-coded initially, then driven by data</li>
+      </ul>
+    </div>
+
+    <div class="int-card">
+      <div class="int-card-header">
+        <div>
+          <div class="int-file">src/components/layout/Header.tsx</div>
+        </div>
+        <span class="int-tag tag-edit">Edit</span>
+      </div>
+      <h4>Add "Guides" to nav</h4>
+      <p>Add <code>{ label: "Guides", to: "/guides" }</code> to the <code>navLinks</code> array. Optionally badge it "NEW" until the hub has 3+ guides published.</p>
+      <ul style="margin-top:8px">
+        <li>1-line change to navLinks array</li>
+        <li>Mobile nav gets it automatically</li>
+      </ul>
+    </div>
+
+    <div class="int-card">
+      <div class="int-card-header">
+        <div>
+          <div class="int-file">src/App.tsx</div>
+        </div>
+        <span class="int-tag tag-edit">Edit</span>
+      </div>
+      <h4>Add guide routes</h4>
+      <p>Add two routes under PublicLayout: <code>/guides</code> (hub index) and <code>/guides/wellness-modalities-hawaii</code> (this page).</p>
+      <ul style="margin-top:8px">
+        <li>~4 lines added to route tree</li>
+        <li>Both lazy-loaded via lazyWithRetry</li>
+      </ul>
+    </div>
+
+    <div class="int-card">
+      <div class="int-card-header">
+        <div>
+          <div class="int-file">src/views/guides/WellnessModalities.tsx</div>
+        </div>
+        <span class="int-tag tag-new">New file</span>
+      </div>
+      <h4>React component from HTML preview</h4>
+      <p>Convert <code>wellness-modalities-guide.html</code> to a TSX component using the site's design system (Tailwind + shadcn). Uses CSS variables, Playfair Display, and internal Links instead of anchors.</p>
+      <ul style="margin-top:8px">
+        <li>~400 lines of TSX</li>
+        <li>usePageMeta() for SEO title/desc</li>
+        <li>JsonLd component for FAQ schema</li>
+      </ul>
+    </div>
+
+    <div class="int-card">
+      <div class="int-card-header">
+        <div>
+          <div class="int-file">src/views/guides/GuidesIndex.tsx</div>
+        </div>
+        <span class="int-tag tag-new">New file</span>
+      </div>
+      <h4>/guides hub page</h4>
+      <p>A lightweight index page listing all published guides with the same card layout from the homepage section. Seeds the content hub that grows over time.</p>
+      <ul style="margin-top:8px">
+        <li>~80 lines of TSX</li>
+        <li>Static list initially, DB-driven later</li>
+      </ul>
+    </div>
+
+    <div class="int-card">
+      <div class="int-card-header">
+        <div>
+          <div class="int-file">src/views/Directory.tsx</div>
+        </div>
+        <span class="int-tag tag-edit">Edit</span>
+      </div>
+      <h4>Contextual guide links in sidebar</h4>
+      <p>When user selects a modality filter, show a small callout: <em>"Not sure which type of massage? Read our guide →"</em> linking to the relevant anchor. Closes the SEO loop: directory → guide → directory.</p>
+      <ul style="margin-top:8px">
+        <li>Only shows for modalities covered in the guide</li>
+        <li>~20 lines, no new deps</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="effort-row">
+    <span>Estimated total implementation time:</span>
+    <div class="effort-pills">
+      <span class="effort-pill effort-easy">IslandHome + Header + App.tsx — 30 min</span>
+      <span class="effort-pill effort-medium">WellnessModalities.tsx — 90 min</span>
+      <span class="effort-pill effort-medium">GuidesIndex.tsx — 30 min</span>
+      <span class="effort-pill effort-hard">Directory contextual links — 45 min</span>
+    </div>
+  </div>
+</div>
+
+<div style="height:48px"></div>
+
+</body>
+</html>

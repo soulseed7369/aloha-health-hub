@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/kauai/layout,_N_T_/kauai/[modality]/layout,_N_T_/kauai/[modality]/page,_N_T_/kauai/longevity"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/kauai/$d$modality/__PAGE__",
+    "/kauai/$d$modality",
+    "/kauai",
+    "/_index",
+    "/_head"
+  ]
+}

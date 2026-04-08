@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Guides Preview — Hawaiʻi Wellness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --primary: #d36b3a;       /* terracotta — hsl(15, 65%, 52%) */
+    --primary-soft: #fbeae0;
+    --background: #faf6ee;    /* warm cream — hsl(35, 30%, 97%) */
+    --foreground: #2a241c;
+    --muted: #f1ebdf;
+    --muted-foreground: #756b5b;
+    --secondary: #dde7df;     /* sage light — hsl(143, 20%, 88%) */
+    --sage: #5a9070;          /* sage green — hsl(143, 25%, 45%) */
+    --border: #e8dfd0;        /* warm border */
+    --card: #ffffff;
+  }
+  body {
+    font-family: 'Source Sans 3', system-ui, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+  }
+  .font-display { font-family: 'Playfair Display', Georgia, serif; }
+  .text-primary { color: var(--primary); }
+  .bg-primary { background: var(--primary); }
+  .border-primary { border-color: var(--primary); }
+  .bg-primary\/5 { background: rgba(211, 107, 58, 0.05); }
+  .bg-primary\/10 { background: rgba(211, 107, 58, 0.10); }
+  .border-primary\/20 { border-color: rgba(211, 107, 58, 0.20); }
+  .bg-card { background: var(--card); }
+  .text-foreground { color: var(--foreground); }
+  .text-muted-foreground { color: var(--muted-foreground); }
+  .bg-muted { background: var(--muted); }
+  .bg-muted\/30 { background: rgba(241, 235, 223, 0.5); }
+  .border-border { border-color: var(--border); }
+  .bg-secondary { background: var(--secondary); }
+  .bg-secondary\/30 { background: rgba(221, 231, 223, 0.4); }
+  .text-sage { color: var(--sage); }
+  .bg-sage\/10 { background: rgba(90, 144, 112, 0.1); }
+  .preview-label {
+    font-family: 'Source Sans 3', sans-serif;
+    background: #1a1a1a;
+    color: white;
+    padding: 12px 24px;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .preview-section { border-bottom: 8px solid #e0d8c4; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- PREVIEW 1: /guides — Guides Hub Page                                    -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<div class="preview-section">
+<div class="preview-label">PREVIEW 1 — /guides hub page</div>
+
+<!-- Site Header (mockup) -->
+<header class="border-b border-border bg-card sticky top-0 z-10" style="background: var(--card);">
+  <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="font-display text-xl font-bold text-foreground">Hawaiʻi Wellness</span>
+    </div>
+    <nav class="flex items-center gap-7 text-sm font-medium text-foreground">
+      <a href="#">Directory</a>
+      <a href="#">Blog</a>
+      <a href="#" class="text-primary">Guides</a>
+      <a href="#">About</a>
+      <button class="rounded-md bg-primary text-white px-4 py-1.5 text-sm font-semibold">Sign In</button>
+    </nav>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="border-b border-border bg-muted/30 px-6 py-20 text-center">
+  <nav class="mb-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
+    <a href="#" class="hover:text-primary transition-colors">Home</a>
+    <span>/</span>
+    <span>Guides</span>
+  </nav>
+  <div class="mx-auto max-w-2xl">
+    <span class="mb-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path></svg>
+      Wellness Guides
+    </span>
+    <h1 class="mt-2 font-display text-5xl font-bold text-foreground leading-tight">
+      Understand Wellness in Hawaiʻi
+    </h1>
+    <p class="mt-4 text-lg text-muted-foreground leading-relaxed">
+      In-depth resources to help you navigate holistic healing across the Hawaiian Islands — from traditional Native practices to modern integrative medicine.
+    </p>
+  </div>
+</section>
+
+<!-- Published guides -->
+<main class="mx-auto max-w-5xl px-6 py-14">
+  <section class="mb-16">
+    <h2 class="font-display text-2xl font-semibold text-foreground mb-8">Guides</h2>
+
+    <!-- Featured guide card -->
+    <a href="#" class="group relative flex flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+      <!-- Cover image with overlay -->
+      <div class="relative h-80 overflow-hidden">
+        <div style="
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, #1a4d3e 0%, #2d6e5a 35%, #3a8a6e 100%);
+          position: relative;
+        ">
+          <!-- Faux ocean / coastline gradient -->
+          <div style="
+            position: absolute;
+            inset: 0;
+            background:
+              radial-gradient(ellipse at 30% 30%, rgba(60, 120, 100, 0.6), transparent 60%),
+              radial-gradient(ellipse at 70% 60%, rgba(80, 140, 120, 0.4), transparent 50%),
+              linear-gradient(180deg, rgba(20, 60, 80, 0.3) 0%, transparent 30%, rgba(0, 0, 0, 0.5) 100%);
+          "></div>
+          <!-- Title overlay (mimicking the actual cover image) -->
+          <div style="position: absolute; bottom: 32px; left: 32px; right: 32px;">
+            <span style="display:inline-block; background: var(--primary); color: white; padding: 4px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px;">Complete Guide · 2026</span>
+            <h3 class="font-display" style="color: #fff8eb; font-size: 28px; line-height: 1.15; font-style: italic; font-weight: 700; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+              The Complete Guide to<br>Wellness Modalities in Hawaiʻi
+            </h3>
+          </div>
+        </div>
+        <span class="absolute top-4 left-4 rounded-full bg-primary px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">
+          Wellness
+        </span>
+      </div>
+
+      <!-- Content -->
+      <div class="flex flex-1 flex-col p-8">
+        <h2 class="font-display text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+          Wellness Modalities in Hawaiʻi
+        </h2>
+        <p class="mt-3 text-sm text-muted-foreground leading-relaxed flex-1">
+          Your definitive resource for holistic healing across the Hawaiian Islands — 44 modalities, 8 categories, island-by-island practitioner guidance.
+        </p>
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">44 Modalities</span>
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">4 Islands</span>
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">22 min read</span>
+        </div>
+
+        <div class="mt-6 flex items-center justify-between">
+          <div class="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            22 min read
+          </div>
+          <span class="flex items-center gap-1 text-sm font-medium text-primary">
+            Read Guide →
+          </span>
+        </div>
+      </div>
+    </a>
+  </section>
+
+  <!-- Coming Soon -->
+  <section class="mb-16">
+    <h2 class="font-display text-xl font-semibold text-foreground mb-6">Coming Soon</h2>
+    <div class="grid gap-5 sm:grid-cols-2">
+
+      <!-- Coming soon card 1 -->
+      <div class="flex flex-col overflow-hidden rounded-3xl border border-dashed border-border bg-muted/30 p-6">
+        <span class="mb-3 inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+          Coming Soon
+        </span>
+        <h3 class="font-display text-lg font-semibold text-foreground">Finding a Wellness Practitioner in Hawaiʻi</h3>
+        <p class="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">How to find, vet, and book the right healer for your needs across all four Hawaiian Islands.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">Practical Tips</span>
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">All 4 Islands</span>
+        </div>
+      </div>
+
+      <!-- Coming soon card 2 -->
+      <div class="flex flex-col overflow-hidden rounded-3xl border border-dashed border-border bg-muted/30 p-6">
+        <span class="mb-3 inline-flex w-fit items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+          Coming Soon
+        </span>
+        <h3 class="font-display text-lg font-semibold text-foreground">Hawaiian Healing Traditions</h3>
+        <p class="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">Explore the rich tradition of Native Hawaiian healing — from Lomilomi to Hoʻoponopono and beyond.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">Native Traditions</span>
+          <span class="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">Cultural Context</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Directory CTA -->
+  <section class="rounded-3xl px-8 py-12 text-center" style="background: linear-gradient(135deg, rgba(211, 107, 58, 0.10), rgba(221, 231, 223, 0.4) 50%, rgba(90, 144, 112, 0.10));">
+    <h2 class="font-display text-3xl font-bold text-foreground">Ready to find your practitioner?</h2>
+    <p class="mx-auto mt-3 max-w-lg text-muted-foreground">
+      Browse verified holistic health practitioners across Oʻahu, Maui, the Big Island, and Kauaʻi.
+    </p>
+    <div class="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+      <a href="#" class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white">
+        Browse the Directory →
+      </a>
+      <a href="#" class="inline-flex items-center gap-2 rounded-full border border-border px-6 py-3 text-sm font-medium text-foreground bg-card">
+        List Your Practice
+      </a>
+    </div>
+  </section>
+</main>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- PREVIEW 2: Directory page — "Read Guide" banner                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<div class="preview-section">
+<div class="preview-label">PREVIEW 2 — Directory.tsx contextual guide banner (when modality filter is active)</div>
+
+<div class="bg-card border-b border-border" style="background: var(--card);">
+  <div class="max-w-2xl mx-auto px-6 py-8">
+
+    <!-- Filter input row -->
+    <div class="mb-3 flex gap-2">
+      <div class="relative flex-1">
+        <input type="text" placeholder="Filter by name, modality, city…" value="" class="w-full rounded-md border border-border bg-card py-2 pl-9 pr-3 text-sm" style="border-color: var(--border);">
+        <svg style="position:absolute; left:12px; top:50%; transform: translateY(-50%);" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted-foreground"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>
+      </div>
+    </div>
+
+    <!-- Active filter badges -->
+    <div class="mb-2 flex flex-wrap gap-1.5">
+      <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium" style="background: var(--secondary); color: var(--foreground);">
+        Acupuncture
+        <button class="ml-1">✕</button>
+      </span>
+      <span class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium" style="background: var(--secondary); color: var(--foreground);">
+        Big Island
+        <button class="ml-1">✕</button>
+      </span>
+    </div>
+
+    <!-- ★ THE NEW GUIDE BANNER ★ -->
+    <a href="#" class="mb-3 flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-2.5 text-xs hover:bg-primary/10 transition-colors">
+      <span class="text-foreground">
+        <span class="font-medium">New:</span> Read our complete guide to
+        <span class="font-medium text-primary">Acupuncture</span> in Hawaiʻi
+      </span>
+      <span class="shrink-0 text-primary font-medium">Read guide →</span>
+    </a>
+
+    <!-- Results count -->
+    <div class="mb-4 mt-3 flex items-center justify-between gap-2">
+      <p class="text-sm text-muted-foreground">Showing 1–25 of 47 results</p>
+    </div>
+
+    <!-- Mock result cards (just for context) -->
+    <div class="space-y-3">
+      <div class="rounded-lg border border-border bg-card p-4">
+        <p class="font-display font-semibold">Aloha Acupuncture &amp; Wellness</p>
+        <p class="text-xs text-muted-foreground mt-1">Kailua-Kona · Acupuncture, TCM</p>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4">
+        <p class="font-display font-semibold">Big Island Healing Arts</p>
+        <p class="text-xs text-muted-foreground mt-1">Hilo · Acupuncture, Herbalism</p>
+      </div>
+      <div class="rounded-lg border border-border bg-card p-4 opacity-40">
+        <p class="font-display font-semibold">More results...</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- PREVIEW 3: IslandHome — guide promo link under modality chips           -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<div class="preview-section">
+<div class="preview-label">PREVIEW 3 — IslandHome "Browse by Modality" with new guide promo link</div>
+
+<section class="bg-secondary/30 py-10">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="mb-5 font-display text-2xl font-bold">Browse by Modality</h2>
+    <div class="flex flex-wrap gap-2">
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Yoga</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Massage</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Reiki</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Acupuncture</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Breathwork</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Meditation</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Sound Healing</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Life Coaching</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Naturopathic</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Energy Healing</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Somatic Therapy</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Lomilomi / Hawaiian Healing</a>
+      <a href="#" class="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground">Psychotherapy</a>
+    </div>
+
+    <!-- ★ NEW guide promo line ★ -->
+    <p class="mt-5 text-sm text-muted-foreground">
+      Not sure which modality is right for you?
+      <a href="#" class="font-medium text-primary hover:underline">
+        Read the Complete Guide to Wellness Modalities in Hawaiʻi →
+      </a>
+    </p>
+  </div>
+</section>
+
+</div>
+
+</body>
+</html>

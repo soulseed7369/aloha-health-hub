@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/oahu/layout,_N_T_/oahu/[modality]/layout,_N_T_/oahu/[modality]/page,_N_T_/oahu/massage"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/oahu/$d$modality/__PAGE__",
+    "/oahu/$d$modality",
+    "/oahu",
+    "/_index",
+    "/_head"
+  ]
+}
