@@ -13,7 +13,7 @@ export default function PrivacyPolicy() {
       </Link>
 
       <h1 className="mb-2 font-display text-4xl font-bold">Privacy Policy</h1>
-      <p className="mb-10 text-sm text-muted-foreground">Last updated: March 2026</p>
+      <p className="mb-10 text-sm text-muted-foreground">Last updated: April 2026</p>
 
       <div className="prose prose-stone max-w-none">
 
@@ -114,7 +114,29 @@ export default function PrivacyPolicy() {
           changes constitutes your acceptance of the new policy.
         </p>
 
-        <h2>10. Contact Us</h2>
+        <h2>10. Text Message Communications</h2>
+        <p>
+          Hawaii Wellness LLC may send SMS text messages to phone numbers publicly associated
+          with wellness practitioners listed in the HawaiiWellness.net directory. Messages are
+          informational and relate to your listing on our platform — for example, notifying you
+          that a free listing is available to claim or update.
+        </p>
+        <p>
+          <strong>Message and data rates may apply.</strong> Message frequency is low —
+          typically 1–2 messages per outreach sequence.
+        </p>
+        <p>
+          To opt out, reply <strong>STOP</strong> to any message. To get help, reply{' '}
+          <strong>HELP</strong> or contact us at{' '}
+          <a href="mailto:aloha@hawaiiwellness.net">aloha@hawaiiwellness.net</a>. We do not
+          share your phone number with third parties for marketing purposes.
+        </p>
+        <p>
+          For full details on our SMS program, see our{' '}
+          <a href="/terms-of-service">Terms of Service §11</a>.
+        </p>
+
+        <h2>11. Contact Us</h2>
         <p>
           If you have questions about this Privacy Policy or how we handle your data, please
           contact us at:

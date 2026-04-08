@@ -13,7 +13,7 @@ export default function TermsOfService() {
       </Link>
 
       <h1 className="mb-2 font-display text-4xl font-bold">Terms of Service</h1>
-      <p className="mb-10 text-sm text-muted-foreground">Last updated: March 2026</p>
+      <p className="mb-10 text-sm text-muted-foreground">Last updated: April 2026</p>
 
       <div className="prose prose-stone max-w-none">
 
@@ -157,7 +157,50 @@ export default function TermsOfService() {
           constitutes acceptance of the revised Terms.
         </p>
 
-        <h2>11. Contact</h2>
+        <h2>11. SMS / Text Message Communications</h2>
+        <p>
+          Hawaii Wellness LLC may send SMS text messages to phone numbers that are publicly
+          listed in connection with wellness practitioners and wellness businesses appearing
+          in the HawaiiWellness.net directory.
+        </p>
+
+        <h3>What we send</h3>
+        <p>
+          Messages are limited to informational notices about a recipient's existing or
+          potential listing on HawaiiWellness.net — including notifications that a free
+          listing is available to claim, profile update reminders, and directory-related
+          updates. We do not send promotional spam or sell your information to third parties.
+        </p>
+
+        <h3>Message frequency</h3>
+        <p>
+          Low frequency — typically 1–2 messages per outreach sequence. We do not send
+          recurring automated marketing messages.
+        </p>
+        <p>
+          <strong>Message and data rates may apply</strong> depending on your mobile carrier
+          and plan.
+        </p>
+
+        <h3>Opt-out</h3>
+        <p>
+          Reply <strong>STOP</strong> to any message to unsubscribe immediately. You will
+          receive one confirmation message and no further texts will be sent to your number.
+          Reply <strong>START</strong> to re-subscribe at any time.
+        </p>
+
+        <h3>Help</h3>
+        <p>
+          Reply <strong>HELP</strong> or contact us at{' '}
+          <a href="mailto:aloha@hawaiiwellness.net">aloha@hawaiiwellness.net</a> or{' '}
+          <a href="tel:8089361394">808-936-1394</a>.
+        </p>
+        <p>
+          Opting out of SMS messages does not affect any other communications you may receive
+          from Hawaii Wellness (e.g., email).
+        </p>
+
+        <h2>12. Contact</h2>
         <p>Questions about these Terms? Contact us at:</p>
         <address className="not-italic">
           <strong>Hawaii Wellness LLC</strong><br />
