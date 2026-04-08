@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { optimizeImage } from '@/lib/imageOptimize';
+import { assertNoDuplicateByEmail } from '@/lib/duplicateDetection';
 import type { CenterRow, CenterLocationRow, WorkingHours, CenterInsert } from '@/types/database';
 
 // ─── Centers ──────────────────────────────────────────────────────────────────
@@ -88,13 +89,25 @@ export function useAddCenter() {
   });
 }
 
+export type SaveCenterInput = CenterFormData & {
+  /**
+   * Escape hatch for the duplicate-detection dialog: if true, skip the
+   * `assertNoDuplicateByEmail` check and insert anyway. Set only after
+   * the user has explicitly chosen "Create new anyway" in the duplicate
+   * dialog. The insert will be flagged for admin review via
+   * `listing_flags` (reason='duplicate').
+   */
+  overrideDuplicate?: boolean;
+};
+
 export function useSaveCenter() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (formData: CenterFormData) => {
+    mutationFn: async (input: SaveCenterInput) => {
       if (!supabase || !user) throw new Error('Not authenticated');
+      const { overrideDuplicate, ...formData } = input;
 
       const payload: Record<string, unknown> = {
         owner_id: user.id,
@@ -119,11 +132,16 @@ export function useSaveCenter() {
         ...(formData.working_hours !== undefined && { working_hours: formData.working_hours }),
       };
 
-      const { data: existing } = await supabase
+      // Oldest-row-wins for users who already have duplicates (see #5).
+      // .maybeSingle() would throw PGRST116 after the "create anyway"
+      // escape hatch leaves a user with 2+ owned centers.
+      const { data: existingRows } = await supabase
         .from('centers')
         .select('id, status, tier')
         .eq('owner_id', user.id)
-        .maybeSingle();
+        .order('created_at', { ascending: true })
+        .limit(1);
+      const existing = existingRows?.[0] ?? null;
 
       if (existing) {
         // DON'T overwrite status or tier on existing centers
@@ -177,19 +195,52 @@ export function useSaveCenter() {
           console.warn('Failed to sync modality ranks for center:', err);
         }
       } else {
+        // Dedup: before inserting a brand-new row, check whether a
+        // listing with this email already exists. See `tasks/todo.md`
+        // ("Duplicate Listings on Claim") — this is the primary fix for
+        // the Ohana Bali Spa class of bug. Throws DuplicateListingError
+        // which the profile editor catches to show a claim-or-override
+        // dialog. Fails open if the lookup itself errors.
+        if (!overrideDuplicate) {
+          await assertNoDuplicateByEmail('centers', formData.email, user.id);
+        }
+
         // Only set status: 'draft' for brand-new centers
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
           .from('centers')
-          .insert({ ...payload, status: 'draft' } as CenterInsert);
+          .insert({ ...payload, status: 'draft' } as CenterInsert)
+          .select('id')
+          .single();
         if (error) throw error;
 
-        // After creating new center: fetch tier and sync modality ranks
+        // If the user bypassed the duplicate dialog, file a listing_flags
+        // row so admin can review and merge if needed.
+        if (overrideDuplicate && inserted?.id) {
+          try {
+            await supabase.from('listing_flags').insert({
+              listing_id: inserted.id,
+              listing_type: 'center',
+              listing_name: payload.name as string,
+              reason: 'duplicate',
+              reporter_email: user.email ?? null,
+              details: 'User bypassed duplicate-email dialog in profile editor (create-anyway override)',
+            });
+          } catch (flagErr) {
+            console.warn('Failed to file duplicate flag:', flagErr);
+          }
+        }
+
+        // After creating new center: fetch tier and sync modality ranks.
+        // Use the freshly-inserted id directly to avoid .maybeSingle() on a
+        // user who may already have duplicates (see #5).
         try {
-          const { data: newCenter } = await supabase
-            .from('centers')
-            .select('id, tier')
-            .eq('owner_id', user.id)
-            .maybeSingle();
+          const { data: newCenter } = inserted?.id
+            ? await supabase
+                .from('centers')
+                .select('id, tier')
+                .eq('id', inserted.id)
+                .maybeSingle()
+            : { data: null };
 
           if (newCenter) {
             const tier = newCenter.tier || 'free';
