@@ -120,7 +120,7 @@ const editorialCss = `
 `;
 
 export default function GuidesHub() {
-  usePageMeta(PAGE_TITLE, PAGE_DESC);
+  usePageMeta(PAGE_TITLE, PAGE_DESC, "https://hawaiiwellness.net/og-wellness-modalities.jpg");
 
   const published = getPublishedGuides();
   const featured = published[0]; // Currently we feature the first published guide

@@ -1,5 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
+import { getModalityGuideUrl } from "@/lib/guides";
 
 type CenterTabType = 'about' | 'locations' | 'events' | 'testimonials';
 import { useCenter, usePublicCenterLocations } from "@/hooks/useCenter";
@@ -540,6 +541,34 @@ export default function CenterDetail() {
                     ))}
                   </div>
                 )}
+
+                {/* Guide cross-link — internal link from each center to relevant modality sections */}
+                {(() => {
+                  const guideLinks = (c.modalities ?? [])
+                    .map((m) => ({ name: m, url: getModalityGuideUrl(m) }))
+                    .filter((x): x is { name: string; url: string } => x.url !== null)
+                    .filter((x, i, arr) => arr.findIndex((y) => y.url === x.url) === i)
+                    .slice(0, 4);
+                  if (guideLinks.length === 0) return null;
+                  return (
+                    <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                      Learn about{" "}
+                      {guideLinks.map((g, i) => (
+                        <span key={g.url}>
+                          <Link
+                            to={g.url}
+                            className="underline decoration-dotted underline-offset-2 hover:text-foreground hover:decoration-solid transition-colors"
+                          >
+                            {g.name}
+                          </Link>
+                          {i < guideLinks.length - 1 ? " · " : ""}
+                        </span>
+                      ))}
+                      {" "}
+                      <span className="text-muted-foreground/70">in our guide →</span>
+                    </p>
+                  );
+                })()}
               </div>
             </div>
 

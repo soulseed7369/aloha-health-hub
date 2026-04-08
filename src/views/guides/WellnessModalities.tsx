@@ -5,6 +5,7 @@ import {
   Hand, Sparkles, Brain, Leaf, Activity, Sun, Apple, Moon, Heart,
 } from "lucide-react";
 import { usePageMeta } from "@/hooks/usePageMeta";
+import { useModalityCounts } from "@/hooks/useModalityCounts";
 import { JsonLd } from "@/components/JsonLd";
 import { GuideCTA } from "@/components/GuideCTA";
 import { getGuideBySlug } from "@/lib/guides";
@@ -691,8 +692,12 @@ function PullQuote({ text, attribution }: { text: string; attribution: string })
   );
 }
 
-function ModalityCard({ mod }: { mod: Modality }) {
+function ModalityCard({ mod, count }: { mod: Modality; count?: number }) {
   const { lead, subs } = parseDescription(mod.description);
+  const ctaLabel =
+    count && count > 0
+      ? `Find ${count} ${mod.name} practitioner${count === 1 ? "" : "s"} in Hawaiʻi →`
+      : `Find ${mod.name} practitioners in Hawaiʻi →`;
   return (
     <article id={mod.anchor} className="scroll-mt-20">
       <div className="flex border border-[hsl(35,18%,82%)] bg-background">
@@ -726,7 +731,7 @@ function ModalityCard({ mod }: { mod: Modality }) {
                 to={`/directory?modality=${encodeURIComponent(mod.name)}`}
                 className="mod-chapter transition-opacity hover:opacity-60"
               >
-                Find {mod.name} practitioners in Hawaiʻi →
+                {ctaLabel}
               </Link>
             </div>
           </div>
@@ -736,7 +741,15 @@ function ModalityCard({ mod }: { mod: Modality }) {
   );
 }
 
-function CategorySection({ cat, catIdx }: { cat: Category; catIdx: number }) {
+function CategorySection({
+  cat,
+  catIdx,
+  counts,
+}: {
+  cat: Category;
+  catIdx: number;
+  counts: Record<string, number>;
+}) {
   const [expanded, setExpanded] = useState(false);
   const pullQuote = PULL_QUOTES[catIdx];
   const showCTA = catIdx === 3;
@@ -777,7 +790,7 @@ function CategorySection({ cat, catIdx }: { cat: Category; catIdx: number }) {
       {expanded && (
         <div className="space-y-5">
           {cat.modalities.map((mod) => (
-            <ModalityCard key={mod.anchor} mod={mod} />
+            <ModalityCard key={mod.anchor} mod={mod} count={counts[mod.name]} />
           ))}
 
           {showCTA && (
@@ -1012,6 +1025,7 @@ export default function WellnessModalities() {
     `https://hawaiiwellness.net${guide.ogImage}`,
     "article"
   );
+  const { data: modalityCounts = {} } = useModalityCounts();
 
   return (
     <>
@@ -1085,7 +1099,7 @@ export default function WellnessModalities() {
 
         {/* ── Category sections (accordion) ── */}
         {CATEGORIES.map((cat, catIdx) => (
-          <CategorySection key={cat.id} cat={cat} catIdx={catIdx} />
+          <CategorySection key={cat.id} cat={cat} catIdx={catIdx} counts={modalityCounts} />
         ))}
 
         {/* ── Complementary Modalities ── */}
