@@ -362,7 +362,19 @@ export function SearchBar({
     navigate(`/directory?${params.toString()}`);
   };
 
-  const handleChipClick = (label: string) => handleSearch(label);
+  // Chip clicks navigate with `?modality=` (not `?q=`) so the Directory's
+  // contextual guide banner picks them up — each chip is a canonical modality.
+  const handleChipClick = (label: string) => {
+    setIsOpen(false);
+    const params = new URLSearchParams();
+    params.set('modality', label);
+    if (island && island !== 'all') params.set('island', island);
+    if (userLat !== null && userLng !== null) {
+      params.set('ulat', String(userLat));
+      params.set('ulng', String(userLng));
+    }
+    navigate(`/directory?${params.toString()}`);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') { setIsOpen(false); return; }
