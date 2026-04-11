@@ -32,6 +32,7 @@ const TestimonialSubmit = lazyWithRetry(() => import("./views/TestimonialSubmit"
 const About             = lazyWithRetry(() => import("./views/About"));
 const WebsitePackages   = lazyWithRetry(() => import("./views/WebsitePackages"));
 const WebsitePreview    = lazyWithRetry(() => import("./views/WebsitePreview"));
+const Home              = lazyWithRetry(() => import("./views/Home"));
 const BigIsland         = lazyWithRetry(() => import("./views/BigIsland"));
 const MauiHome          = lazyWithRetry(() => import("./views/MauiHome"));
 const OahuHome          = lazyWithRetry(() => import("./views/OahuHome"));
@@ -157,7 +158,7 @@ const App = () => (
               {/* Public pages — all share Header/Footer via PublicLayout */}
               <Route element={<PublicLayout />}>
                 {/* ── Island homepages — served by SPA (full dynamic content) ── */}
-                <Route path="/"               element={<BigIsland />} />
+                <Route path="/"               element={<Home />} />
                 <Route path="/big-island"     element={<BigIsland />} />
                 <Route path="/maui"           element={<MauiHome />} />
                 <Route path="/oahu"           element={<OahuHome />} />

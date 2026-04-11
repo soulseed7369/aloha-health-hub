@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
   ChevronDown, ChevronUp,
   Hand, Sparkles, Brain, Leaf, Activity, Sun, Apple, Moon, Heart,
@@ -801,7 +801,7 @@ function PullQuote({ text, attribution }: { text: string; attribution: string })
   );
 }
 
-function ModalityCard({ mod, count }: { mod: Modality; count?: number }) {
+function ModalityCard({ mod, count, island }: { mod: Modality; count?: number; island?: string | null }) {
   const { lead, subs } = parseDescription(mod.description);
   const filterName = mod.dbName ?? mod.name;
   const ctaLabel =
@@ -838,7 +838,7 @@ function ModalityCard({ mod, count }: { mod: Modality; count?: number }) {
             )}
             <div className="mt-5 pt-4 border-t border-[hsl(35,18%,82%)]">
               <Link
-                to={`/directory?modality=${encodeURIComponent(filterName)}`}
+                to={island ? `/${island}?modality=${encodeURIComponent(filterName)}` : `/directory?modality=${encodeURIComponent(filterName)}`}
                 className="mod-chapter transition-opacity hover:opacity-60"
               >
                 {ctaLabel}
@@ -857,12 +857,14 @@ function CategorySection({
   counts,
   expanded,
   onToggle,
+  island,
 }: {
   cat: Category;
   catIdx: number;
   counts: Record<string, number>;
   expanded: boolean;
   onToggle: () => void;
+  island?: string | null;
 }) {
   const pullQuote = PULL_QUOTES[catIdx];
   const showCTA = catIdx === 3;
@@ -903,7 +905,7 @@ function CategorySection({
       {expanded && (
         <div className="space-y-5">
           {cat.modalities.map((mod) => (
-            <ModalityCard key={mod.anchor} mod={mod} count={counts[mod.dbName ?? mod.name]} />
+            <ModalityCard key={mod.anchor} mod={mod} count={counts[mod.dbName ?? mod.name]} island={island} />
           ))}
 
           {showCTA && (
@@ -1139,6 +1141,8 @@ export default function WellnessModalities() {
     "article"
   );
   const { data: modalityCounts = {} } = useModalityCounts();
+  const [searchParams] = useSearchParams();
+  const island = searchParams.get("island");
 
   // Category accordion state — lifted so hash navigation can auto-expand
   // the category containing a linked modality anchor.
@@ -1262,6 +1266,7 @@ export default function WellnessModalities() {
             counts={modalityCounts}
             expanded={!!expandedCats[cat.id]}
             onToggle={() => toggleCat(cat.id)}
+            island={island}
           />
         ))}
 
@@ -1284,13 +1289,15 @@ export default function WellnessModalities() {
             and cultural heritage.
           </p>
           <div className="border-t border-[hsl(35,18%,80%)]">
-            {ISLAND_SECTIONS.map((island) => (
-              <div key={island.name} className="grid sm:grid-cols-[180px_1fr] gap-6 sm:gap-10 py-9 border-b border-[hsl(35,18%,80%)]">
-                <h3 className="mod-island-h text-foreground">{island.name}</h3>
+            {ISLAND_SECTIONS.map((islandSection) => (
+              <div key={islandSection.name} className={`grid sm:grid-cols-[180px_1fr] gap-6 sm:gap-10 py-9 border-b border-[hsl(35,18%,80%)] ${
+                island && islandSection.link === `/${island}` ? 'bg-primary/5 rounded-lg px-4 -mx-4' : ''
+              }`}>
+                <h3 className="mod-island-h text-foreground">{islandSection.name}</h3>
                 <div>
-                  <p className="text-[16px] leading-[1.75] text-muted-foreground mb-4">{island.description}</p>
-                  <Link to={island.link} className="mod-chapter transition-opacity hover:opacity-60">
-                    Browse {island.name} practitioners →
+                  <p className="text-[16px] leading-[1.75] text-muted-foreground mb-4">{islandSection.description}</p>
+                  <Link to={islandSection.link} className="mod-chapter transition-opacity hover:opacity-60">
+                    Browse {islandSection.name} practitioners →
                   </Link>
                 </div>
               </div>
@@ -1310,7 +1317,7 @@ export default function WellnessModalities() {
           <FaqAccordion />
         </section>
 
-        <GuideCTA variant="end" />
+        <GuideCTA variant="end" island={(island ?? undefined) as "big-island" | "maui" | "oahu" | "kauai" | undefined} />
       </main>
     </>
   );

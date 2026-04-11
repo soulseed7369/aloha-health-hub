@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchBar } from "@/components/SearchBar";
 import { ProviderCard } from "@/components/ProviderCard";
 import { CenterCard } from "@/components/CenterCard";
@@ -68,7 +68,7 @@ const BROWSE_MODALITIES = [
 
 const OTHER_ISLANDS = [
   { slug: "big-island", label: "Big Island",  description: "Kona, Hilo, Waimea & more",       comingSoon: false },
-  { slug: "maui",       label: "Maui",        description: "Lahaina, Kihei, Makawao & more",   comingSoon: true  },
+  { slug: "maui",       label: "Maui",        description: "Lahaina, Kihei, Makawao & more",   comingSoon: false  },
   { slug: "oahu",       label: "Oahu",        description: "Honolulu, Kailua, Haleiwa & more", comingSoon: true  },
   { slug: "kauai",      label: "Kauai",       description: "Lihue, Kapaa, Hanalei & more",     comingSoon: true  },
 ];
@@ -123,6 +123,14 @@ export function IslandHome({ config }: IslandHomeProps) {
   usePageMeta(config.pageTitle, config.pageDescription);
   const [waitlistEmail, setWaitlistEmail] = useState('');
   const [waitlistState, setWaitlistState] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
+
+  // Convert DB island key to URL slug
+  const islandSlug = config.island === 'big_island' ? 'big-island' : config.island;
+
+  // Persist island preference for homepage default tab
+  useEffect(() => {
+    try { localStorage.setItem('preferredIsland', config.island); } catch {}
+  }, [config.island]);
 
   // FAQ schema
   const faqSchema = config.faqItems && config.faqItems.length > 0 ? {
@@ -219,7 +227,7 @@ export function IslandHome({ config }: IslandHomeProps) {
                 </>
               )}
               <Link
-                to="/guides/wellness-modalities-hawaii"
+                to={"/guides/wellness-modalities-hawaii?island=" + islandSlug}
                 className="group text-center transition-opacity hover:opacity-80"
                 aria-label="Read the complete guide to 44 wellness modalities in Hawaiʻi"
               >
@@ -249,7 +257,7 @@ export function IslandHome({ config }: IslandHomeProps) {
               </p>
             </div>
             <Link
-              to="/guides/wellness-modalities-hawaii"
+              to={"/guides/wellness-modalities-hawaii?island=" + islandSlug}
               className="text-xs font-medium text-primary hover:underline sm:text-sm"
             >
               Read the full guide →
@@ -259,7 +267,7 @@ export function IslandHome({ config }: IslandHomeProps) {
             {GUIDE_CATEGORIES.map(({ id, label, Icon }) => (
               <Link
                 key={id}
-                to={`/guides/wellness-modalities-hawaii#${id}`}
+                to={"/guides/wellness-modalities-hawaii?island=" + islandSlug + "#" + id}
                 className="group flex flex-col items-center gap-1.5 rounded-lg border border-border/60 bg-background px-2 py-3 text-center transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
               >
                 <Icon className="h-4 w-4 text-primary transition-colors group-hover:text-primary" strokeWidth={1.5} />
@@ -479,7 +487,7 @@ export function IslandHome({ config }: IslandHomeProps) {
           <p className="mt-5 text-sm text-muted-foreground">
             Not sure which modality is right for you?{" "}
             <Link
-              to="/guides/wellness-modalities-hawaii"
+              to={"/guides/wellness-modalities-hawaii?island=" + islandSlug}
               className="font-medium text-primary hover:underline"
             >
               Read the Complete Guide to Wellness Modalities in Hawaiʻi →
