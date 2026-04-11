@@ -106,7 +106,8 @@ function detectIslandFromText(text: string): string | null {
 const ISLANDS = [
   { value: 'all', label: 'All Islands' },
   { value: 'big_island', label: 'Big Island' },
-  // Maui, Oahu, Kauai, Molokai hidden until those directories are ready
+  { value: 'maui', label: 'Maui' },
+  // Oahu, Kauai, Molokai hidden until those directories are ready
 ];
 
 // ── Adapters: DirectoryResult → Provider / Center shapes ─────────────────────

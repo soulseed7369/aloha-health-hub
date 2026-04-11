@@ -552,7 +552,7 @@ export function IslandHome({ config }: IslandHomeProps) {
           <div className="mt-6 rounded-xl border border-border bg-background px-5 py-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Maui · Oahu · Kauai</span> directories launching soon —
+                <span className="font-medium text-foreground">Oʻahu · Kauaʻi</span> directories launching soon —
                 get notified when your island goes live.
               </p>
               {waitlistState === 'done' ? (

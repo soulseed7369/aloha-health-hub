@@ -39,7 +39,7 @@ const About = () => {
           We are building a clear, current, and organized directory where people can explore the full spectrum of holistic health across the islands. It is a place where residents can find ongoing care, where visitors can discover meaningful wellness experiences, and where practitioners themselves can become more visible and connected.
         </p>
         <p className="leading-relaxed text-muted-foreground">
-          We're starting here on the Big Island, and over time we'll expand across Oʻahu, Maui, Kauaʻi, and beyond — with the goal of becoming the central hub where anyone can discover the people and places dedicated to healing in Hawai'i.
+          We're live on the Big Island and Maui, and expanding across Oʻahu, Kauaʻi, and beyond — with the goal of becoming the central hub where anyone can discover the people and places dedicated to healing in Hawai'i.
         </p>
       </section>
 

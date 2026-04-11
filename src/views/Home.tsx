@@ -632,7 +632,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link to="/directory">
-              <Button variant="outline" size="lg" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+              <Button size="lg" className="rounded-lg border border-white/40 bg-white/10 px-8 py-3 font-medium text-primary-foreground transition-colors hover:bg-white/20">
                 Browse Directory
               </Button>
             </Link>

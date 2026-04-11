@@ -11,7 +11,7 @@ import { useNameSuggestions } from "@/hooks/useNameSuggestions";
 const ISLAND_TABS = [
   { value: 'all',         label: 'All Islands', comingSoon: true  },
   { value: 'big_island',  label: 'Big Island',  comingSoon: false },
-  { value: 'maui',        label: 'Maui',        comingSoon: true  },
+  { value: 'maui',        label: 'Maui',        comingSoon: false },
   { value: 'oahu',        label: 'Oahu',        comingSoon: true  },
   { value: 'kauai',       label: 'Kauai',       comingSoon: true  },
 ];
