@@ -38,64 +38,36 @@ const FILTER_MODALITIES = [
 ];
 
 // ── Island / city lookup ─────────────────────────────────────────────────────
+// Shared with SearchBar — see src/lib/islandCities.ts
+import { CITY_COORDS_BY_ISLAND, ISLAND_CITIES } from "@/lib/islandCities";
 
-// Approximate centroids used for distance sorting when user picks a city instead of sharing GPS
-// Build city coords with island prefix to avoid collisions (e.g., Kauai Waimea != Big Island Waimea)
-const CITY_COORDS_BY_ISLAND: Record<string, Record<string, { lat: number; lng: number }>> = {
-  big_island: {
-    'Kailua-Kona': { lat: 19.6400, lng: -155.9969 }, 'Hilo': { lat: 19.7297, lng: -155.0900 },
-    'Waimea': { lat: 20.0133, lng: -155.6718 }, 'Pahoa': { lat: 19.4942, lng: -154.9447 },
-    'Captain Cook': { lat: 19.4992, lng: -155.9194 }, 'Keaau': { lat: 19.6261, lng: -155.0497 },
-    'Holualoa': { lat: 19.6228, lng: -155.9317 }, 'Volcano': { lat: 19.4256, lng: -155.2347 },
-    'Waikoloa': { lat: 19.9306, lng: -155.7797 }, 'Hawi': { lat: 20.2428, lng: -155.8330 },
-    'Honokaa': { lat: 20.0817, lng: -155.4719 }, 'Ocean View': { lat: 19.1000, lng: -155.7667 },
-  },
-  maui: {
-    'Lahaina': { lat: 20.8783, lng: -156.6825 }, 'Kihei': { lat: 20.7645, lng: -156.4450 },
-    'Wailea': { lat: 20.6881, lng: -156.4414 }, 'Kahului': { lat: 20.8893, lng: -156.4729 },
-    'Wailuku': { lat: 20.8936, lng: -156.5000 }, 'Makawao': { lat: 20.8564, lng: -156.3100 },
-    'Paia': { lat: 20.9108, lng: -156.3703 }, 'Haiku': { lat: 20.9197, lng: -156.3231 },
-    'Kula': { lat: 20.7878, lng: -156.3358 }, 'Hana': { lat: 20.7578, lng: -155.9928 },
-  },
-  oahu: {
-    'Honolulu': { lat: 21.3069, lng: -157.8583 }, 'Waikiki': { lat: 21.2793, lng: -157.8294 },
-    'Kailua': { lat: 21.4022, lng: -157.7394 }, 'Kaneohe': { lat: 21.4022, lng: -157.8003 },
-    'Pearl City': { lat: 21.3972, lng: -157.9756 }, 'Kapolei': { lat: 21.3347, lng: -158.0764 },
-    'Haleiwa': { lat: 21.5950, lng: -158.1028 }, 'Mililani': { lat: 21.4511, lng: -158.0147 },
-    'Hawaii Kai': { lat: 21.2919, lng: -157.7000 }, 'Manoa': { lat: 21.3094, lng: -157.8019 },
-  },
-  kauai: {
-    'Lihue': { lat: 21.9781, lng: -159.3508 }, 'Kapaa': { lat: 22.0753, lng: -159.3192 },
-    'Hanalei': { lat: 22.2039, lng: -159.5017 }, 'Princeville': { lat: 22.2153, lng: -159.4811 },
-    'Poipu': { lat: 21.8742, lng: -159.4586 }, 'Koloa': { lat: 21.9056, lng: -159.4656 },
-    'Hanapepe': { lat: 21.9092, lng: -159.5950 }, 'Waimea': { lat: 21.9544, lng: -159.6411 },
-    'Kilauea': { lat: 22.2128, lng: -159.4028 }, 'Kalaheo': { lat: 21.9244, lng: -159.5281 },
-  },
-  molokai: {
-    'Kaunakakai': { lat: 21.1975, lng: -157.0281 },
-  },
-};
-
-const ISLAND_CITIES: Record<string, string[]> = {
-  big_island: ['Kailua-Kona', 'Hilo', 'Waimea', 'Pahoa', 'Captain Cook', 'Keaau', 'Holualoa', 'Volcano', 'Waikoloa', 'Hawi', 'Honokaa', 'Ocean View'],
-  oahu: ['Honolulu', 'Waikiki', 'Kailua', 'Kaneohe', 'Pearl City', 'Kapolei', 'Haleiwa', 'Mililani', 'Hawaii Kai', 'Manoa'],
-  maui: ['Lahaina', 'Kihei', 'Wailea', 'Kahului', 'Wailuku', 'Makawao', 'Paia', 'Haiku', 'Kula', 'Hana'],
-  kauai: ['Lihue', 'Kapaa', 'Hanalei', 'Princeville', 'Poipu', 'Koloa', 'Hanapepe', 'Waimea', 'Kilauea'],
-  molokai: ['Kaunakakai'],
-};
-
-function detectIslandFromText(text: string): string | null {
+// Island detection from free text. When a `preferredIsland` is supplied
+// (e.g. from a URL param or the current island page), ambiguous town names
+// like Waimea (Big Island + Kauai) or Kailua (Oahu + Kailua-Kona on Big Island)
+// resolve to that island first.
+function detectIslandFromText(text: string, preferredIsland?: string | null): string | null {
   const lower = text.toLowerCase();
   if (/\bbig island\b/.test(lower)) return 'big_island';
   if (/\boahu\b/.test(lower)) return 'oahu';
   if (/\bmaui\b/.test(lower)) return 'maui';
   if (/\bkauai\b/.test(lower)) return 'kauai';
   if (/\bmolokai\b/.test(lower)) return 'molokai';
+
+  // If preferredIsland is specified and its city list contains a match, use that.
+  if (preferredIsland && ISLAND_CITIES[preferredIsland]) {
+    for (const city of ISLAND_CITIES[preferredIsland]) {
+      if (lower.includes(city.toLowerCase())) return preferredIsland;
+    }
+  }
+
+  // Fall back to ambiguous-safe town hints. Anything that appears on
+  // multiple islands (waimea, kailua) is deliberately omitted — those need
+  // the preferredIsland context above to resolve correctly.
   const townMap: Record<string, string> = {
-    kona: 'big_island', hilo: 'big_island', waimea: 'big_island', pahoa: 'big_island',
-    honolulu: 'oahu', waikiki: 'oahu', kailua: 'oahu', kaneohe: 'oahu',
+    kona: 'big_island', hilo: 'big_island', pahoa: 'big_island', volcano: 'big_island',
+    honolulu: 'oahu', waikiki: 'oahu', kaneohe: 'oahu', haleiwa: 'oahu',
     lahaina: 'maui', kihei: 'maui', wailea: 'maui', kahului: 'maui', paia: 'maui',
-    lihue: 'kauai', kapaa: 'kauai', hanalei: 'kauai', poipu: 'kauai',
+    lihue: 'kauai', kapaa: 'kauai', hanalei: 'kauai', poipu: 'kauai', princeville: 'kauai',
   };
   for (const [town, isl] of Object.entries(townMap)) {
     if (lower.includes(town)) return isl;
@@ -107,7 +79,8 @@ const ISLANDS = [
   { value: 'all', label: 'All Islands' },
   { value: 'big_island', label: 'Big Island' },
   { value: 'maui', label: 'Maui' },
-  // Oahu, Kauai, Molokai hidden until those directories are ready
+  { value: 'oahu', label: 'Oʻahu' },
+  { value: 'kauai', label: 'Kauaʻi' },
 ];
 
 // ── Adapters: DirectoryResult → Provider / Center shapes ─────────────────────
@@ -472,13 +445,17 @@ const Directory = () => {
   }, [searchParams]);
 
   const detectedIsland = useMemo(() => {
-    return detectIslandFromText(urlQ);
-  }, [urlQ]);
+    // Bias by the URL island param so ambiguous towns resolve to the page
+    // the user actually came from (e.g. Kailua on Oahu page, not Big Island).
+    return detectIslandFromText(urlQ, urlIsland);
+  }, [urlQ, urlIsland]);
 
   const [listingType, setListingType] = useState<ListingType>("all");
   const [showMap, setShowMap] = useState(false);
   const [searchQuery, setSearchQuery] = useState(urlQ);
-  const [island, setIsland] = useState(detectedIsland || urlIsland);
+  // URL island param wins over text-detected island — if the user explicitly
+  // scoped to an island (from an island page), trust that.
+  const [island, setIsland] = useState(urlIsland !== 'all' ? urlIsland : (detectedIsland || urlIsland));
   // Default to sorting by distance when user has location set
   const [sortByDistance, setSortByDistance] = useState(() => {
     try {

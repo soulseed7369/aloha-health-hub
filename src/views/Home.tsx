@@ -26,7 +26,16 @@ import {
 } from "lucide-react";
 
 // ── Island configuration for all-islands mode ───────────────────────────────
+// `dbKey: 'all'` is a synthetic key meaning "no island filter" — used on the
+// cross-island homepage. It's intentionally not a clickable card in the
+// "Choose Your Island" section (filtered out below).
 const ISLANDS = [
+  {
+    slug: "",
+    dbKey: "all",
+    label: "All Islands",
+    description: "All four Hawaiian Islands",
+  },
   {
     slug: "big-island",
     dbKey: "big_island",
@@ -173,7 +182,7 @@ export default function Home() {
   );
 
   // ── Island tab state with localStorage preference ─────────────────────────
-  const [selectedIsland, setSelectedIsland] = useState<string>("big_island");
+  const [selectedIsland, setSelectedIsland] = useState<string>("all");
 
   useEffect(() => {
     try {
@@ -226,12 +235,12 @@ export default function Home() {
       <SearchBar
         heroTitle="Hawaiʻi's Wellness Directory"
         heroSubtitle="Find holistic health practitioners and wellness centers across all four Hawaiian Islands."
-        heroImageUrl="/big_island_pololu.webp"
+        heroImageUrl="/all_islands_hero.webp"
         heroImages={{
           srcSet:
-            "/big_island_pololu-640w.webp 640w, /big_island_pololu-1024w.webp 1024w, /big_island_pololu-1920w.webp 1920w, /big_island_pololu.webp 2560w",
+            "/all_islands_hero-640w.webp 640w, /all_islands_hero-1024w.webp 1024w, /all_islands_hero-1920w.webp 1920w, /all_islands_hero.webp 2560w",
           sizes: "100vw",
-          src: "/big_island_pololu.webp",
+          src: "/all_islands_hero.webp",
         }}
       />
 
@@ -293,7 +302,7 @@ export default function Home() {
             Choose Your Island
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {ISLANDS.map(({ slug, dbKey, label, description }) => (
+            {ISLANDS.filter(i => i.dbKey !== 'all').map(({ slug, dbKey, label, description }) => (
               <Link
                 key={dbKey}
                 to={`/${slug}`}
@@ -389,7 +398,11 @@ export default function Home() {
         ) : homePractitioners.length > 0 ? (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {homePractitioners.map((practitioner) => (
-              <ProviderCard key={practitioner.id} provider={practitioner} />
+              <ProviderCard
+                key={practitioner.id}
+                provider={practitioner}
+                showIslandBadge={selectedIsland === 'all'}
+              />
             ))}
           </div>
         ) : (
@@ -425,7 +438,7 @@ export default function Home() {
       <section className="bg-secondary/30 py-12">
         <div className="container">
           <h2 className="mb-6 font-display text-2xl font-bold md:text-3xl">
-            {selectedIslandConfig.label} Wellness Centers
+            {selectedIsland === 'all' ? 'Wellness Centers' : `${selectedIslandConfig.label} Wellness Centers`}
           </h2>
 
           {/* Centers grid */}
@@ -438,7 +451,11 @@ export default function Home() {
           ) : homeCenters.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {homeCenters.map((center) => (
-                <CenterCard key={center.id} center={center} />
+                <CenterCard
+                  key={center.id}
+                  center={center}
+                  showIslandBadge={selectedIsland === 'all'}
+                />
               ))}
             </div>
           ) : (

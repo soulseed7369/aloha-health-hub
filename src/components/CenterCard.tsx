@@ -173,9 +173,11 @@ interface CenterCardProps {
   highlightModality?: string;
   /** Compact mode: slim horizontal layout for directory list views */
   compact?: boolean;
+  /** Show an island pill on the card — used on the All-Islands homepage */
+  showIslandBadge?: boolean;
 }
 
-export function CenterCard({ center, highlightModality, compact = false }: CenterCardProps) {
+export function CenterCard({ center, highlightModality, compact = false, showIslandBadge = false }: CenterCardProps) {
   const displayModalities = center.modalities ?? (center.modality ? [center.modality] : []);
   const sorted    = sortModalities(displayModalities, highlightModality);
   const hasImage  = isValidListingImage(center.image);
@@ -241,6 +243,7 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
               <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0 text-xs text-muted-foreground leading-tight">
                 <MapPin className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
                 <span className="truncate">{center.location?.split(",")[0]}</span>
+                {showIslandBadge && center.island && <IslandPill island={center.island} />}
                 {center.distanceMiles != null && (
                   <span className="flex-shrink-0 text-muted-foreground/70">
                     · {formatDistance(center.distanceMiles)}
@@ -419,7 +422,11 @@ export function CenterCard({ center, highlightModality, compact = false }: Cente
             >
               <MapPin className="h-2.5 w-2.5" />
               {center.location}
-              {center.island && `, ${center.island.replace("_", " ")}`}
+              {showIslandBadge && center.island ? (
+                <IslandPill island={center.island} />
+              ) : (
+                center.island && `, ${center.island.replace("_", " ")}`
+              )}
             </div>
           </div>
 

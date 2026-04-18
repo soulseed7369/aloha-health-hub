@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-homepage.jpg";
 import { useAliasMap } from "@/hooks/useSearchListings";
 import { useNameSuggestions } from "@/hooks/useNameSuggestions";
+import { findCityOnIsland, ISLAND_DISPLAY_NAMES } from "@/lib/islandCities";
 
 // Island tabs — all four islands live
 const ISLAND_TABS = [
@@ -230,11 +231,47 @@ export function SearchBar({
   };
 
   const handleZipSearch = async () => {
-    if (zipInput.trim().length < 2) return;
+    const raw = zipInput.trim();
+    if (raw.length < 2) return;
     setGeocoding(true);
     setZipError('');
+
+    const isZip = /^\d{5}$/.test(raw);
+
+    // For city/town input (not a zip code), resolve against the *current*
+    // island's city list before falling back to Nominatim. This prevents
+    // ambiguous towns (Kailua on Oahu vs Kailua-Kona on Big Island; Waimea
+    // on Big Island vs Kauai) from being geocoded to the wrong island.
+    if (!isZip && island && island !== 'all') {
+      const localHit = findCityOnIsland(raw, island);
+      if (localHit) {
+        setUserLat(localHit.lat);
+        setUserLng(localHit.lng);
+        const islandName = ISLAND_DISPLAY_NAMES[island] ?? island;
+        const label = `${localHit.city} · ${islandName}`;
+        setLocationLabel(label);
+        localStorage.setItem(
+          LOCATION_STORAGE_KEY,
+          JSON.stringify({ lat: localHit.lat, lng: localHit.lng, label })
+        );
+        setShowZipInput(false);
+        setZipInput('');
+        setGeocoding(false);
+        return;
+      }
+    }
+
     try {
-      const query = /^\d{5}$/.test(zipInput.trim()) ? zipInput.trim() : `${zipInput.trim()}, Hawaii`;
+      // Bias Nominatim by the current island's name so ambiguous towns
+      // resolve to the right island.
+      const islandHint = !isZip && island && island !== 'all'
+        ? (ISLAND_DISPLAY_NAMES[island] ?? '')
+        : '';
+      const query = isZip
+        ? raw
+        : islandHint
+          ? `${raw}, ${islandHint}, Hawaii`
+          : `${raw}, Hawaii`;
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&countrycodes=us&format=json&limit=1`,
         { headers: { 'Accept-Language': 'en', 'User-Agent': 'HawaiiWellness/1.0' } }
@@ -247,9 +284,8 @@ export function SearchBar({
         setUserLng(longitude);
         const detected = detectIslandFromCoords(latitude, longitude);
         if (detected && ACTIVE_ISLANDS.has(detected)) setIsland(detected);
-        const islandNames: Record<string, string> = { big_island: 'Big Island', maui: 'Maui', oahu: 'Oahu', kauai: 'Kauai' };
-        const islandName = detected ? islandNames[detected] : null;
-        const label = islandName ? `${zipInput.trim()} · ${islandName}` : zipInput.trim();
+        const islandName = detected ? (ISLAND_DISPLAY_NAMES[detected] ?? null) : null;
+        const label = islandName ? `${raw} · ${islandName}` : raw;
         setLocationLabel(label);
         localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({ lat: latitude, lng: longitude, label }));
         setShowZipInput(false);

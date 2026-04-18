@@ -187,9 +187,11 @@ interface ProviderCardProps {
   highlightModality?: string;
   /** Compact mode: slim horizontal layout for directory list views */
   compact?: boolean;
+  /** Show an island pill on the card — used on the All-Islands homepage */
+  showIslandBadge?: boolean;
 }
 
-export function ProviderCard({ provider, highlightModality, compact = false }: ProviderCardProps) {
+export function ProviderCard({ provider, highlightModality, compact = false, showIslandBadge = false }: ProviderCardProps) {
   const displayModalities = provider.modalities ?? (provider.modality ? [provider.modality] : []);
 
   // Bubble the searched/matched modality to the front
@@ -259,6 +261,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
               <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0 text-xs text-muted-foreground leading-tight">
                 <MapPin className="h-3 w-3 flex-shrink-0" aria-hidden="true" />
                 <span className="truncate">{provider.location?.split(',')[0]}</span>
+                {showIslandBadge && provider.island && <IslandPill island={provider.island} />}
                 {provider.distanceMiles != null && (
                   <span className="flex-shrink-0 text-muted-foreground/70">· {formatDistance(provider.distanceMiles)}</span>
                 )}
@@ -420,6 +423,7 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 <MapPin className="h-2.5 w-2.5" />
                 {provider.location}
               </span>
+              {showIslandBadge && provider.island && <IslandPill island={provider.island} />}
               {isPaid && provider.sessionType && SESSION_TYPE_LABELS[provider.sessionType] && (
                 <>
                   <span style={{ color: "#e7e5e4" }}>·</span>

@@ -20,25 +20,25 @@ const DISPLAY_SLOTS = 4;
  * via a cheap count-only query.
  */
 export function useHomePractitioners(island: string) {
+  // 'all' means no island filter — used on the All-Islands homepage.
+  // When there's no paid tier filling the grid on the all-islands view,
+  // pad with *claimed* free listings only (owner_id not null) so we don't
+  // surface un-curated scraped rows on the most-visited page.
+  const isAll = island === 'all';
   const listingsQuery = useQuery<Provider[]>({
     queryKey: ['home-practitioners', island],
     queryFn: async () => {
       if (!supabase) return mockPractitioners;
 
-      // Two-query strategy: first grab all paid listings (guaranteed small set),
-      // then backfill with free listings only if needed.
-      // This avoids the broken alphabetical sort on `tier` text column
-      // (where 'featured' < 'free' < 'premium') and the unreliable `is_featured`
-      // boolean which is never set to true by any code path.
-
-      // Query 1: All featured + premium listings for this island
-      const { data: paidData, error: paidError } = await supabase
+      // Query 1: All featured + premium listings (optionally scoped to island)
+      let paidQuery = supabase
         .from('practitioners')
         .select('*, business:centers!practitioners_business_id_fkey(id,name)')
-        .eq('island', island)
         .eq('status', 'published')
         .in('tier', ['featured', 'premium'])
         .order('name');
+      if (!isAll) paidQuery = paidQuery.eq('island', island);
+      const { data: paidData, error: paidError } = await paidQuery;
 
       if (paidError) throw paidError;
 
@@ -53,13 +53,16 @@ export function useHomePractitioners(island: string) {
       // Query 2: Fetch a larger pool of free listings and shuffle so the
       // same two alphabetically-first listings don't stick every time.
       const needed = DISPLAY_SLOTS - prioritized.length;
-      const { data: freeData, error: freeError } = await supabase
+      let freeQuery = supabase
         .from('practitioners')
         .select('*, business:centers!practitioners_business_id_fkey(id,name)')
-        .eq('island', island)
         .eq('status', 'published')
         .or('tier.eq.free,tier.is.null')
         .limit(50);
+      if (!isAll) freeQuery = freeQuery.eq('island', island);
+      // Only show *claimed* free listings in the cross-island view.
+      if (isAll) freeQuery = freeQuery.not('owner_id', 'is', null);
+      const { data: freeData, error: freeError } = await freeQuery;
 
       if (freeError) throw freeError;
 
@@ -75,11 +78,12 @@ export function useHomePractitioners(island: string) {
     queryFn: async () => {
       if (!supabase) return mockPractitioners.length;
 
-      const { count, error } = await supabase
+      let q = supabase
         .from('practitioners')
         .select('id', { count: 'exact', head: true })
-        .eq('island', island)
         .eq('status', 'published');
+      if (!isAll) q = q.eq('island', island);
+      const { count, error } = await q;
 
       if (error) throw error;
       return count ?? 0;
@@ -93,12 +97,13 @@ export function useHomePractitioners(island: string) {
     queryFn: async () => {
       if (!supabase) return 0;
 
-      const { count, error } = await supabase
+      let q = supabase
         .from('practitioners')
         .select('id', { count: 'exact', head: true })
-        .eq('island', island)
         .eq('status', 'published')
         .not('owner_id', 'is', null);
+      if (!isAll) q = q.eq('island', island);
+      const { count, error } = await q;
 
       if (error) throw error;
       return count ?? 0;
@@ -118,21 +123,21 @@ export function useHomePractitioners(island: string) {
  * Same logic as useHomePractitioners, but for centers.
  */
 export function useHomeCenters(island: string) {
+  const isAll = island === 'all';
   const listingsQuery = useQuery<Center[]>({
     queryKey: ['home-centers', island],
     queryFn: async () => {
       if (!supabase) return mockCenters;
 
-      // Same two-query strategy as practitioners — see comments above.
-
-      // Query 1: All featured + premium centers
-      const { data: paidData, error: paidError } = await supabase
+      // Query 1: All featured + premium centers (optionally scoped to island)
+      let paidQuery = supabase
         .from('centers')
         .select('*')
-        .eq('island', island)
         .eq('status', 'published')
         .in('tier', ['featured', 'premium'])
         .order('name');
+      if (!isAll) paidQuery = paidQuery.eq('island', island);
+      const { data: paidData, error: paidError } = await paidQuery;
 
       if (paidError) throw paidError;
 
@@ -143,15 +148,17 @@ export function useHomeCenters(island: string) {
 
       if (prioritized.length >= DISPLAY_SLOTS) return prioritized;
 
-      // Query 2: Fetch a larger pool and shuffle — same fix as practitioners.
+      // Query 2: Fetch a larger pool and shuffle.
       const needed = DISPLAY_SLOTS - prioritized.length;
-      const { data: freeData, error: freeError } = await supabase
+      let freeQuery = supabase
         .from('centers')
         .select('*')
-        .eq('island', island)
         .eq('status', 'published')
         .or('tier.eq.free,tier.is.null')
         .limit(50);
+      if (!isAll) freeQuery = freeQuery.eq('island', island);
+      if (isAll) freeQuery = freeQuery.not('owner_id', 'is', null);
+      const { data: freeData, error: freeError } = await freeQuery;
 
       if (freeError) throw freeError;
 
@@ -167,11 +174,12 @@ export function useHomeCenters(island: string) {
     queryFn: async () => {
       if (!supabase) return mockCenters.length;
 
-      const { count, error } = await supabase
+      let q = supabase
         .from('centers')
         .select('id', { count: 'exact', head: true })
-        .eq('island', island)
         .eq('status', 'published');
+      if (!isAll) q = q.eq('island', island);
+      const { count, error } = await q;
 
       if (error) throw error;
       return count ?? 0;
@@ -184,12 +192,13 @@ export function useHomeCenters(island: string) {
     queryKey: ['centers-claimed-count', island],
     queryFn: async () => {
       if (!supabase) return 0;
-      const { count, error } = await supabase
+      let q = supabase
         .from('centers')
         .select('id', { count: 'exact', head: true })
-        .eq('island', island)
         .eq('status', 'published')
         .not('owner_id', 'is', null);
+      if (!isAll) q = q.eq('island', island);
+      const { count, error } = await q;
       if (error) throw error;
       return count ?? 0;
     },
