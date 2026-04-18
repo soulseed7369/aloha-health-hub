@@ -12,6 +12,20 @@
 
 SET search_path TO public, extensions;
 
+-- Drop all overloads of search_listings and resolve_query_aliases
+-- (multiple versions may exist from earlier migrations with different signatures)
+DO $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN SELECT oid::regprocedure AS sig FROM pg_proc WHERE proname = 'search_listings' LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS ' || r.sig || ' CASCADE';
+  END LOOP;
+  FOR r IN SELECT oid::regprocedure AS sig FROM pg_proc WHERE proname = 'resolve_query_aliases' LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS ' || r.sig || ' CASCADE';
+  END LOOP;
+END;
+$$;
+
 -- ── 1. Update practitioner search trigger to include business_name ────────────
 CREATE OR REPLACE FUNCTION build_practitioner_search_document()
 RETURNS trigger AS $$

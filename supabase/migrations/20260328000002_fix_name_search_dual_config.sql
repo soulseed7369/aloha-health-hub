@@ -26,6 +26,19 @@ DROP FUNCTION IF EXISTS search_listings(text,text,text,integer[],integer[],integ
 
 SET search_path TO public, extensions;
 
+-- Drop all overloads of search_listings (return type changes across versions)
+DO $$
+DECLARE r RECORD;
+BEGIN
+  FOR r IN SELECT oid::regprocedure AS sig FROM pg_proc WHERE proname = 'search_listings' LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS ' || r.sig || ' CASCADE';
+  END LOOP;
+  FOR r IN SELECT oid::regprocedure AS sig FROM pg_proc WHERE proname = 'resolve_query_aliases' LOOP
+    EXECUTE 'DROP FUNCTION IF EXISTS ' || r.sig || ' CASCADE';
+  END LOOP;
+END;
+$$;
+
 -- Ensure embedding_dirty column exists (idempotent)
 ALTER TABLE practitioners ADD COLUMN IF NOT EXISTS embedding_dirty boolean NOT NULL DEFAULT false;
 ALTER TABLE centers        ADD COLUMN IF NOT EXISTS embedding_dirty boolean NOT NULL DEFAULT false;
