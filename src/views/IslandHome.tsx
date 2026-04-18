@@ -69,8 +69,8 @@ const BROWSE_MODALITIES = [
 const OTHER_ISLANDS = [
   { slug: "big-island", label: "Big Island",  description: "Kona, Hilo, Waimea & more",       comingSoon: false },
   { slug: "maui",       label: "Maui",        description: "Lahaina, Kihei, Makawao & more",   comingSoon: false  },
-  { slug: "oahu",       label: "Oahu",        description: "Honolulu, Kailua, Haleiwa & more", comingSoon: true  },
-  { slug: "kauai",      label: "Kauai",       description: "Lihue, Kapaa, Hanalei & more",     comingSoon: true  },
+  { slug: "oahu",       label: "Oahu",        description: "Honolulu, Kailua, Haleiwa & more", comingSoon: false },
+  { slug: "kauai",      label: "Kauai",       description: "Lihue, Kapaa, Hanalei & more",     comingSoon: false },
 ];
 
 /** Sort items by tier (featured → premium → free), with random order within each tier group. */

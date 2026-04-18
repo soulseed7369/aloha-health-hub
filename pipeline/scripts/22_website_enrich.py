@@ -762,9 +762,12 @@ def bio_is_thin(bio: str | None) -> bool:
 
 
 def needs_enrichment(rec: dict, rescore_days: int = 0) -> bool:
-    # Social links and booking URL are premium features — providers fill those in themselves.
     # Enrichment fills: email, phone, bio/description, avatar_url, modalities,
-    #                   first_name, last_name, website_platform, website_score, lead_score
+    #                   first_name, last_name, website_platform, website_score,
+    #                   lead_score, social_links.instagram
+
+    social = rec.get("social_links") or {}
+    no_instagram = not (isinstance(social, dict) and social.get("instagram"))
 
     # Always needs enrichment if core fields are missing
     if (is_blank(rec.get("email"))
@@ -772,8 +775,8 @@ def needs_enrichment(rec: dict, rescore_days: int = 0) -> bool:
         or bio_is_thin(rec.get("bio") or rec.get("description"))
         or is_blank(rec.get("avatar_url"))
         or is_blank(rec.get("modalities"))
-        or is_blank(rec.get("first_name"))
-        or rec.get("website_score") is None):
+        or rec.get("website_score") is None
+        or no_instagram):
         return True
 
     # Rescore if enriched_at is stale
@@ -896,19 +899,27 @@ def crawl_listing(rec: dict, score_leads: bool = False) -> dict | None:
         if mods:
             patch["modalities"] = mods
 
-    # ── 3. Personal name extraction from About page ───────────────────────────
-    # Only for practitioners (centers are businesses, not individuals)
-    if rec.get("_table") == "practitioners":
-        needs_first = is_blank(rec.get("first_name")) and "first_name" not in patch
-        needs_last  = is_blank(rec.get("last_name"))  and "last_name"  not in patch
-        if needs_first or needs_last:
-            name_result = extract_personal_name(url, rec.get("name", ""))
-            if name_result:
-                first, last = name_result
-                if needs_first:
-                    patch["first_name"] = first
-                if needs_last:
-                    patch["last_name"] = last
+    # ── Social links — merge with existing, never overwrite ──────────────────
+    existing_social = rec.get("social_links") or {}
+    if not isinstance(existing_social, dict):
+        existing_social = {}
+    found_social = extract_social_from_soup(soup)
+    # Also merge from JSON-LD sameAs if present
+    if json_ld:
+        ld_social = enrich_from_json_ld(json_ld).get("_social_links") or {}
+        for k, v in ld_social.items():
+            found_social.setdefault(k, v)
+    merged_social = dict(existing_social)
+    for platform, url_val in found_social.items():
+        if not merged_social.get(platform):
+            merged_social[platform] = url_val
+    if merged_social != existing_social:
+        patch["social_links"] = merged_social
+
+    # ── 3. Personal name extraction DISABLED ─────────────────────────────────
+    # Was populating first_name/last_name with junk from About pages, which
+    # then overrode the `name` display field. The `name` column is already
+    # the source of truth for how listings render — don't touch first/last.
 
     # Always set enriched_at on any crawl attempt (whether or not we found new data).
     # This prevents re-crawling fully-enriched listings on every pipeline run.
@@ -935,7 +946,7 @@ def fetch_listings(island: str, status_filter: str = "published",
         while True:
             q = client.table(table).select(
                 f"id, name, website_url, email, phone, {bio_col}, avatar_url, "
-                f"modalities, island, status, tier, "
+                f"modalities, island, status, tier, social_links, "
                 f"first_name, last_name, website_platform, website_score, "
                 f"no_website_lead, lead_score, enriched_at"
             ).eq("island", island)

@@ -46,9 +46,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Static/service pages
   const staticPages = [
+    { path: '/directory', priority: 0.9 },
+    { path: '/guides', priority: 0.8 },
+    { path: '/guides/wellness-modalities-hawaii', priority: 0.8 },
     { path: '/about', priority: 0.8 },
     { path: '/articles', priority: 0.8 },
-    { path: '/help-center', priority: 0.7 },
+    { path: '/help', priority: 0.7 },
     { path: '/list-your-practice', priority: 0.8 },
     { path: '/website-packages', priority: 0.8 },
     { path: '/concierge', priority: 0.7 },

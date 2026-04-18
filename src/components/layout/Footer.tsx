@@ -30,7 +30,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-accent text-accent-foreground">
       <div className="container py-12">
-        <div className="grid gap-8 md:grid-cols-4">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand */}
           <div className="space-y-3">
             <span className="font-display text-lg font-bold">Hawaiʻi Wellness</span>
@@ -40,6 +40,17 @@ export function Footer() {
             <p className="text-xs opacity-50">
               Hawaii Wellness · Kamuela, HI
             </p>
+          </div>
+
+          {/* Islands */}
+          <div className="space-y-3">
+            <h4 className="font-display text-sm font-semibold uppercase tracking-wider opacity-70">Islands</h4>
+            <nav className="flex flex-col gap-2 text-sm">
+              <Link to="/big-island" className="opacity-80 hover:opacity-100">Big Island</Link>
+              <Link to="/maui" className="opacity-80 hover:opacity-100">Maui</Link>
+              <Link to="/oahu" className="opacity-80 hover:opacity-100">Oahu</Link>
+              <Link to="/kauai" className="opacity-80 hover:opacity-100">Kauai</Link>
+            </nav>
           </div>
 
           {/* Quick Links */}
