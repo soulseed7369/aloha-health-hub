@@ -9,11 +9,11 @@ import { useNameSuggestions } from "@/hooks/useNameSuggestions";
 
 // Island tabs — all four islands live
 const ISLAND_TABS = [
-  { value: 'all',         label: 'All Islands', comingSoon: false },
-  { value: 'big_island',  label: 'Big Island',  comingSoon: false },
-  { value: 'maui',        label: 'Maui',        comingSoon: false },
-  { value: 'oahu',        label: 'Oahu',        comingSoon: false },
-  { value: 'kauai',       label: 'Kauai',       comingSoon: false },
+  { value: 'all',         label: 'All Islands', comingSoon: false, route: '/'           },
+  { value: 'big_island',  label: 'Big Island',  comingSoon: false, route: '/big-island' },
+  { value: 'maui',        label: 'Maui',        comingSoon: false, route: '/maui'       },
+  { value: 'oahu',        label: 'Oahu',        comingSoon: false, route: '/oahu'       },
+  { value: 'kauai',       label: 'Kauai',       comingSoon: false, route: '/kauai'      },
 ];
 
 /** Set of island values that are currently active (not coming soon). */
@@ -462,7 +462,7 @@ export function SearchBar({
                 <button
                   key={tab.value}
                   type="button"
-                  onClick={() => setIsland(tab.value)}
+                  onClick={() => { setIsland(tab.value); navigate(tab.route); }}
                   className={`rounded-full px-2.5 py-1 text-[13.5px] font-medium transition-all sm:px-4 sm:py-1.5 sm:text-sm ${
                     isActive
                       ? 'bg-white text-primary shadow-sm'

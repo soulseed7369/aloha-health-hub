@@ -1350,7 +1350,7 @@ const ProfileDetail = () => {
                   <iframe
                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${p.lng - 0.015},${p.lat - 0.01},${p.lng + 0.015},${p.lat + 0.01}&layer=mapnik&marker=${p.lat},${p.lng}`}
                     width="100%"
-                    height="185"
+                    height="210"
                     className="w-full block border-0"
                     title={`Map showing location of ${p.name}`}
                     loading="lazy"
