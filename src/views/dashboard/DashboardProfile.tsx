@@ -11,6 +11,7 @@ import { ExternalLink, Loader2, Lock, Crown, ShieldCheck, CheckCircle } from "lu
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { useMyPractitioner, useSavePractitioner, uploadMyPhoto, type PractitionerFormData } from "@/hooks/useMyPractitioner";
+import { inferTitleFromModality } from "@/lib/cardUtils";
 import { DuplicateListingError, type DuplicateCandidate } from "@/lib/duplicateDetection";
 import {
   AlertDialog,
@@ -229,6 +230,8 @@ export default function DashboardProfile() {
 
       await saveMutation.mutateAsync({
         ...form,
+        // Free tier: always clear title so it auto-derives from primary modality
+        title: isPremiumOrFeatured ? form.title : '',
         avatar_url: avatarUrl,
         photos: photoUrls,
         profile_photo_index: safeIdx,
@@ -366,15 +369,29 @@ export default function DashboardProfile() {
 
           <div className="space-y-2">
             <Label htmlFor="jobTitle">Job Title</Label>
-            <Input
-              id="jobTitle"
-              placeholder="e.g. Somatic Therapist, Lomilomi Practitioner"
-              value={form.title}
-              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-            />
-            <p className="text-xs text-muted-foreground">
-              Shown below your name on your listing card. Leave blank to auto-fill from your primary modality.
-            </p>
+            {isPremiumOrFeatured ? (
+              <>
+                <Input
+                  id="jobTitle"
+                  placeholder="e.g. Somatic Therapist, Lomilomi Practitioner"
+                  value={form.title}
+                  onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Shown below your name on your listing card. Leave blank to auto-fill from your primary modality.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 h-10 px-3 rounded-md border bg-muted text-sm text-muted-foreground">
+                  <Lock className="h-3.5 w-3.5 shrink-0" />
+                  <span>{inferTitleFromModality(form.modalities[0]) ?? 'Set by your primary modality'}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Auto-set from your primary modality. Upgrade to Premium to customize.
+                </p>
+              </>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
