@@ -67,7 +67,7 @@ const CITIES_BY_ISLAND: Record<string, string[]> = {
 const MODALITIES_LIST = [
   'Acupuncture', 'Alternative Therapy', 'Art Therapy', 'Astrology', 'Ayurveda',
   'Birth Doula', 'Breathwork', 'Chiropractic', 'Counseling',
-  'Craniosacral', 'Dentistry', 'Energy Healing', 'Family Constellation', 'Fitness', 'Functional Medicine',
+  'Craniosacral', 'Energy Healing', 'Family Constellation', 'Fitness', 'Functional Medicine',
   'Hawaiian Healing', 'Herbalism', 'Hypnotherapy', 'IV Therapy', 'Life Coaching',
   'Lomilomi / Hawaiian Healing', 'Longevity', 'Massage', 'Meditation', 'Midwife',
   'Nature Therapy', 'Naturopathic', 'Nervous System Regulation', 'Network Chiropractic',

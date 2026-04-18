@@ -14,7 +14,6 @@ export const ALL_MODALITIES = [
   'Chiropractic',
   'Counseling',
   'Craniosacral',
-  'Dentistry',
   'Energy Healing',
   'Family Constellation',
   'Fitness',

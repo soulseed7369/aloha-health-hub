@@ -14,7 +14,6 @@ export type ModalitySlug =
   | 'chiropractic'
   | 'counseling'
   | 'craniosacral'
-  | 'dentistry'
   | 'energy-healing'
   | 'family-constellation'
   | 'fitness'
@@ -68,7 +67,6 @@ export const MODALITY_SLUG_MAP: Record<ModalitySlug, string> = {
   'chiropractic': 'Chiropractic',
   'counseling': 'Counseling',
   'craniosacral': 'Craniosacral',
-  'dentistry': 'Dentistry',
   'energy-healing': 'Energy Healing',
   'family-constellation': 'Family Constellation',
   'fitness': 'Fitness',
