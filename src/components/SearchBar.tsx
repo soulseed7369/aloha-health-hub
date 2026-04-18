@@ -7,13 +7,13 @@ import heroImage from "@/assets/hero-homepage.jpg";
 import { useAliasMap } from "@/hooks/useSearchListings";
 import { useNameSuggestions } from "@/hooks/useNameSuggestions";
 
-// Island tabs — Big Island live, others coming soon
+// Island tabs — all four islands live
 const ISLAND_TABS = [
-  { value: 'all',         label: 'All Islands', comingSoon: true  },
+  { value: 'all',         label: 'All Islands', comingSoon: false },
   { value: 'big_island',  label: 'Big Island',  comingSoon: false },
   { value: 'maui',        label: 'Maui',        comingSoon: false },
-  { value: 'oahu',        label: 'Oahu',        comingSoon: true  },
-  { value: 'kauai',       label: 'Kauai',       comingSoon: true  },
+  { value: 'oahu',        label: 'Oahu',        comingSoon: false },
+  { value: 'kauai',       label: 'Kauai',       comingSoon: false },
 ];
 
 /** Set of island values that are currently active (not coming soon). */
