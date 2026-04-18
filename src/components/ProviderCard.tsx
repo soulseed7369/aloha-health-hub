@@ -250,6 +250,11 @@ export function ProviderCard({ provider, highlightModality, compact = false }: P
                 )}
               </div>
 
+              {/* Row 1b: Job title */}
+              <p className="text-xs text-muted-foreground leading-tight truncate">
+                {provider.title || inferTitleFromModality(provider.modalities?.[0] ?? provider.modality)}
+              </p>
+
               {/* Row 2: Location + accepting clients on same line */}
               <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0 text-xs text-muted-foreground leading-tight">
                 <MapPin className="h-3 w-3 flex-shrink-0" aria-hidden="true" />

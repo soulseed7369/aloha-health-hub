@@ -116,6 +116,7 @@ function resultToProvider(r: DirectoryResult): Provider {
   return {
     id: r.id,
     name: r.name,
+    title: r.title || undefined,
     type: 'practitioner',
     bio: r.bio || '',
     modality: (r.modality_labels?.[0]) || (r.modalities?.[0]) || '',

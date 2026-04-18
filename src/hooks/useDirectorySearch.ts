@@ -26,6 +26,7 @@ export interface DirectoryResult {
   id: string;
   listing_type: 'practitioner' | 'center';
   name: string;
+  title: string | null;
   bio: string | null;
   photo_url: string | null;
   city: string | null;
