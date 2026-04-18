@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Upload, X, Star, Loader2 } from 'lucide-react';
+import { Upload, X, Star, Loader2, Crop } from 'lucide-react';
 import { toast } from 'sonner';
 import { optimizeImage } from '@/lib/imageOptimize';
+import ImageCropModal from '@/components/ImageCropModal';
 
 export interface PhotoSlot {
   /** Public URL (already uploaded) */
@@ -40,6 +40,14 @@ export default function MultiPhotoUpload({
   const initialized = useRef(false);
   // Track all preview blob URLs for proper cleanup on unmount
   const previewUrls = useRef<Set<string>>(new Set());
+  // Crop modal state. For new uploads `editIndex` is null; for editing an
+  // existing slot it's the slot index being replaced.
+  const [cropState, setCropState] = useState<{
+    src: string;
+    fileName: string;
+    editIndex: number | null;
+    queue: File[];
+  } | null>(null);
 
   // Initialize from props once
   useEffect(() => {
@@ -66,7 +74,13 @@ export default function MultiPhotoUpload({
     onChange(nextSlots, nextIdx);
   }, [onChange]);
 
-  const handleFiles = async (fileList: FileList | null) => {
+  const openCropperForFile = useCallback((file: File, queue: File[], editIndex: number | null) => {
+    const objectUrl = URL.createObjectURL(file);
+    previewUrls.current.add(objectUrl);
+    setCropState({ src: objectUrl, fileName: file.name, editIndex, queue });
+  }, []);
+
+  const handleFiles = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const remaining = maxPhotos - slots.length;
     if (remaining <= 0) {
@@ -74,29 +88,75 @@ export default function MultiPhotoUpload({
       return;
     }
     const files = Array.from(fileList).slice(0, remaining);
+    // Reset file input immediately so re-selecting same file works
+    if (fileRef.current) fileRef.current.value = '';
+    // Open cropper on the first file; queue the rest.
+    const [first, ...rest] = files;
+    openCropperForFile(first, rest, null);
+  };
 
+  const handleEditCrop = (index: number) => {
+    const slot = slots[index];
+    const src = slot.preview || slot.url;
+    if (!src) return;
+    // Use fetch → blob so remote URLs load via <img crossOrigin> in the modal.
+    setCropState({
+      src,
+      fileName: `photo-${index + 1}.jpg`,
+      editIndex: index,
+      queue: [],
+    });
+  };
+
+  const closeCropper = () => {
+    // Revoke temporary object URL if we created one for a new upload.
+    if (cropState && previewUrls.current.has(cropState.src)) {
+      URL.revokeObjectURL(cropState.src);
+      previewUrls.current.delete(cropState.src);
+    }
+    setCropState(null);
+  };
+
+  const handleCropSave = async (cropped: File) => {
+    if (!cropState) return;
+    const { editIndex, queue } = cropState;
     setOptimizing(true);
     try {
-      const optimized: PhotoSlot[] = [];
-      for (const f of files) {
-        const opt = await optimizeImage(f);
-        const preview = URL.createObjectURL(opt);
-        previewUrls.current.add(preview); // track for cleanup
-        optimized.push({
-          url: '', // not uploaded yet
-          preview,
-          file: opt,
-        });
+      const opt = await optimizeImage(cropped);
+      const preview = URL.createObjectURL(opt);
+      previewUrls.current.add(preview);
+      const newSlot: PhotoSlot = { url: '', preview, file: opt };
+
+      let next: PhotoSlot[];
+      if (editIndex !== null) {
+        // Replacing an existing slot — revoke old preview if any.
+        const old = slots[editIndex];
+        if (old?.preview) {
+          URL.revokeObjectURL(old.preview);
+          previewUrls.current.delete(old.preview);
+        }
+        next = slots.map((s, i) => (i === editIndex ? newSlot : s));
+      } else {
+        next = [...slots, newSlot];
       }
-      const next = [...slots, ...optimized];
       setSlots(next);
       emitChange(next, profileIdx);
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Failed to process image.');
     } finally {
       setOptimizing(false);
-      // Reset file input so re-selecting same file works
-      if (fileRef.current) fileRef.current.value = '';
+      // Clean up the source object URL (if it was one we created)
+      if (previewUrls.current.has(cropState.src)) {
+        URL.revokeObjectURL(cropState.src);
+        previewUrls.current.delete(cropState.src);
+      }
+      // Advance the queue, or close.
+      if (queue.length > 0) {
+        const [next, ...rest] = queue;
+        openCropperForFile(next, rest, null);
+      } else {
+        setCropState(null);
+      }
     }
   };
 
@@ -144,6 +204,16 @@ export default function MultiPhotoUpload({
                 className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 <X className="w-3 h-3" />
+              </button>
+              {/* Edit crop button */}
+              <button
+                type="button"
+                onClick={() => handleEditCrop(i)}
+                disabled={disabled}
+                title="Adjust crop"
+                className="absolute top-1 right-1 bg-black/50 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-black/70 transition-opacity"
+              >
+                <Crop className="w-3 h-3" />
               </button>
               {/* Profile star */}
               <button
@@ -199,8 +269,15 @@ export default function MultiPhotoUpload({
       />
 
       <p className="text-xs text-muted-foreground">
-        Up to {maxPhotos} photos · JPG, PNG, or WebP · Auto-optimized on upload · Star = profile photo
+        Up to {maxPhotos} photos · JPG, PNG, or WebP · Adjust crop on upload · Star = profile photo
       </p>
+
+      <ImageCropModal
+        src={cropState?.src ?? null}
+        fileName={cropState?.fileName}
+        onSave={handleCropSave}
+        onClose={closeCropper}
+      />
     </div>
   );
 }

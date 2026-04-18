@@ -35,6 +35,7 @@ export function useMyPractitioner() {
 
 export type PractitionerFormData = {
   name: string;
+  business_name: string;
   title: string;
   island: string;
   modalities: string[];
@@ -88,6 +89,7 @@ export function useSavePractitioner() {
       const payload: Record<string, unknown> = {
         owner_id: user.id,
         name: formData.name.trim(),
+        business_name: formData.business_name?.trim() || null,
         title: formData.title?.trim() || null,
         island: formData.island || 'big_island',
         modalities: formData.modalities.filter(Boolean),

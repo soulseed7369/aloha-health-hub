@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CreditCard, CheckCircle, Star, Crown, Loader2, PartyPopper, AlertTriangle } from "lucide-react";
+import { CreditCard, CheckCircle, Star, Crown, Loader2, PartyPopper, AlertTriangle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { useMyBillingProfile, useCreateCheckoutSession, useCancelSubscription, PRACTITIONER_PLAN_OPTIONS, CENTER_PLAN_OPTIONS } from "@/hooks/useStripe";
 import { STRIPE_PRICES } from "@/lib/stripe";
@@ -122,6 +122,16 @@ export default function DashboardBilling() {
         </CardContent>
       </Card>
 
+      {/* Kama'aina Rate banner */}
+      <div className="rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 px-5 py-3 flex items-center justify-center gap-3 text-center">
+        <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0" />
+        <div className="flex flex-col gap-0.5">
+          <p className="text-sm font-semibold text-amber-900">Kamaʻāina Rate applied automatically — no discount code needed.</p>
+          <p className="text-sm text-amber-800">Early supporter pricing locked in <strong>for life</strong>. Limited spots.</p>
+        </div>
+        <Sparkles className="h-4 w-4 text-amber-500 flex-shrink-0" />
+      </div>
+
       {/* Plan options */}
       <div>
         <h2 className="mb-4 font-display text-lg font-semibold">Upgrade Your Plan</h2>
@@ -161,16 +171,23 @@ export default function DashboardBilling() {
                     <Badge className="ml-auto text-xs bg-blue-100 text-blue-700 border-blue-200">Current</Badge>
                   )}
                 </div>
-                <p className="mt-1">
-                  {accountTypeLoading ? (
-                    <Skeleton className="h-8 w-24" />
-                  ) : (
-                    <>
+                {accountTypeLoading ? (
+                  <Skeleton className="h-8 w-24 mt-1" />
+                ) : (
+                  <>
+                    <p className="mt-1 flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-foreground">{planOptions[0].price.split(' ')[0]}</span>
-                      <span className="text-sm text-muted-foreground"> / month</span>
-                    </>
-                  )}
-                </p>
+                      <span className="text-sm text-muted-foreground">/ month</span>
+                      <span className="text-muted-foreground text-sm line-through">{planOptions[0].originalPrice}</span>
+                    </p>
+                    <div className="mt-1.5">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                        <Sparkles className="h-3 w-3" />
+                        Kamaʻāina Rate — first {planOptions[0].spots} subscribers
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
               <ul className="space-y-2 text-sm text-muted-foreground flex-1">
                 {planOptions[0].features.map((f) => (
@@ -213,16 +230,23 @@ export default function DashboardBilling() {
                     <Badge className="ml-auto text-xs bg-amber-100 text-amber-700 border-amber-200">Current</Badge>
                   )}
                 </div>
-                <p className="mt-1">
-                  {accountTypeLoading ? (
-                    <Skeleton className="h-8 w-24" />
-                  ) : (
-                    <>
+                {accountTypeLoading ? (
+                  <Skeleton className="h-8 w-24 mt-1" />
+                ) : (
+                  <>
+                    <p className="mt-1 flex items-baseline gap-2">
                       <span className="text-2xl font-bold text-foreground">{planOptions[1].price.split(' ')[0]}</span>
-                      <span className="text-sm text-muted-foreground"> / month</span>
-                    </>
-                  )}
-                </p>
+                      <span className="text-sm text-muted-foreground">/ month</span>
+                      <span className="text-muted-foreground text-sm line-through">{planOptions[1].originalPrice}</span>
+                    </p>
+                    <div className="mt-1.5">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                        <Sparkles className="h-3 w-3" />
+                        Kamaʻāina Rate — first {planOptions[1].spots} subscribers
+                      </span>
+                    </div>
+                  </>
+                )}
               </div>
 
               <ul className="space-y-2 text-sm text-muted-foreground flex-1">

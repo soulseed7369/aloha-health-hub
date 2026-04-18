@@ -1346,14 +1346,16 @@ const ProfileDetail = () => {
             <CardContent className="p-0">
               {/* Map — OSM iframe when lat/lng available, styled fallback otherwise */}
               {p.lat && p.lng ? (
-                <iframe
-                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${p.lng - 0.015},${p.lat - 0.01},${p.lng + 0.015},${p.lat + 0.01}&layer=mapnik&marker=${p.lat},${p.lng}`}
-                  width="100%"
-                  height="160"
-                  className="w-full block rounded-t-lg border-0"
-                  title={`Map showing location of ${p.name}`}
-                  loading="lazy"
-                />
+                <div className="h-[160px] overflow-hidden rounded-t-lg">
+                  <iframe
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${p.lng - 0.015},${p.lat - 0.01},${p.lng + 0.015},${p.lat + 0.01}&layer=mapnik&marker=${p.lat},${p.lng}`}
+                    width="100%"
+                    height="185"
+                    className="w-full block border-0"
+                    title={`Map showing location of ${p.name}`}
+                    loading="lazy"
+                  />
+                </div>
               ) : (
                 <div className="flex h-40 items-center justify-center rounded-t-lg bg-ocean-light">
                   <div className="text-center">

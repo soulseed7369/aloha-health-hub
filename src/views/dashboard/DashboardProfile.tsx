@@ -73,6 +73,7 @@ const RESPONSE_TIME_OPTIONS = [
 
 const emptyForm: PractitionerFormData = {
   name: '',
+  business_name: '',
   title: '',
   island: 'big_island',
   modalities: [],
@@ -128,6 +129,7 @@ export default function DashboardProfile() {
       initialized.current = true;
       setForm({
         name: practitioner.name ?? '',
+        business_name: (practitioner as any).business_name ?? '',
         title: practitioner.title ?? '',
         island: practitioner.island ?? 'big_island',
         modalities: practitioner.modalities ?? [],
@@ -347,6 +349,19 @@ export default function DashboardProfile() {
               value={form.name}
               onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="businessName">Business Name</Label>
+            <Input
+              id="businessName"
+              placeholder="e.g. Hilo Healing Arts (optional)"
+              value={form.business_name}
+              onChange={e => setForm(p => ({ ...p, business_name: e.target.value }))}
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional. Shown under your name on your public listing.
+            </p>
           </div>
 
           <div className="space-y-2">
