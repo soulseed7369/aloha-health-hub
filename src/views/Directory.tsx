@@ -411,7 +411,7 @@ const Directory = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQ = searchParams.get('q') || '';
-  const urlIsland = searchParams.get('island') || 'big_island';
+  const urlIsland = searchParams.get('island') || 'all';
   const urlModality = searchParams.get('modality') || '';
   const urlCity = searchParams.get('city') || '';
   const urlCenterType = searchParams.get('centerType') || '';

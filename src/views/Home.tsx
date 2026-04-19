@@ -181,19 +181,10 @@ export default function Home() {
     "Find holistic health practitioners and wellness centers across Oʻahu, Maui, the Big Island, and Kauaʻi. 44 modalities from Lomilomi to yoga."
   );
 
-  // ── Island tab state with localStorage preference ─────────────────────────
+  // ── Island tab state — always defaults to 'all' on the homepage.
+  // No localStorage restore here: the homepage is an all-islands entry point;
+  // persisting a per-island preference would break the default for everyone.
   const [selectedIsland, setSelectedIsland] = useState<string>("all");
-
-  useEffect(() => {
-    try {
-      const preferred = localStorage.getItem("preferredIsland");
-      if (preferred && ISLANDS.some((i) => i.dbKey === preferred)) {
-        setSelectedIsland(preferred);
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, []);
 
   // ── Fetch data ──────────────────────────────────────────────────────────────
   const selectedIslandConfig = ISLANDS.find((i) => i.dbKey === selectedIsland) || ISLANDS[0];
@@ -220,11 +211,6 @@ export default function Home() {
 
   const handleIslandChange = (island: string) => {
     setSelectedIsland(island);
-    try {
-      localStorage.setItem("preferredIsland", island);
-    } catch {
-      // ignore storage errors
-    }
   };
 
   return (
@@ -233,6 +219,7 @@ export default function Home() {
 
       {/* ── 1. SearchBar + Hero ──────────────────────────────────────────────── */}
       <SearchBar
+        island="all"
         heroTitle="Hawaiʻi's Wellness Directory"
         heroSubtitle="Find holistic health practitioners and wellness centers across all four Hawaiian Islands."
         heroImageUrl="/all_islands_hero.webp"

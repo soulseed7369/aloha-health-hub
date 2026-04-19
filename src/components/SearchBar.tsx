@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-homepage.jpg";
 import { useAliasMap } from "@/hooks/useSearchListings";
 import { useNameSuggestions } from "@/hooks/useNameSuggestions";
-import { findCityOnIsland, ISLAND_DISPLAY_NAMES } from "@/lib/islandCities";
+import { findCityOnIsland, CITY_COORDS_BY_ISLAND, ISLAND_DISPLAY_NAMES } from "@/lib/islandCities";
 
 // Island tabs — all four islands live
 const ISLAND_TABS = [
@@ -46,6 +46,7 @@ const AXIS_LABELS: Record<string, string> = {
   approach: 'Approach',
   format: 'Format',
   audience: 'Audience',
+  city: 'Locations',
 };
 
 const LOCATION_STORAGE_KEY = 'aloha_user_location';
@@ -57,6 +58,10 @@ interface Suggestion {
   /** Set for name suggestions — navigate directly to profile on select */
   listingId?: string;
   listingType?: 'practitioner' | 'center';
+  /** Set for city suggestions — select sets location + island */
+  cityLat?: number;
+  cityLng?: number;
+  cityIsland?: string;
 }
 
 interface HeroImageSet {
@@ -351,8 +356,34 @@ export function SearchBar({
       });
     }
 
+    // City suggestions — so "kailua" shows "Kailua, Oʻahu" and "Kailua-Kona,
+    // Big Island" as distinct options, letting users pick the right place.
+    if (debouncedWhat.length >= 2) {
+      const q = debouncedWhat.toLowerCase();
+      const islandsToSearch = island && island !== 'all'
+        ? [island]
+        : Object.keys(CITY_COORDS_BY_ISLAND);
+      let cityIdx = -1000; // synthetic negative ids that don't collide with name suggestions
+      for (const isl of islandsToSearch) {
+        for (const [city, coords] of Object.entries(CITY_COORDS_BY_ISLAND[isl] ?? {})) {
+          const c = city.toLowerCase();
+          if (c.startsWith(q) || c.includes(q)) {
+            const islandName = ISLAND_DISPLAY_NAMES[isl] ?? isl;
+            results.push({
+              id: cityIdx--,
+              label: `${city}, ${islandName}`,
+              axis: 'city',
+              cityLat: coords.lat,
+              cityLng: coords.lng,
+              cityIsland: isl,
+            });
+          }
+        }
+      }
+    }
+
     return results;
-  }, [aliasMap, debouncedWhat, nameSuggestions]);
+  }, [aliasMap, debouncedWhat, nameSuggestions, island]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, Suggestion[]> = {};
@@ -373,16 +404,36 @@ export function SearchBar({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelect = useCallback((label: string, listingId?: string, listingType?: 'practitioner' | 'center') => {
+  const handleSelect = useCallback((s: Suggestion) => {
     setIsOpen(false);
     setHighlightIdx(-1);
-    if (listingId) {
-      // Navigate directly to the listing's profile page
-      navigate(listingType === 'center' ? `/center/${listingId}` : `/profile/${listingId}`);
-    } else {
-      setWhat(label);
+    if (s.listingId) {
+      navigate(s.listingType === 'center' ? `/center/${s.listingId}` : `/profile/${s.listingId}`);
+      return;
     }
-  }, [navigate]);
+    if (s.cityLat !== undefined && s.cityLng !== undefined) {
+      // City selected — set location, switch island, navigate to directory
+      const lat = s.cityLat;
+      const lng = s.cityLng;
+      setUserLat(lat);
+      setUserLng(lng);
+      const cityIsland = s.cityIsland ?? island;
+      if (cityIsland && ACTIVE_ISLANDS.has(cityIsland)) setIsland(cityIsland);
+      const label = s.label; // already "City, Island"
+      setLocationLabel(label);
+      localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({ lat, lng, label }));
+      // Navigate with location + island; keep any existing what query
+      const params = new URLSearchParams();
+      const q = what.trim();
+      if (q) params.set('q', q);
+      params.set('island', cityIsland && ACTIVE_ISLANDS.has(cityIsland) ? cityIsland : 'all');
+      params.set('ulat', String(lat));
+      params.set('ulng', String(lng));
+      navigate(`/directory?${params.toString()}`);
+      return;
+    }
+    setWhat(s.label);
+  }, [navigate, island, what]);
 
   // ── Navigation ──────────────────────────────────────────────────────────────
   const handleSearch = (overrideWhat?: string) => {
@@ -390,7 +441,8 @@ export function SearchBar({
     const params = new URLSearchParams();
     const q = overrideWhat ?? what.trim();
     if (q) params.set('q', q);
-    if (island && island !== 'all') params.set('island', island);
+    // Always emit island so Directory doesn't fall back to its own default.
+    params.set('island', island || 'all');
     if (userLat !== null && userLng !== null) {
       params.set('ulat', String(userLat));
       params.set('ulng', String(userLng));
@@ -404,7 +456,7 @@ export function SearchBar({
     setIsOpen(false);
     const params = new URLSearchParams();
     params.set('modality', label);
-    if (island && island !== 'all') params.set('island', island);
+    params.set('island', island || 'all');
     if (userLat !== null && userLng !== null) {
       params.set('ulat', String(userLat));
       params.set('ulng', String(userLng));
@@ -417,7 +469,7 @@ export function SearchBar({
     if (e.key === 'Enter') {
       if (highlightIdx >= 0 && highlightIdx < suggestions.length) {
         const s = suggestions[highlightIdx];
-        handleSelect(s.label, s.listingId, s.listingType);
+        handleSelect(s);
         e.preventDefault();
         return;
       }
@@ -542,7 +594,7 @@ export function SearchBar({
                               key={item.id}
                               type="button"
                               className={`w-full px-3 py-2 text-left text-sm hover:bg-accent ${flatIdx === highlightIdx ? 'bg-accent' : ''}`}
-                              onMouseDown={() => handleSelect(item.label, item.listingId, item.listingType)}
+                              onMouseDown={() => handleSelect(item)}
                             >
                               {item.label}
                             </button>
