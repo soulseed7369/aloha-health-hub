@@ -89,12 +89,13 @@ CREATE TRIGGER trg_claim_drip_centers
   FOR EACH ROW EXECUTE FUNCTION fn_queue_claim_drip();
 
 -- ── pg_cron schedule ─────────────────────────────────────────────────────────
--- Runs every 15 minutes. Replaces YOUR_SERVICE_ROLE_KEY with the actual key
--- from: https://supabase.com/dashboard/project/sccksxvjckllxlvyuotv/settings/api
+-- Runs every 15 minutes.
 --
--- First, store the key as a DB setting (run once):
---   ALTER DATABASE postgres SET "app.settings.service_role_key" = 'eyJ...';
--- Then run this block:
+-- Before running this block:
+--   1. Generate a random secret, e.g.: openssl rand -hex 20
+--   2. Set it as a Supabase secret:
+--        supabase secrets set DRIP_SECRET=<your_secret>
+--   3. Replace YOUR_DRIP_SECRET below with that same value.
 
 SELECT cron.schedule(
   'process-claim-drip',
@@ -102,10 +103,7 @@ SELECT cron.schedule(
   $$
   SELECT net.http_post(
     url     := 'https://sccksxvjckllxlvyuotv.supabase.co/functions/v1/process-claim-drip',
-    headers := jsonb_build_object(
-      'Content-Type',  'application/json',
-      'Authorization', 'Bearer ' || current_setting('app.settings.service_role_key', true)
-    ),
+    headers := '{"Content-Type": "application/json", "x-drip-secret": "YOUR_DRIP_SECRET"}'::jsonb,
     body    := '{}'::jsonb
   );
   $$

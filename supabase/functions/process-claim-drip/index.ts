@@ -258,14 +258,15 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: CORS });
   }
 
-  // Auth — must be service role key (matches pattern used by pg_cron caller)
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const auth = req.headers.get('Authorization') ?? '';
-  if (!serviceRoleKey || auth !== `Bearer ${serviceRoleKey}`) {
+  // Auth — x-drip-secret header must match DRIP_SECRET env var
+  const dripSecret = Deno.env.get('DRIP_SECRET') ?? '';
+  const provided   = req.headers.get('x-drip-secret') ?? '';
+  if (!dripSecret || provided !== dripSecret) {
     return json({ error: 'Unauthorized' }, 401);
   }
 
   const supabaseUrl    = Deno.env.get('SUPABASE_URL')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
   const resendKey      = Deno.env.get('RESEND_API_KEY');
   const dryRun         = new URL(req.url).searchParams.get('dry_run') === 'true';
   const db             = createClient(supabaseUrl, serviceRoleKey);
