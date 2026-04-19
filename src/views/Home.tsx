@@ -23,6 +23,7 @@ import {
   Moon,
   Heart,
   ChevronRight,
+  Instagram,
 } from "lucide-react";
 
 // ── Island configuration for all-islands mode ───────────────────────────────
@@ -641,6 +642,15 @@ export default function Home() {
               </Button>
             </Link>
           </div>
+          <a
+            href="https://www.instagram.com/hawaii.wellness"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-6 inline-flex items-center gap-2 text-sm text-primary-foreground/70 transition-colors hover:text-primary-foreground"
+          >
+            <Instagram className="h-4 w-4" />
+            Follow us @hawaii.wellness
+          </a>
         </div>
       </section>
     </main>

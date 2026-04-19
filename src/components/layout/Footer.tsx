@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, CheckCircle } from "lucide-react";
+import { Mail, CheckCircle, Instagram } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export function Footer() {
@@ -37,6 +37,15 @@ export function Footer() {
             <p className="text-sm opacity-80">
               Connecting Hawaiʻi with holistic wellness
             </p>
+            <a
+              href="https://www.instagram.com/hawaii.wellness"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm opacity-70 hover:opacity-100 transition-opacity"
+            >
+              <Instagram className="h-4 w-4" />
+              @hawaii.wellness
+            </a>
             <p className="text-xs opacity-50">
               Hawaii Wellness · Kamuela, HI
             </p>
