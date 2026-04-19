@@ -19,26 +19,64 @@ const DISPLAY_SLOTS = 4;
  * Also returns `totalCount` (the full island count for stats/SEO)
  * via a cheap count-only query.
  */
+// Islands shown in the all-islands homepage grid (one card each).
+const ALL_ISLANDS = ['big_island', 'maui', 'oahu', 'kauai'] as const;
+
 export function useHomePractitioners(island: string) {
-  // 'all' means no island filter — used on the All-Islands homepage.
-  // When there's no paid tier filling the grid on the all-islands view,
-  // pad with *claimed* free listings only (owner_id not null) so we don't
-  // surface un-curated scraped rows on the most-visited page.
   const isAll = island === 'all';
   const listingsQuery = useQuery<Provider[]>({
     queryKey: ['home-practitioners', island],
     queryFn: async () => {
       if (!supabase) return mockPractitioners;
 
-      // Query 1: All featured + premium listings (optionally scoped to island)
-      let paidQuery = supabase
+      // ── All-Islands mode: one representative per island ──────────────────
+      // Fetch 4 parallel island queries. Each gets the best available listing
+      // (featured > premium > any published) so every island gets a card slot
+      // even if it only has unclaimed free listings.
+      if (isAll) {
+        const perIsland = await Promise.all(
+          ALL_ISLANDS.map(async (isl) => {
+            // Prefer paid tiers
+            const { data: paid } = await supabase!
+              .from('practitioners')
+              .select('*, business:centers!practitioners_business_id_fkey(id,name)')
+              .eq('island', isl)
+              .eq('status', 'published')
+              .in('tier', ['featured', 'premium'])
+              .order('name')
+              .limit(3);
+
+            if (paid?.length) {
+              const providers = paid.map(practitionerRowToProvider);
+              const feat = providers.filter(p => p.tier === 'featured');
+              return feat.length ? feat[0] : providers[0];
+            }
+
+            // Fall back to any published listing for this island
+            const { data: any_ } = await supabase!
+              .from('practitioners')
+              .select('*, business:centers!practitioners_business_id_fkey(id,name)')
+              .eq('island', isl)
+              .eq('status', 'published')
+              .limit(20);
+
+            if (!any_?.length) return null;
+            const pool = any_.map(practitionerRowToProvider);
+            return pool[Math.floor(Math.random() * pool.length)];
+          })
+        );
+        return perIsland.filter((p): p is Provider => p !== null);
+      }
+
+      // ── Single-island mode ───────────────────────────────────────────────
+      // Query 1: All featured + premium listings for this island
+      const { data: paidData, error: paidError } = await supabase
         .from('practitioners')
         .select('*, business:centers!practitioners_business_id_fkey(id,name)')
+        .eq('island', island)
         .eq('status', 'published')
         .in('tier', ['featured', 'premium'])
         .order('name');
-      if (!isAll) paidQuery = paidQuery.eq('island', island);
-      const { data: paidData, error: paidError } = await paidQuery;
 
       if (paidError) throw paidError;
 
@@ -47,22 +85,17 @@ export function useHomePractitioners(island: string) {
       const premium = paid.filter(p => p.tier === 'premium');
       const prioritized = [...featured, ...premium];
 
-      // If paid listings already fill the display, no need for free
       if (prioritized.length >= DISPLAY_SLOTS) return prioritized;
 
-      // Query 2: Fetch a larger pool of free listings and shuffle so the
-      // same two alphabetically-first listings don't stick every time.
+      // Query 2: Free listings to pad remaining slots
       const needed = DISPLAY_SLOTS - prioritized.length;
-      let freeQuery = supabase
+      const { data: freeData, error: freeError } = await supabase
         .from('practitioners')
         .select('*, business:centers!practitioners_business_id_fkey(id,name)')
+        .eq('island', island)
         .eq('status', 'published')
         .or('tier.eq.free,tier.is.null')
         .limit(50);
-      if (!isAll) freeQuery = freeQuery.eq('island', island);
-      // Only show *claimed* free listings in the cross-island view.
-      if (isAll) freeQuery = freeQuery.not('owner_id', 'is', null);
-      const { data: freeData, error: freeError } = await freeQuery;
 
       if (freeError) throw freeError;
 
@@ -129,15 +162,48 @@ export function useHomeCenters(island: string) {
     queryFn: async () => {
       if (!supabase) return mockCenters;
 
-      // Query 1: All featured + premium centers (optionally scoped to island)
-      let paidQuery = supabase
+      // ── All-Islands mode: one representative center per island ───────────
+      if (isAll) {
+        const perIsland = await Promise.all(
+          ALL_ISLANDS.map(async (isl) => {
+            const { data: paid } = await supabase!
+              .from('centers')
+              .select('*')
+              .eq('island', isl)
+              .eq('status', 'published')
+              .in('tier', ['featured', 'premium'])
+              .order('name')
+              .limit(3);
+
+            if (paid?.length) {
+              const centers = paid.map(centerRowToCenter);
+              const feat = centers.filter(c => c.tier === 'featured');
+              return feat.length ? feat[0] : centers[0];
+            }
+
+            const { data: any_ } = await supabase!
+              .from('centers')
+              .select('*')
+              .eq('island', isl)
+              .eq('status', 'published')
+              .limit(20);
+
+            if (!any_?.length) return null;
+            const pool = any_.map(centerRowToCenter);
+            return pool[Math.floor(Math.random() * pool.length)];
+          })
+        );
+        return perIsland.filter((c): c is Center => c !== null);
+      }
+
+      // ── Single-island mode ───────────────────────────────────────────────
+      const { data: paidData, error: paidError } = await supabase
         .from('centers')
         .select('*')
+        .eq('island', island)
         .eq('status', 'published')
         .in('tier', ['featured', 'premium'])
         .order('name');
-      if (!isAll) paidQuery = paidQuery.eq('island', island);
-      const { data: paidData, error: paidError } = await paidQuery;
 
       if (paidError) throw paidError;
 
@@ -148,17 +214,14 @@ export function useHomeCenters(island: string) {
 
       if (prioritized.length >= DISPLAY_SLOTS) return prioritized;
 
-      // Query 2: Fetch a larger pool and shuffle.
       const needed = DISPLAY_SLOTS - prioritized.length;
-      let freeQuery = supabase
+      const { data: freeData, error: freeError } = await supabase
         .from('centers')
         .select('*')
+        .eq('island', island)
         .eq('status', 'published')
         .or('tier.eq.free,tier.is.null')
         .limit(50);
-      if (!isAll) freeQuery = freeQuery.eq('island', island);
-      if (isAll) freeQuery = freeQuery.not('owner_id', 'is', null);
-      const { data: freeData, error: freeError } = await freeQuery;
 
       if (freeError) throw freeError;
 
