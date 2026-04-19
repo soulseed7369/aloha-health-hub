@@ -236,8 +236,7 @@ export function IslandHome({ config }: IslandHomeProps) {
               </Link>
               <div className="h-8 w-px bg-border" aria-hidden="true" />
               <div className="text-center">
-                <div className="text-sm font-semibold text-foreground md:text-base">The {config.displayName}&apos;s Hub</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">for Holistic Health</div>
+                <div className="text-sm font-semibold text-foreground md:text-base">{config.displayName}&apos;s Hub for Holistic Health</div>
               </div>
             </div>
           </div>

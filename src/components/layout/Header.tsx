@@ -11,6 +11,7 @@ const navLinks = [
 ];
 
 const islandLinks = [
+  { label: "All Islands", to: "/" },
   { label: "Big Island", to: "/big-island" },
   { label: "Maui", to: "/maui" },
   { label: "Oahu", to: "/oahu" },
@@ -43,7 +44,7 @@ export function Header() {
           <div className="group relative">
             <button
               className={`flex items-center gap-1 text-sm font-medium transition-colors hover:text-primary ${
-                islandLinks.some((l) => location.pathname.startsWith(l.to))
+                islandLinks.some((l) => l.to === '/' ? location.pathname === '/' : location.pathname.startsWith(l.to))
                   ? "text-primary"
                   : "text-muted-foreground"
               }`}

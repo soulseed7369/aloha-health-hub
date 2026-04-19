@@ -68,8 +68,7 @@ export function Footer() {
             <nav className="flex flex-col gap-2 text-sm">
               <Link to="/directory" className="opacity-80 hover:opacity-100">Browse Directory</Link>
               <Link to="/guides" className="opacity-80 hover:opacity-100">Wellness Guides</Link>
-              <Link to="/guides/wellness-modalities-hawaii" className="opacity-80 hover:opacity-100">44 Modalities Guide</Link>
-              <Link to="/articles" className="opacity-80 hover:opacity-100">Articles</Link>
+<Link to="/articles" className="opacity-80 hover:opacity-100">Articles</Link>
               <Link to="/list-your-practice" className="opacity-80 hover:opacity-100">List Your Practice</Link>
             </nav>
           </div>

@@ -273,10 +273,7 @@ export default function Home() {
               </Link>
               <div className="h-8 w-px bg-border" aria-hidden="true" />
               <div className="text-center">
-                <div className="text-sm font-semibold text-foreground md:text-base">4 Islands</div>
-                <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  All of Hawaiʻi
-                </div>
+                <div className="text-sm font-semibold text-foreground md:text-base">Hawaiʻi&apos;s Hub for Holistic Health</div>
               </div>
             </div>
           </div>

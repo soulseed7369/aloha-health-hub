@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-homepage.jpg";
 import { useAliasMap } from "@/hooks/useSearchListings";
 import { useNameSuggestions } from "@/hooks/useNameSuggestions";
-import { findCityOnIsland, CITY_COORDS_BY_ISLAND, ISLAND_DISPLAY_NAMES } from "@/lib/islandCities";
+import { findCityOnIsland, CITY_COORDS_BY_ISLAND, ISLAND_CITIES, ISLAND_DISPLAY_NAMES } from "@/lib/islandCities";
 
 // Island tabs — all four islands live
 const ISLAND_TABS = [
@@ -162,7 +162,8 @@ export function SearchBar({
   const [locating, setLocating] = useState(false);
   const [locationLabel, setLocationLabel] = useState<string | null>(null);
 
-  // Zip code UI state
+  // Location picker UI state
+  const [showCityPicker, setShowCityPicker] = useState(false);
   const [showZipInput, setShowZipInput] = useState(false);
   const [zipInput, setZipInput] = useState('');
   const [geocoding, setGeocoding] = useState(false);
@@ -631,6 +632,46 @@ export function SearchBar({
                     <X className="h-3 w-3" /> Change
                   </button>
                 </div>
+              ) : showCityPicker ? (
+                /* City picker — island-scoped dropdown */
+                <div className="flex flex-1 items-center gap-2">
+                  <select
+                    className="flex-1 h-8 rounded border border-border bg-background text-sm px-2 focus:outline-none focus:ring-1 focus:ring-ring"
+                    defaultValue=""
+                    onChange={(e) => {
+                      const cityName = e.target.value;
+                      if (!cityName) return;
+                      const coords = CITY_COORDS_BY_ISLAND[island]?.[cityName];
+                      if (!coords) return;
+                      const islandName = ISLAND_DISPLAY_NAMES[island] ?? island;
+                      const label = `${cityName} · ${islandName}`;
+                      setUserLat(coords.lat);
+                      setUserLng(coords.lng);
+                      setLocationLabel(label);
+                      localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify({ lat: coords.lat, lng: coords.lng, label }));
+                      setShowCityPicker(false);
+                    }}
+                  >
+                    <option value="" disabled>Select a town…</option>
+                    {(ISLAND_CITIES[island] ?? []).map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => { setShowCityPicker(false); setShowZipInput(true); }}
+                    className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
+                  >
+                    Zip code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowCityPicker(false)}
+                    className="flex-shrink-0 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               ) : showZipInput ? (
                 /* Zip / town entry */
                 <div className="flex flex-1 items-center gap-2">
@@ -685,10 +726,10 @@ export function SearchBar({
                   <span className="text-muted-foreground/50 text-xs">or</span>
                   <button
                     type="button"
-                    onClick={() => setShowZipInput(true)}
+                    onClick={() => island && island !== 'all' ? setShowCityPicker(true) : setShowZipInput(true)}
                     className="text-sm text-muted-foreground hover:text-foreground transition-colors"
                   >
-                    Enter zip / town
+                    {island && island !== 'all' ? 'Select a town' : 'Enter zip / town'}
                   </button>
                 </div>
               )}

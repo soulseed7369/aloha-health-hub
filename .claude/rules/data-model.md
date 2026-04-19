@@ -23,6 +23,7 @@ lng                  float8
 photo_url            text
 social_links         jsonb    -- { instagram, facebook, linkedin, x, substack }
 session_type         text     -- 'in_person' | 'online' | 'both'
+credentials          text[]   -- ARRAY of credential abbreviations: ["LMT", "ND", "LAc", "PhD"]
 created_at           timestamptz
 updated_at           timestamptz
 ```
