@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, CheckCircle, Circle, ArrowRight, Star, Loader2, Eye, Search, MessageCircle, Mail, ChevronDown, ChevronUp, Camera, FileText, Heart, Sparkles } from "lucide-react";
+import { User, CheckCircle, Circle, ArrowRight, Star, Loader2, Eye, Search, MessageCircle, Mail, ChevronDown, ChevronUp, Camera, FileText, Heart, Sparkles, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useMyPractitioner } from "@/hooks/useMyPractitioner";
@@ -16,6 +16,18 @@ export default function DashboardHome() {
   const { data: accountType, isLoading: accountTypeLoading } = useAccountType();
   const checkout = useCreateCheckoutSession();
   const [guideOpen, setGuideOpen] = useState(true);
+
+  const UPSELL_KEY = 'hw_website_upsell_dismissed';
+  const [upsellDismissed, setUpsellDismissed] = useState(() => {
+    try {
+      const ts = localStorage.getItem(UPSELL_KEY);
+      return !!ts && Date.now() - parseInt(ts, 10) < 30 * 24 * 60 * 60 * 1000;
+    } catch { return false; }
+  });
+  const dismissUpsell = () => {
+    localStorage.setItem(UPSELL_KEY, String(Date.now()));
+    setUpsellDismissed(true);
+  };
 
   // Route based on account type on first load
   useEffect(() => {
@@ -104,6 +116,34 @@ export default function DashboardHome() {
           Manage your listing, billing, and account settings.
         </p>
       </div>
+
+      {/* Website packages upsell — free tier only */}
+      {billing?.tier === 'free' && !upsellDismissed && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles className="h-4 w-4 flex-shrink-0 text-primary" />
+            <span className="text-foreground">
+              <span className="font-medium">Take your practice further</span> — get a professional website built for Hawaiʻi wellness providers.{' '}
+              <a
+                href="https://www.hawaiiwellness.net/website-packages"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary underline underline-offset-2 hover:text-primary/80"
+              >
+                View website packages →
+              </a>
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={dismissUpsell}
+            className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Onboarding checklist — shown until both steps are done */}
       {!practLoading && (!hasProfile || !hasChosenPlan) && (

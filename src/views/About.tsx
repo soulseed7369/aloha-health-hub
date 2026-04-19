@@ -12,12 +12,20 @@ const About = () => {
   return (
     <main>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/30 py-20">
-        <div className="container max-w-3xl text-center">
-          <h1 className="mb-4 font-display text-4xl font-bold md:text-5xl">
+      <section className="relative overflow-hidden py-24 md:py-32">
+        <img
+          src="/about_hero.webp"
+          alt="Hawaii wellness"
+          className="absolute inset-0 h-full w-full object-cover"
+          fetchPriority="high"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-foreground/50" />
+        <div className="container relative z-10 max-w-3xl text-center">
+          <h1 className="mb-4 font-display text-4xl font-bold text-primary-foreground md:text-5xl">
             About Hawaiʻi Wellness
           </h1>
-          <p className="text-lg text-muted-foreground md:text-xl">
+          <p className="text-lg text-primary-foreground/85 md:text-xl">
             Connecting visitors and residents with Hawaiʻi's finest holistic health practitioners and wellness centers.
           </p>
         </div>
@@ -37,9 +45,6 @@ const About = () => {
         </p>
         <p className="mb-4 leading-relaxed text-muted-foreground">
           We are building a clear, current, and organized directory where people can explore the full spectrum of holistic health across the islands. It is a place where residents can find ongoing care, where visitors can discover meaningful wellness experiences, and where practitioners themselves can become more visible and connected.
-        </p>
-        <p className="leading-relaxed text-muted-foreground">
-          We're live on the Big Island and Maui, and expanding across Oʻahu, Kauaʻi, and beyond — with the goal of becoming the central hub where anyone can discover the people and places dedicated to healing in Hawai'i.
         </p>
       </section>
 
