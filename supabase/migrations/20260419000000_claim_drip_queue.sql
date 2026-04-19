@@ -89,22 +89,17 @@ CREATE TRIGGER trg_claim_drip_centers
   FOR EACH ROW EXECUTE FUNCTION fn_queue_claim_drip();
 
 -- ── pg_cron schedule ─────────────────────────────────────────────────────────
--- Runs every 15 minutes.
+-- Run this separately in the SQL editor AFTER enabling the pg_cron extension:
+-- https://supabase.com/dashboard/project/sccksxvjckllxlvyuotv/database/extensions
 --
--- Before running this block:
---   1. Generate a random secret, e.g.: openssl rand -hex 20
---   2. Set it as a Supabase secret:
---        supabase secrets set DRIP_SECRET=<your_secret>
---   3. Replace YOUR_DRIP_SECRET below with that same value.
-
-SELECT cron.schedule(
-  'process-claim-drip',
-  '*/15 * * * *',
-  $$
-  SELECT net.http_post(
-    url     := 'https://sccksxvjckllxlvyuotv.supabase.co/functions/v1/process-claim-drip',
-    headers := '{"Content-Type": "application/json", "x-drip-secret": "YOUR_DRIP_SECRET"}'::jsonb,
-    body    := '{}'::jsonb
-  );
-  $$
-);
+-- SELECT cron.schedule(
+--   'process-claim-drip',
+--   '*/15 * * * *',
+--   $$
+--   SELECT net.http_post(
+--     url     := 'https://sccksxvjckllxlvyuotv.supabase.co/functions/v1/process-claim-drip',
+--     headers := '{"Content-Type": "application/json", "x-drip-secret": "9c2bb8d0c8f05774792bbd259de776ddca708354"}'::jsonb,
+--     body    := '{}'::jsonb
+--   );
+--   $$
+-- );
