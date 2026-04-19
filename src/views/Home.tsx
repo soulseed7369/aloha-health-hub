@@ -189,9 +189,10 @@ export default function Home() {
 
   // ── Fetch data ──────────────────────────────────────────────────────────────
   const selectedIslandConfig = ISLANDS.find((i) => i.dbKey === selectedIsland) || ISLANDS[0];
-  const { data: practitioners, isLoading: loadingPractitioners } =
+  const { data: practitioners, isLoading: loadingPractitioners, claimedCount } =
     useHomePractitioners(selectedIsland);
-  const { data: centers, isLoading: loadingCenters } = useHomeCenters(selectedIsland);
+  const { data: centers, isLoading: loadingCenters, claimedCount: centerClaimedCount } = useHomeCenters(selectedIsland);
+  const totalClaimedCount = claimedCount + centerClaimedCount;
   const { data: articles = [] } = useArticles();
   const { practitionersCount, centersCount } = useAllIslandsStats();
 
@@ -222,7 +223,7 @@ export default function Home() {
       <SearchBar
         island="all"
         heroTitle="Hawaiʻi's Wellness Directory"
-        heroSubtitle="Find holistic health practitioners and wellness centers across all four Hawaiian Islands."
+        heroSubtitle="Find holistic health practitioners and wellness centers across the Hawaiian Islands."
         heroImageUrl="/all_islands_hero.webp"
         heroImages={{
           srcSet:
@@ -271,10 +272,15 @@ export default function Home() {
                   Wellness Modalities
                 </div>
               </Link>
-              <div className="h-8 w-px bg-border" aria-hidden="true" />
-              <div className="text-center">
-                <div className="text-sm font-semibold text-foreground md:text-base">Hawaiʻi&apos;s Hub for Holistic Health</div>
-              </div>
+              {(practitionersCount + centersCount) > 0 && totalClaimedCount / (practitionersCount + centersCount) >= 0.1 && (
+                <>
+                  <div className="h-8 w-px bg-border" aria-hidden="true" />
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-primary md:text-3xl">{totalClaimedCount}+</div>
+                    <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Verified Providers</div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>

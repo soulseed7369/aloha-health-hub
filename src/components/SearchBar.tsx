@@ -723,14 +723,18 @@ export function SearchBar({
                     }
                     {locating ? 'Locating…' : 'Use my location'}
                   </button>
-                  <span className="text-muted-foreground/50 text-xs">or</span>
-                  <button
-                    type="button"
-                    onClick={() => island && island !== 'all' ? setShowCityPicker(true) : setShowZipInput(true)}
-                    className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    {island && island !== 'all' ? 'Select a town' : 'Enter zip / town'}
-                  </button>
+                  {island && island !== 'all' && (
+                    <>
+                      <span className="text-muted-foreground/50 text-xs">or</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowCityPicker(true)}
+                        className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Select a town
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </div>
