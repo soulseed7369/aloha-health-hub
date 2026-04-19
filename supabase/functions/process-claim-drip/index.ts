@@ -175,6 +175,9 @@ function step2(row: DripRow): EmailTemplate {
       <p>If you haven't added a photo and bio yet, that's the highest-leverage thing you can do right now. Profiles with photos get far more clicks than text-only listings.</p>
       ${btn('Complete your profile', dashUrl)}
       <p>When you're ready to grow further — <a href="${upgradeUrl}" style="color:#0369a1;">Premium</a> gives you priority placement in search results, booking links visible directly on your listing, and a space to post retreat offerings. No long-term contracts.</p>
+      <p style="background:#f0f9ff;border-left:3px solid #0369a1;padding:12px 16px;border-radius:0 6px 6px 0;margin:20px 0;">
+        <strong>Limited-time offer:</strong> Use code <strong>ALOHA50</strong> at checkout for 50% off your first month of Premium or Featured. Valid through May 15th.
+      </p>
       <p style="margin-bottom:0;">Aloha,<br /><strong>Marcus</strong><br />
         <a href="${SITE_URL}" style="color:#0369a1;">Hawaiʻi Wellness</a>
       </p>`),
@@ -187,6 +190,8 @@ If you haven't added a photo and bio yet, that's the highest-leverage thing you 
 Complete your profile: ${dashUrl}
 
 When you're ready to grow further — Premium gives you priority placement in search results, booking links visible directly on your listing, and a space to post retreat offerings. No long-term contracts.
+
+LIMITED-TIME OFFER: Use code ALOHA50 at checkout for 50% off your first month of Premium or Featured. Valid through May 15th.
 
 ${upgradeUrl}
 
